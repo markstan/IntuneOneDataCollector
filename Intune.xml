@@ -18,7 +18,18 @@ RunCommand "whoami /upn"
 RunCommand "whoami /all"
 RunCommand "whoami /logonid"
 RunCommand "whoami /fqdn"</Command>
-      <Command Type="CMD" Team="General" OutputFileName="dsregcmd-debug.txt">cmd /c psexec -accepteula -s -e -nobanner dsregcmd /debug</Command>
+      <Command Type="PS" Team="General" OutputFileName="dsregcmd-debug.txt">[string]$psexec = ""
+if ( Get-Command psexec.exe ) {
+    $psexec = $(Get-Command psexec.exe).Source
+}
+else {
+    Invoke-WebRequest https://live.sysinternals.com/psexec.exe -OutFile .\psexec.exe
+    $psexec = Join-Path $pwd psexec.exe
+    }
+ 
+&amp; "$psexec" -nobanner -accepteula -s -e cmd /c dsregcmd /debug   
+
+</Command>
       <Command Type="CMD" Team="General" OutputFileName="DIR_SystemCenterAdvisor_Agent.txt">dir /s "%programfiles%\System Center Advisor\AgentData\AdvisorMonitor"</Command>
       <Command Type="PS" Team="General" OutputFileName="BasicSystemInfo">Function GetAgeDescription($TimeSpan, [switch] $Localized) {
  $Age = $TimeSpan
@@ -751,6 +762,8 @@ Trap [Exception]
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*appx*</EventLog>
       <EventLog Team="Event Log">%windir%\System32\Winevt\Logs\Microsoft-Windows-Shell-Core%4Operational.evtx</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*autopilot*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*intune*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*bitlocker*</EventLog>
     </EventLogs>
     <Files>
       <File Team="Advisor">%programfiles%\System Center Advisor\AgentData\Logs\*</File>
@@ -787,6 +800,9 @@ Trap [Exception]
       <File Team="General">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
       <File Team="General">%programdata%\microsoft\diagnosticlogcsp\collectors\*</File>
       <File Team="Intune">%public%\Documents\MDMDiagnostics\*</File>
+      <File Team="NDES">%programfiles%\Microsoft Intune\NDESConnectorUI\NDESConnectorUI.log</File>
+      <File Team="NDES">%programfiles%\Microsoft Intune\NDESConnectorSvc\logs\logs\*</File>
+      <File Team="NDES">%programfiles%\Microsoft Intune\NDESConnectorUI\Logs\*</File>
     </Files>
     <Registries>
       <Registry Team="Registry" OutputFileName="REG_MicrosoftAntimalware.TXT">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Microsoft Antimalware</Registry>
@@ -833,7 +849,8 @@ Trap [Exception]
       <Registry Team="Registry" OutputFileName="REG_CCS_services_CertPropSvc">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\CertPropSvc</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_services_SCardSvr">HKEY_LOCAL_MACHINE\HKLM\SYSTEM\CurrentControlSet\services\SCardSvr</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_services_SCPolicySvc">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\SCPolicySvc</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW-Microsoft-Providsioning-Diagnostics-Autopilot">HKLM\SOFTWARE\Microsoft\Provisioning\Diagnostics\AutoPilot</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW-Microsoft-Providsioning-Diagnostics-Autopilot">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\Diagnostics\AutoPilot</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW-Microsoft-DotNetFW-v4">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\.NETFramework\v4.0.30319</Registry>
     </Registries>
   </Package>
 </DataPoints>
