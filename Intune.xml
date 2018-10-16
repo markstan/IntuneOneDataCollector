@@ -764,6 +764,7 @@ Trap [Exception]
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*autopilot*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*intune*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*bitlocker*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-Shell-Core%4Operational.evtx</EventLog>
     </EventLogs>
     <Files>
       <File Team="Advisor">%programfiles%\System Center Advisor\AgentData\Logs\*</File>
