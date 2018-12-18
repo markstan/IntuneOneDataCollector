@@ -4,7 +4,7 @@ First, please download the Intune.xml file from [this link](https://raw.githubus
 
 Once you have the file copied to the workstation, please use these steps to collect the diagnostic. It should only take a few minutes to collect and upload:
 
-1. Make sure the device is connected to the Internet, then click on the Start and type **MSDT** in the search box, then select MSDT (run command) from the search results
+1. Make sure the device is connected to the Internet, then click on Start and type **MSDT** in the search box, then select MSDT (run command) from the search results
 
 1. Type your support key <span style="background-color:#FFFF00; color: black">**XXXXXXXXX_replace_this_with_the_link_from_sdcon**</span> in the space provided then click next
 
@@ -22,4 +22,4 @@ Once you have the file copied to the workstation, please use these steps to coll
 
 1. Wait for the wizard to complete. It will take some time (2-3 minutes typically).
 
-1. When prompted, choose Upload the data now. You may also choose "Review the data being sent" to see the files included in the automatic upload. Your support professional will receive an automated notice when the file is uploaded.
+1. When prompted, choose Upload the data now. You may also choose "Review the data being sent" to see the files included in the automatic upload. Your support professional will receive an automated notice when the file is uploaded
