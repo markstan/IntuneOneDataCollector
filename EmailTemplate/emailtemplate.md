@@ -6,7 +6,7 @@ Once you have the file copied to the workstation, please use these steps to coll
 
 1. Make sure the device is connected to the Internet, then click on Start and type **MSDT** in the search box, then select MSDT (run command) from the search results
 
-1. Type your support key <span style="background-color:#FFFF00; color: black">**XXXXXXXXX_replace_this_with_the_link_from_sdcon**</span> in the space provided then click next
+1. Type your support key <span style="background-color:#FFFF00; color: black">**XXXXXXXXX_replace_this_with_the_key_from_sdcon**</span> in the space provided then click next
 
 1. Follow the on-screen instructions to run the diagnostic package on this computer or prepare the package for use on another computer
 
