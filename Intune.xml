@@ -805,6 +805,10 @@ Trap [Exception]
       <File Team="NDES">%programfiles%\Microsoft Intune\NDESConnectorUI\NDESConnectorUI.log</File>
       <File Team="NDES">%programfiles%\Microsoft Intune\NDESConnectorSvc\logs\logs\*</File>
       <File Team="NDES">%programfiles%\Microsoft Intune\NDESConnectorUI\Logs\*</File>
+      <File Team="NDES">C:\inetpub\logs\LogFiles\W3SVC1\u_ex*.log </File>
+      <File Team="NDES">%programfiles%\Microsoft Intune\NDESPolicyModule\Logs\NDESPlugin.log</File>
+      <File Team="NDES">C:\NDESConnectorSetup\*.log</File>
+      <File Team="NDES">%programfiles%\Microsoft Configuration Manager\logs\ndes*</File>
     </Files>
     <Registries>
       <Registry Team="Registry" OutputFileName="REG_MicrosoftAntimalware.TXT">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Microsoft Antimalware</Registry>
@@ -853,6 +857,7 @@ Trap [Exception]
       <Registry Team="Registry" OutputFileName="REG_CCS_services_SCPolicySvc">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\SCPolicySvc</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW-Microsoft-Providsioning-Diagnostics-Autopilot">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\Diagnostics\AutoPilot</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW-Microsoft-DotNetFW-v4">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\.NETFramework\v4.0.30319</Registry>
+      <Registry Team="General" OutputFileName="REG_SW-Microsoft-OfficeCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OfficeCSP</Registry>
     </Registries>
   </Package>
 </DataPoints>
