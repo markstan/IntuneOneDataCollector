@@ -718,23 +718,34 @@ $uniqueURLs  | ForEach-Object  { Test-NetConnection -Port 443 $_}
     }
 
 
-$ndesPaths = @("C:\inetpub\logs\LogFiles\W3SVC1\*",
-"$env:programfiles\Microsoft Intune\NDESPolicyModule\Logs\NDESPlugin.log",
-"$env:programfiles\Microsoft Intune\NDESConnectorSvc\Logs\Logs\NDESConnector*",
-"$env:programfiles\Microsoft Intune\NDESConnectorSvc\Logs\Logs\CertificateRegistrationPoint*"
- )
 
+$installFolder = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\MicrosoftIntune\NDESConnector).InstallFolder
 $copyPath = "$env:temp\CollectedData\Intune\Files\NDES"
-if (-not(test-path $copyPath) ) { $x = mkdir $copyPath -Force }
 
-ForEach ($ndesPath in $ndesPaths) {
+if ($installFolder) {
 
-    $filesToCollect = Get-FilesOlderThan -path $ndesPath -days 3
-    foreach ($fileToCollect in $filesToCollect) { copy $fileToCollect $copyPath}
+    $ndesPaths = @(
+        "$installFolder\NDESPolicyModule\Logs\NDESPlugin.log",
+        "$installFolder\NDESConnectorSvc\Logs\Logs\NDESConnector*",
+        "$installFolder\NDESConnectorSvc\Logs\Logs\CertificateRegistrationPoint*",
+        "$installFolder\NDESConnectorUI\NDESConnectorUI.log",        "$installFolder\NDESConnectorUI\Logs\*",        "C:\inetpub\logs\LogFiles\W3SVC1\u_ex*.log"        "$installFolder\NDESPolicyModule\Logs\NDESPlugin.log",        "C:\NDESConnectorSetup\*.log",        "$env:programfiles\Microsoft Configuration Manager\logs\ndes*"
+         )
+
+    
+    if (-not(test-path $copyPath) ) { $x = mkdir $copyPath -Force }
+
+    ForEach ($ndesPath in $ndesPaths) {
+
+        if (Test-Path $ndesPath) {
+            $filesToCollect = Get-FilesOlderThan -path $ndesPath -days 3
+            foreach ($fileToCollect in $filesToCollect) { copy $fileToCollect $copyPath}
+            }
 
 
-}
-copy "C:\NDESConnectorSetupMSI\*" $copyPath</Command>
+    }
+    copy "C:\NDESConnectorSetupMSI\*" $copyPath
+
+}</Command>
       <Command Type="PS" Team="NDES" OutputFileName="certificate_authority.txt">
 Trap [Exception]
 {
