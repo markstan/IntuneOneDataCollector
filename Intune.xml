@@ -809,6 +809,7 @@ Trap [Exception]
       <File Team="NDES">%programfiles%\Microsoft Intune\NDESPolicyModule\Logs\NDESPlugin.log</File>
       <File Team="NDES">C:\NDESConnectorSetup\*.log</File>
       <File Team="NDES">%programfiles%\Microsoft Configuration Manager\logs\ndes*</File>
+      <File Team="Sidecar">%ProgramData%\Microsoft\Intune Management Extension\Logs\*</File>
     </Files>
     <Registries>
       <Registry Team="Registry" OutputFileName="REG_MicrosoftAntimalware.TXT">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Microsoft Antimalware</Registry>
