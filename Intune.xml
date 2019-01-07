@@ -728,7 +728,12 @@ if ($installFolder) {
         "$installFolder\NDESPolicyModule\Logs\NDESPlugin.log",
         "$installFolder\NDESConnectorSvc\Logs\Logs\NDESConnector*",
         "$installFolder\NDESConnectorSvc\Logs\Logs\CertificateRegistrationPoint*",
-        "$installFolder\NDESConnectorUI\NDESConnectorUI.log",        "$installFolder\NDESConnectorUI\Logs\*",        "C:\inetpub\logs\LogFiles\W3SVC1\u_ex*.log"        "$installFolder\NDESPolicyModule\Logs\NDESPlugin.log",        "C:\NDESConnectorSetup\*.log",        "$env:programfiles\Microsoft Configuration Manager\logs\ndes*"
+        "$installFolder\NDESConnectorUI\NDESConnectorUI.log",
+        "$installFolder\NDESConnectorUI\Logs\*",
+        "C:\inetpub\logs\LogFiles\W3SVC1\u_ex*.log"
+        "$installFolder\NDESPolicyModule\Logs\NDESPlugin.log",
+        "C:\NDESConnectorSetup\*.log",
+        "$env:programfiles\Microsoft Configuration Manager\logs\ndes*"
          )
 
     
@@ -758,6 +763,37 @@ Trap [Exception]
  }
 
 </Command>
+      <Command Type="PS" Team="Configmgr" OutputFileName="NA">function Get-FilesOlderThan
+    {
+    Param ([int]$days = 2,
+           [string]$path = $pwd
+           )
+
+    $DaysAgo = (Get-Date).AddDays(-($days))
+    $files = @()
+    $files = Get-ChildItem $path | where { $_.CreationTime -gt $DaysAgo }
+ 
+    # get latest file if none meet our criteria
+    if ((Test-Path $path) -and (-not $files) ) {
+       $newestFile = Get-ChildItem $path |Sort-Object LastAccessTime -Descending | Select-Object -First 1
+       $files += $newestFile
+    }
+
+    $files
+    }
+
+
+
+$ccmFolder = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\CCM\Logging\@Global).LogDirectory
+$copyPath = "$env:temp\CollectedData\Intune\Files\ConfigMgr"
+
+if ($ccmFolder) {
+
+    if (-not(test-path $copyPath) ) { $x = mkdir $copyPath -Force }
+    $filesToCollect = Get-FilesOlderThan -path $ccmFolder -days 3
+    foreach ($fileToCollect in $filesToCollect) { copy $fileToCollect.PSPath $copyPath}
+  
+}</Command>
     </Commands>
     <EventLogs>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
