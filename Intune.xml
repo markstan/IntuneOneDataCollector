@@ -422,8 +422,7 @@ RunCommand -cmdToRun "net statistics workstation"   </Command>
       <Command Type="PS" Team="General" OutputFileName="sym_SysWOW64_sys_Drivers.txt">get-childitem $env:windir\syswow64\drivers -recurse -file | select DeviceName, DriverVersion</Command>
       <Command Type="PS" Team="General" OutputFileName="sym_RunningDrivers.txt">Get-WmiObject Win32_PnPSignedDriver | select DeviceName, DriverVersion | ft -auto</Command>
       <Command Type="CMD" Team="General" OutputFileName="ScheduledTasks">schtasks.exe /Query</Command>
-      <Command Type="PS" Team="General" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\General"
-Get-WindowsUpdateLog -Logpath $outputPath\WindowsUpdate.log</Command>
+      <Command Type="PS" Team="General" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\General"; Get-WindowsUpdateLog -Logpath $outputPath\WindowsUpdate.log</Command>
       <Command Type="CMD" Team="General" OutputFileName="GPResult.txt">gpresult.exe /V</Command>
       <Command Type="PS" Team="General" OutputFileName="InstalledWindowsFeatures">Get-WindowsOptionalFeature -Online | where {$_.State -eq "Enabled"}</Command>
       <Command Type="PS" Team="Networking" OutputFileName="NetSH_Commands">echo "======= netsh int show int ======"
@@ -848,7 +847,7 @@ if ($ccmFolder) {
       <File Team="Intune">%programfiles%\Microsoft\OnlineManagement\PolicyAgent\ReportCache\3DA21691-E39D-4DA6-8A4B-B43877BCB1B7\*.xml</File>
       <File Team="WMI">%windir%\system32\wbem\logs\*.*</File>
       <File Team="WMI">%windir%\system32\wbem\tmf\*.*</File>
-      <File Team="Windows Update">%windir%\windowsupdate*.log</File>
+      <File Team="Windows Update">"%windir%\windowsupdate*.log"</File>
       <File Team="General">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
       <File Team="General">%programdata%\microsoft\diagnosticlogcsp\collectors\*</File>
       <File Team="Intune">%public%\Documents\MDMDiagnostics\*</File>
