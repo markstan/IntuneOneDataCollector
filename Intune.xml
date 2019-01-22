@@ -923,6 +923,7 @@ $DateTime = New-Object -ComObject WbemScripting.SWbemDateTime
 $DateTime.SetVarDate($(Get-Date))
 $UtcValue = $DateTime.Value
 $UtcOffset = $UtcValue.Substring(21, $UtcValue.Length - 21)
+$prettyLogFileName = $LogFilePath -replace "\.log$", "-pretty.log"
 
 $LogLine =  "&lt;![LOG[$Value]LOG]!&gt;" +`
             "&lt;time=`"$(Get-Date -Format HH:mm:ss.fff)$($UtcOffset)`" " +`
@@ -933,6 +934,15 @@ $LogLine =  "&lt;![LOG[$Value]LOG]!&gt;" +`
             "thread=`"$([Threading.Thread]::CurrentThread.ManagedThreadId)`" " +`
             "file=`"`"&gt;"
 
+$PrettyLogLine = "$(Get-Date -Format MM-dd-yyyy) $(Get-Date -Format HH:mm:ss.fff)$($UtcOffset)" +`
+            "[$Component] " +`
+            "[$([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)] " +
+            "[Severity = $Severity] $Value" 
+            
+            
+            
+
+Add-Content -Path $prettyLogFileName -Value $PrettyLogLine
 Add-Content -Path $LogFilePath -Value $LogLine
 
 }
@@ -1010,8 +1020,7 @@ $LogFilePath = "$($TempDirPath)\Validate-NDESConfig.log"
             Write-Output ""
             Write-Output "......................................................."
             Write-Output ""
-            Write-Output "NDES Service Account = "-NoNewline 
-            Write-Output "$($NDESServiceAccount)" 
+            Write-Output "NDES Service Account = $($NDESServiceAccount)" 
             Write-Output ""
             Write-Output "Issuing CA Server = $($IssuingCAServerFQDN)" 
             Write-Output ""
@@ -1092,8 +1101,7 @@ $MinOSVersion = "6.3"
     
     else {
     
-        Write-Output "Success: OS Version $($OSVersion)" -NoNewline 
-        Write-Output " supported."
+        Write-Output "Success: OS Version $($OSVersion) supported."
         Log-ScriptEvent $LogFilePath "Server is version $($OSVersion)" NDES_Validation 1
     
     }
@@ -1205,7 +1213,7 @@ Log-ScriptEvent $LogFilePath "Checking NDES Service Account local permissions" N
 
         if ($IIS_IUSRMembers -like "*$NDESServiceAccount*"){
 
-            Write-Output "Success: NDES Service Account is a member of the local IIS_IUSR group" -NoNewline
+            Write-Output "Success: NDES Service Account is a member of the local IIS_IUSR group" 
             Log-ScriptEvent $LogFilePath "NDES Service Account is a member of the local IIS_IUSR group" NDES_Validation 1
     
         }
@@ -1403,7 +1411,7 @@ Log-ScriptEvent $LogFilePath "Checking IIS Application Pool health" NDES_Validat
                 
         if ($SCEPAppPoolRunning){
                 
-            Write-Output "Success: SCEP Application Pool is Started " -NoNewline
+            Write-Output "Success: SCEP Application Pool is Started " 
             Log-ScriptEvent $LogFilePath "SCEP Application Pool is Started"  NDES_Validation 1
                 
         }
@@ -2037,7 +2045,7 @@ Write-Output ""
 Write-Output "......................................................."
 $hostname = ([System.Net.Dns]::GetHostByName(($env:computerName))).hostname
 Write-Output ""
-Write-Output "Checking behaviour of internal NDES URL: " -NoNewline 
+Write-Output "Checking behaviour of internal NDES URL: " 
 Write-Output "https://$hostname/certsrv/mscep/mscep.dll" 
 Write-Output ""
 Log-ScriptEvent $LogFilePath "Checking behaviour of internal NDES URL" NDES_Validation 1
@@ -2116,8 +2124,8 @@ Log-ScriptEvent $LogFilePath "Checking Intune Connector is installed" NDES_Valid
 
     if ($IntuneConnector = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |  Select-Object DisplayName, DisplayVersion, Publisher, InstallDate | ? {$_.DisplayName -eq "Microsoft Intune Connector"}){
 
-        Write-Output "Success: $($IntuneConnector.DisplayName) was installed on " -NoNewline 
-        Write-Output "$($IntuneConnector.InstallDate) "  -NoNewline 
+        Write-Output "Success: $($IntuneConnector.DisplayName) was installed on " 
+        Write-Output "$($IntuneConnector.InstallDate) "  
         Write-Output "and is version $($IntuneConnector.DisplayVersion)"
         Log-ScriptEvent $LogFilePath "ConnectorVersion:$IntuneConnector"  NDES_Validation 1
 
@@ -2328,7 +2336,8 @@ Write-Output ""
 Write-Output "......................................................."
 Write-Output ""
 Write-Output "Log Files..." 
-Write-Output ""if ($unattend) {
+Write-Output ""
+if ($unattend) {
     Write-Output "Automatically gathering files."
     $LogFileCollectionConfirmation = "y"
     }
@@ -2445,6 +2454,7 @@ Write-Output ""
 exit
 
 }</Command>
+      <Command Type="PS" Team="General" OutputFileName="Services.txt">Get-Service | fl *</Command>
     </Commands>
     <EventLogs>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
