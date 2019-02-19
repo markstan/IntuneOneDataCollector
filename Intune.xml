@@ -2467,7 +2467,6 @@ exit
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*operations*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*momlog*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*AAD*.evtx</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-User Device Registration*.evtx</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-Provisioning-*</EventLog>
       <EventLog Team="Event Log">%windir%\System32\Winevt\Logs\Microsoft-Windows-DeviceSetupManager*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*appx*</EventLog>
@@ -2475,8 +2474,7 @@ exit
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*autopilot*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*intune*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*bitlocker*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-Shell-Core%4Operational.evtx</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*workplace*join*</EventLog>
+      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-SENSE%4Operational.evtx</EventLog>
     </EventLogs>
     <Files>
       <File Team="Advisor">"%programfiles%\System Center Advisor\AgentData\Logs\*"</File>
