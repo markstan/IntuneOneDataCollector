@@ -19,7 +19,7 @@ RunCommand "whoami /all"
 RunCommand "whoami /logonid"
 RunCommand "whoami /fqdn"</Command>
       <Command Type="PS" Team="General" OutputFileName="dsregcmd-debug.txt">[string]$psexec = ""
-if ( Get-Command psexec.exe ) {
+if ( Get-Command psexec.exe -ErrorAction SilentlyContinue ) {
     $psexec = $(Get-Command psexec.exe).Source
 }
 else {
@@ -32,7 +32,7 @@ else {
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 msinfo32.exe /nfo "$outputPath\msinfo32.nfo" /report "$outputPath\msinfo32.txt"</Command>
       <Command Type="CMD" Team="General" OutputFileName="DIR_SystemCenterAdvisor_Agent.txt">dir /s "%programfiles%\System Center Advisor\AgentData\AdvisorMonitor"</Command>
-      <Command Type="PS" Team="General" OutputFileName="BasicSystemInfo">Function GetAgeDescription($TimeSpan, [switch] $Localized) {
+      <Command Type="PS" Team="General" OutputFileName="BasicSystemInfo.txt">Function GetAgeDescription($TimeSpan, [switch] $Localized) {
  $Age = $TimeSpan
 
  if ($Age.Days -gt 0) 
@@ -352,7 +352,8 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
 
  # Add-Member -InputObject $CS_Summary -MemberType NoteProperty -name "RAM (physical)" -value (FormatBytes -bytes $WMICS.TotalPhysicalMemory -precision 1)
  $OS_Summary | fl
- $CS_Summary | fl </Command>
+ $CS_Summary | fl 
+ systeminfo.exe</Command>
       <Command Type="CMD" Team="General" OutputFileName="Installed_Products.txt">wmic product list brief </Command>
       <Command Type="CMD" Team="General" OutputFileName="proxy_settings.txt">netsh winhttp show proxy</Command>
       <Command Type="PS" Team="General" OutputFileName="Firewall_Settings">function RunCommand {
