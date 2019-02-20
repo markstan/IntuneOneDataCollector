@@ -1,18 +1,20 @@
 # Customer-ready email template
 
-First, please download the Intune.xml file from [this link](https://raw.githubusercontent.com/markstan/IntuneOneDataCollector/master/Intune.xml) (right-click and choose "save as..." in IE and Chrome; Edge users should copy all text to a plain text file and save as 'Intune.xml'.).
+First, please download the Intune.xml file from [this link](https://raw.githubusercontent.com/markstan/IntuneOneDataCollector/master/Intune.xml) (right-click and choose "save as..." in IE and Chrome; Edge users should copy all text to a plain text file and save as 'Intune.xml').
 
-Once you have the file copied to the workstation, please use these steps to collect the diagnostic. It should only take a few minutes to collect and upload:
+Once you have the file copied, please use these steps to collect the diagnostic:
 
-1. Make sure the device is connected to the Internet, then click on Start and type **MSDT** in the search box, then select MSDT (run command) from the search results
+1. Make sure the device is connected to the Internet, then connect to https://aka.ms/SaRA-Assisted.  Install and run the SetupProd_Assisted.exe program when prompted. Note:  If you receive a warning that downloads are not permitted from the site, be sure to add https://outlookdiagnostics.azureedge.net to the trusted sites in your browser.
 
-1. Type your support key <span style="background-color:#FFFF00; color: black">**XXXXXXXXX_replace_this_with_the_key_from_sdcon**</span> in the space provided then click next
+1. Click **I agree** to accept the license agreement
 
-1. Follow the on-screen instructions to run the diagnostic package on this computer or prepare the package for use on another computer
+1. Click **Yes** when you see the **Do you want to allow this app to make changes to your device?  Windows host process (Rundll32)** prompt
 
-1. Choose "One Data Collector" and click **Next** <br> &nbsp;&nbsp;&nbsp; ![](./ct1.png)
+1. Type your support key <span style="background-color:yellow">**XXXXXXXXX_replace_this_with_the_link_from_sdcon**</span> in the space provided then click next
 
-1. Select "This computer" when prompted
+1. Follow the on-screen instructions to run the One Data Collector tool on this computer or prepare the package for use on another computer then click **Next**.  
+
+1.  Leave the "Microsoft Support and Recovery Assistant for Office 365" running in the background.  When the **One Data Collector** window appears, click **Next**.
 
 1. Select "Send diagnostics to Microsoft" 
 
@@ -22,4 +24,6 @@ Once you have the file copied to the workstation, please use these steps to coll
 
 1. Wait for the wizard to complete. It will take some time (2-3 minutes typically).
 
-1. When prompted, choose "Upload the data now". You may also choose "Review the data being sent" to see the files included in the automatic upload. Your support professional will receive an automated notice when the file is uploaded <br>  &nbsp;&nbsp;&nbsp; ![](./ct3.png)
+1.  When One Data Collector completes, click on **Close the troubleshooter** to return to the "Microsoft Support and Recovery Assistant for Office 365" window.
+
+1. Click on the **Microsoft Support site** hyper-link in the "Microsoft Support and Recovery Assistant for Office 365" Window to upload the collected data.  The file will be located in %localappdata%\Temp\DiagnosticResult.  Each execution will produce a zip file name Diagnostic_results_`<guid`>.zip.  Follow the directions on the Secure File Exchange site to upload your results.
