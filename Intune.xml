@@ -23,7 +23,15 @@ if ( Get-Command psexec.exe -ErrorAction SilentlyContinue ) {
     $psexec = $(Get-Command psexec.exe).Source
 }
 else {
-    Invoke-WebRequest https://live.sysinternals.com/psexec.exe -OutFile .\psexec.exe
+
+    if ( [System.Net.WebProxy]::GetDefaultProxy().Address -eq $null ) {
+        Invoke-WebRequest -Uri https://live.sysinternals.com/psexec.exe -OutFile .\psexec.exe
+        }
+    else {
+    
+        $myproxy = ([System.Net.WebProxy]::GetDefaultProxy().Address.AbsoluteURI)    
+        Invoke-WebRequest -Uri "https://live.sysinternals.com/psexec.exe" -OutFile .\psexec.exe -Proxy $myproxy
+    }
     $psexec = Join-Path $pwd psexec.exe
     }
  
