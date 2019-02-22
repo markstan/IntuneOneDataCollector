@@ -802,8 +802,7 @@ $config = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Cryptography\MSCEP\CAInfo).
 
 RunCommand -cmdToRun "certutil -v -template"
 RunCommand -cmdToRun "certutil -CATemplates -config $config"</Command>
-      <Command Type="PS" Team="NDES" OutputFileName="Validate-NDES-Output.txt">
-&lt;#
+      <Command Type="PS" Team="NDES" OutputFileName="Validate-NDES-Output.txt">&lt;#
 
 .SYNOPSIS
 Highlights configuration problems on an NDES server, as configured for use with Intune Standalone SCEP certificates.
@@ -825,87 +824,85 @@ Where possible, a link and section description will be provided.
 https://docs.microsoft.com/en-us/intune/certificates-scep-configure#configure-your-infrastructure
 
 #&gt;
-
 [CmdletBinding(DefaultParameterSetName="Unattended")]
-
 Param(
+    [parameter(Mandatory=$true,ParameterSetName="Unattended")]
+    [alias("ua","silent","s","unattended")]
+    [switch]$unattend,  
 
-[parameter(Mandatory=$false,ParameterSetName="Unattended")]
-[alias("ua","silent","s","unattended")]
-[switch]$unattend = $true,  
+    [parameter(Mandatory=$false,ParameterSetName="NormalRun")]
+    [alias("sa")]
+    [ValidateScript({
+        if (-not ($unattend) -and  ($_ -match ".\\.") ) {
 
-[parameter(Mandatory=$true,ParameterSetName="NormalRun")]
-[alias("sa")]
-[ValidateScript({
-    if ($_ -match ".\\."){
-
-        $True
+            $True
     
-    }
-
-    else {
-
-    Throw "Please use the format Domain\Username for the NDES Service Account variable."
-
-    }
-
-    $EnteredDomain = $_.split("\")
-    $ads = New-Object -ComObject ADSystemInfo
-    $Domain = $ads.GetType().InvokeMember('DomainShortName','GetProperty', $Null, $ads, $Null)
-    
-        if ($EnteredDomain -like "$Domain") {
-
-        $True
-
         }
 
         else {
-        if (-not $unattend) {
-            Throw "Incorrect Domain. Ensure domain is '$($Domain)\&lt;USERNAME&gt;'"
+
+         Write-Output "Please use the format Domain\Username for the NDES Service Account variable."
+
+        }
+
+        $EnteredDomain = $_.split("\")
+        $ads = New-Object -ComObject ADSystemInfo
+        $Domain = $ads.GetType().InvokeMember('DomainShortName','GetProperty', $Null, $ads, $Null)
+    
+            if ($EnteredDomain -like "$Domain") {
+
+            $True
+
+            }
+
+            else {
+            if (-not $unattend) {
+                Write-Output "Incorrect Domain. Ensure domain is '$($Domain)\&lt;USERNAME&gt;'"
+                }
+
             }
 
         }
+    )]
+    [string]$NDESServiceAccount,
 
-    }
-)]
-[string]$NDESServiceAccount,
+    [parameter(Mandatory=$false,ParameterSetName="NormalRun")]
+    [alias("ca")]
+    [ValidateScript({
+        $Domain = (Get-WmiObject Win32_ComputerSystem).domain
+            if ($_ -match $Domain) {
 
-[parameter(Mandatory=$true,ParameterSetName="NormalRun")]
-[alias("ca")]
-[ValidateScript({
-    $Domain = (Get-WmiObject Win32_ComputerSystem).domain
-        if ($_ -match $Domain) {
+            $True
 
-        $True
+            }
 
-        }
-
-        else {
+            else {
    
-        Throw "The Network Device Enrollment Server and the Certificate Authority are not members of the same Active Directory domain. This is an unsupported configuration."
+            Write-Output "The Network Device Enrollment Server and the Certificate Authority are not members of the same Active Directory domain. This is an unsupported configuration."
+
+            }
 
         }
+    )]
+    [string]$IssuingCAServerFQDN,
 
-    }
-)]
-[string]$IssuingCAServerFQDN,
+    [parameter(Mandatory=$false,ParameterSetName="NormalRun")]
+    [alias("t")]
+    [string]$SCEPUserCertTemplate,
 
-[parameter(Mandatory=$true,ParameterSetName="NormalRun")]
-[alias("t")]
-[string]$SCEPUserCertTemplate,
+    [parameter(ParameterSetName="Help")]
+    [alias("h","?","/?")]
+    [switch]$help,
 
-[parameter(ParameterSetName="Help")]
-[alias("h","?","/?")]
-[switch]$help,
-
-[parameter(ParameterSetName="Help")]
-[alias("u")]
-[switch]$usage
+    [parameter(ParameterSetName="Help")]
+    [alias("u")]
+    [switch]$usage
 
 
 
 
 )
+
 
 #######################################################################
 
@@ -1012,6 +1009,8 @@ $parent = [System.IO.Path]::GetTempPath()
 New-Item -ItemType Directory -Path (Join-Path $parent $name) | Out-Null
 $TempDirPath = "$parent$name"
 $LogFilePath = "$($TempDirPath)\Validate-NDESConfig.log"
+$nil = Import-Module WebAdministration -Force
+$unattend = $true
 
 #######################################################################
 
@@ -1272,7 +1271,7 @@ Log-ScriptEvent $LogFilePath "Checking NDES Service Account local permissions" N
     else {
 
         Write-Output "Error: No IIS_IUSRS group exists. Ensure IIS is installed."  
-        Write-Output 'Please review "Step 3.1 - Configure prerequisites on the NDES server".' 
+        Write-Output 'Please review `"Step 3.1 - Configure prerequisites on the NDES server`".' 
         Write-Output "https://docs.microsoft.com/en-us/intune/certificates-scep-configure#configure-your-infrastructure"
         Log-ScriptEvent $LogFilePath "No IIS_IUSRS group exists. Ensure IIS is installed." NDES_Validation 3
     
@@ -1752,7 +1751,7 @@ Log-ScriptEvent $LogFilePath "Checking registry (HKLM:SOFTWARE\Microsoft\Cryptog
 
             else {
         
-                Write-Warning '"SignatureTemplate key does not match the SCEP certificate template name. Unless your template is explicitly set for the "Signature" purpose, this can safely be ignored."'
+                Write-Output '"SignatureTemplate key does not match the SCEP certificate template name. Unless your template is explicitly set for the "Signature" purpose, this can safely be ignored."'
                 Write-Output ""
                 Write-Output "Registry value: $($SignatureTemplate)" 
                 Write-Output ""
@@ -1778,7 +1777,7 @@ Log-ScriptEvent $LogFilePath "Checking registry (HKLM:SOFTWARE\Microsoft\Cryptog
             
                 else {
 
-                    Write-Warning '"EncryptionTemplate key does not match the SCEP certificate template name. Unless your template is explicitly set for the "Encryption" purpose, this can safely be ignored."'
+                    Write-Output '"EncryptionTemplate key does not match the SCEP certificate template name. Unless your template is explicitly set for the "Encryption" purpose, this can safely be ignored."'
                     Write-Output ""
                     Write-Output "Registry value: $($EncryptionTemplate)" 
                     Write-Output ""
@@ -1803,7 +1802,7 @@ Log-ScriptEvent $LogFilePath "Checking registry (HKLM:SOFTWARE\Microsoft\Cryptog
                 
                     else {
 
-                        Write-Warning '"GeneralPurposeTemplate key does not match the SCEP certificate template name. Unless your template is set for the "Signature and Encryption" (General) purpose, this can safely be ignored."'
+                        Write-Output  '"GeneralPurposeTemplate key does not match the SCEP certificate template name. Unless your template is set for the "Signature and Encryption" (General) purpose, this can safely be ignored."'
                         Write-Output ""
                         Write-Output "Registry value: $($GeneralPurposeTemplate)" 
                         Write-Output ""
@@ -2183,7 +2182,7 @@ $SigningCertificate = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MicrosoftIntune\NDE
 
             if (-not ($KeyRecoveryAgentCertificatePresent)) {
     
-                Write-Warning "KeyRecoveryAgentCertificate registry key exists but has no value"
+                Write-Output  "KeyRecoveryAgentCertificate registry key exists but has no value"
                 Log-ScriptEvent $LogFilePath "KeyRecoveryAgentCertificate missing Value"  NDES_Validation 2
 
             }
@@ -2214,7 +2213,7 @@ $SigningCertificate = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MicrosoftIntune\NDE
 
             if (-not ($PfxSigningCertificatePresent)) {
     
-                Write-Warning "PfxSigningCertificate registry key exists but has no value"
+                Write-Output "PfxSigningCertificate registry key exists but has no value"
                 Log-ScriptEvent $LogFilePath "PfxSigningCertificate missing Value"  NDES_Validation 2
 
             }
@@ -2244,7 +2243,7 @@ $SigningCertificate = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MicrosoftIntune\NDE
 
             if (-not ($SigningCertificatePresent)) {
     
-                Write-Warning "SigningCertificate registry key exists but has no value"
+                Write-Output "SigningCertificate registry key exists but has no value"
                 Log-ScriptEvent $LogFilePath "SigningCertificate registry key exists but has no value"  NDES_Validation 2
 
 
@@ -2290,7 +2289,7 @@ Log-ScriptEvent $LogFilePath "Checking Event logs for pertinent errors" NDES_Val
 
     else {
 
-        Write-Warning "Errors found in the Microsoft Intune Connector Event log. Please see below for the most recent 5, and investigate further in Event Viewer."
+        Write-Output  "Errors found in the Microsoft Intune Connector Event log. Please see below for the most recent 5, and investigate further in Event Viewer."
         Write-Output ""
         $EventsCol1 = (Get-EventLog -LogName "Microsoft Intune Connector" -EntryType Error -After $EventLogCollDays -Newest 5 | select TimeGenerated,Source,Message)
         $EventsCol1 | fl
@@ -2317,7 +2316,7 @@ Log-ScriptEvent $LogFilePath "Checking Event logs for pertinent errors" NDES_Val
 
     else {
 
-        Write-Warning "Errors found in the Application Event log for source NetworkDeviceEnrollmentService or NDESConnector. Please see below for the most recent 5, and investigate further in Event Viewer."
+        Write-Output "Errors found in the Application Event log for source NetworkDeviceEnrollmentService or NDESConnector. Please see below for the most recent 5, and investigate further in Event Viewer."
         Write-Output ""
         $EventsCol2 = (Get-EventLog -LogName "Application" -EntryType Error -Source NDESConnector,Microsoft-Windows-NetworkDeviceEnrollmentService -After $EventLogCollDays -Newest 5 | select TimeGenerated,Source,Message)
         $EventsCol2 |fl
