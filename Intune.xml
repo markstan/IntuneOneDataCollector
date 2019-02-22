@@ -425,8 +425,8 @@ RunCommand -cmdToRun "net use"
 RunCommand -cmdToRun "net accounts" 
 RunCommand -cmdToRun "net statistics workstation"   </Command>
       <Command Type="PS" Team="General" OutputFileName="sym_Process.txt">Get-Process | select Name, FileVersion, Path, ProductVersion | ft -auto -wrap</Command>
-      <Command Type="PS" Team="General" OutputFileName="sym_drivers.txt">Get-WmiObject Win32_PnPSignedDriver| select DeviceName, DriverVersion</Command>
-      <Command Type="PS" Team="General" OutputFileName="sym_SysWOW64_sys_Drivers.txt">get-childitem $env:windir\syswow64\drivers -recurse -file | select DeviceName, DriverVersion</Command>
+      <Command Type="PS" Team="General" OutputFileName="sym_drivers.txt">Get-WmiObject Win32_PnPSignedDriver| select DeviceName, DriverVersion | ft -auto -wrap</Command>
+      <Command Type="PS" Team="General" OutputFileName="sym_SysWOW64_sys_Drivers.txt">get-childitem $env:windir\syswow64\drivers -recurse -file | select DeviceName, DriverVersion | ft -auto -wrap</Command>
       <Command Type="PS" Team="General" OutputFileName="sym_RunningDrivers.txt">Get-WmiObject Win32_PnPSignedDriver | select DeviceName, DriverVersion | ft -auto</Command>
       <Command Type="CMD" Team="General" OutputFileName="ScheduledTasks">schtasks.exe /Query</Command>
       <Command Type="PS" Team="General" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\General"; Get-WindowsUpdateLog -Logpath $outputPath\WindowsUpdate.log</Command>
