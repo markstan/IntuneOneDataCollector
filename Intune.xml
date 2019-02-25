@@ -2526,7 +2526,7 @@ exit
       <File Team="NDES">"%programfiles%\Microsoft Intune\NDESPolicyModule\Logs\NDESPlugin.log"</File>
       <File Team="NDES">"C:\NDESConnectorSetup\*.log"</File>
       <File Team="NDES">"%programfiles%\Microsoft Configuration Manager\logs\ndes*"</File>
-      <File Team="Sidecar">"%ProgramData%\Microsoft\Intune Management Extension\Logs\*"</File>
+      <File Team="Sidecar">"%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*"</File>
       <File Team="General">"%systemroot%\temp\stdout.log"</File>
       <File Team="NDES">"%ProgramFiles%\Microsoft Intune\NDESConnectorSvc\NDESConnector.exe.config"</File>
     </Files>
