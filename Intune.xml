@@ -2529,14 +2529,15 @@ exit
       <File Team="Sidecar">"%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*"</File>
       <File Team="General">"%systemroot%\temp\stdout.log"</File>
       <File Team="NDES">"%ProgramFiles%\Microsoft Intune\NDESConnectorSvc\NDESConnector.exe.config"</File>
+      <File Team="Autopilot">%windir%\Provisioning\AutoPilot\AutoPilotConfigurationFile.json</File>
     </Files>
     <Registries>
       <Registry Team="Registry" OutputFileName="REG_MicrosoftAntimalware.TXT">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Microsoft Antimalware</Registry>
       <Registry Team="Registry" OutputFileName="REG_Wow6432Node-MicrosoftAntimalware.TXT">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies\Microsoft\Microsoft Antimalware</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Installer">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18</Registry>
-      <Registry Team="Registry" OutputFileName="REG_IntuneManagementExtension">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\IntuneManagementExtension</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW-Microsoft-SystemCenterAdvisor-atlregistry">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCenterAdvisor</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW-Policies-Microsoft-Windows-WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\windows\WindowsUpdate</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_IntuneManagementExtension">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\IntuneManagementExtension</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft-SystemCenterAdvisor-atlregistry">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCenterAdvisor</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Policies-Microsoft-Windows-WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\windows\WindowsUpdate</Registry>
       <Registry Team="Registry" OutputFileName="REG_Updates_SW_Microsoft_Updates">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Updates</Registry>
       <Registry Team="Registry" OutputFileName="REG_WOW64_Policies_Microsoft_Windows_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\WindowsUpdate</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_OnlineManagement-PolicyAgent">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OnlineManagement\PolicyAgent</Registry>
@@ -2580,6 +2581,7 @@ exit
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_OfficeCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OfficeCSP</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Cryptography-MSCEP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\MSCEP</Registry>
       <Registry Team="Registry" OutputFileName="REG_SYSTEM_CCS_Services_HTTP_Parameters">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\HTTP\Parameters</Registry>
+      <Registry Team="General" OutputFileName="REG_SW_Microsoft_Provisioning_Diagnostics_Autopilot">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\Diagnostics\AutoPilot</Registry>
     </Registries>
   </Package>
 </DataPoints>
