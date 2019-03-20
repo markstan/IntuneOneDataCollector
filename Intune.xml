@@ -27,7 +27,7 @@ try {
     $TimeToRun = (Get-Date ).AddSeconds(3)
     $taskName = "dsregcmd debug"
     $folderPath = "$env:temp\CollectedData\Intune\Commands\General"
-    $filepath = Join-Path $folderPath  "dsregcmd_debug.txt"
+    $filepath = Join-Path $folderPath  "$($env:COMPUTERNAME)_dsregcmd_debug.txt"
 
     # Create folder if it does not exist for uploader
     if ( -not ( Test-Path $folderPath -ErrorAction SilentlyContinue) ) {
@@ -495,7 +495,9 @@ RunCommand -cmdToRun "net statistics workstation"   </Command>
       <Command Type="PS" Team="General" OutputFileName="sym_SysWOW64_sys_Drivers.txt">get-childitem $env:windir\syswow64\drivers -recurse -file | select DeviceName, DriverVersion | ft -auto -wrap</Command>
       <Command Type="PS" Team="General" OutputFileName="sym_RunningDrivers.txt">Get-WmiObject Win32_PnPSignedDriver | select DeviceName, DriverVersion | ft -auto</Command>
       <Command Type="CMD" Team="General" OutputFileName="ScheduledTasks">schtasks.exe /Query</Command>
-      <Command Type="PS" Team="General" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\General"; Get-WindowsUpdateLog -Logpath $outputPath\WindowsUpdate.log</Command>
+      <Command Type="PS" Team="General" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\General"
+$x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
+Get-WindowsUpdateLog -Logpath $outputPath\$($env:COMPUTERNAME)_WindowsUpdate.log</Command>
       <Command Type="CMD" Team="General" OutputFileName="GPResult.txt">gpresult.exe /V</Command>
       <Command Type="PS" Team="General" OutputFileName="InstalledWindowsFeatures">Get-WindowsOptionalFeature -Online | where {$_.State -eq "Enabled"}</Command>
       <Command Type="PS" Team="Networking" OutputFileName="NetSH_Commands">echo "======= netsh int show int ======"
@@ -878,6 +880,8 @@ Highlights configuration problems on an NDES server, as configured for use with 
 Validate-NDESConfig looks at the configuration of your NDES server and ensures it aligns to the "Configure and manage SCEP 
 certificates with Intune" article. 
 
+Note:  This script is forked and modified to run unattended in One Data Collector
+
 .NOTE This script is used purely to validate the configuration. All remedial tasks will need to be carried out manually.
 Where possible, a link and section description will be provided.
 
@@ -890,12 +894,16 @@ Where possible, a link and section description will be provided.
 .LINK
 https://docs.microsoft.com/en-us/intune/certificates-scep-configure#configure-your-infrastructure
 
+
+
+
+
 #&gt;
 [CmdletBinding(DefaultParameterSetName="Unattended")]
 Param(
-    [parameter(Mandatory=$true,ParameterSetName="Unattended")]
+    [parameter(ParameterSetName="Unattended")]
     [alias("ua","silent","s","unattended")]
-    [switch]$unattend,  
+    [switch]$unattend = $true,  
 
     [parameter(Mandatory=$false,ParameterSetName="NormalRun")]
     [alias("sa")]
@@ -979,7 +987,8 @@ Function Log-ScriptEvent {
 
 Param(
       [parameter(Mandatory=$True)]
-      [String]$LogFilePath,
+      [String]$LogFilePath = "$env:temp\CollectedData\Intune\Commands\NDES",
+
 
       [parameter(Mandatory=$True)]
       [String]$Value,
@@ -989,7 +998,7 @@ Param(
 
       [parameter(Mandatory=$True)]
       [ValidateRange(1,3)]
-      [Single]$Severity
+      [Single]$Severity = 3
       )
 
 $DateTime = New-Object -ComObject WbemScripting.SWbemDateTime 
@@ -1078,13 +1087,17 @@ $TempDirPath = "$parent$name"
 $LogFilePath = "$($TempDirPath)\Validate-NDESConfig.log"
 $nil = Import-Module WebAdministration -Force
 $unattend = $true
+# create path for logging
+$outputPath = "$env:temp\CollectedData\Intune\Commands\NDES"
+$nil = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
+$WriteLogOutputPath = $true
+$error.Clear()
+
 
 #######################################################################
 
 #region Proceed with Variables...
-
-
-    
+   
     if ($unattend) {
         $NDESServiceAccount = Get-Item 'IIS:\AppPools\SCEP' | select -expandproperty processmodel | select -Expand username
         $IssuingCAServerFQDN = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Cryptography\MSCEP\CAInfo).Configuration -replace "\\.*$", ""
@@ -1141,7 +1154,7 @@ Import-Module ActiveDirectory | Out-Null
     if (-not (Get-WindowsFeature Web-WebServer).Installed){
 
         $IISNotInstalled = $TRUE
-        Write-Warning "IIS is not installed. Some tests will not run as we're unable to import the WebAdministration module"
+        Write-Output "Warning: IIS is not installed. Some tests will not run as we're unable to import the WebAdministration module"
         Write-Output ""
         Log-ScriptEvent $LogFilePath "IIS is not installed. Some tests will not run as we're unable to import the WebAdministration module"  NDES_Validation 2
     
@@ -1195,7 +1208,12 @@ Write-Output ""
 Log-ScriptEvent $LogFilePath "Checking NDES Service Account properties in Active Directory" NDES_Validation 1
 
 $ADUser = $NDESServiceAccount.split("\")[1]
-$ADUserProps = (Get-ADUser $ADUser -Properties SamAccountName,enabled,AccountExpirationDate,accountExpires,accountlockouttime,PasswordExpired,PasswordLastSet,PasswordNeverExpires,LockedOut)
+try {
+    $ADUserProps = (Get-ADUser $ADUser -Properties SamAccountName,enabled,AccountExpirationDate,accountExpires,accountlockouttime,PasswordExpired,PasswordLastSet,PasswordNeverExpires,LockedOut)
+    }
+catch {
+    Log-ScriptEvent $LogFilePath  "Error looking up AD User:`r`n`r`n$error" NDES_Validation 3
+    }
 
 
     if ($ADUserProps.enabled -ne $TRUE -OR $ADUserProps.PasswordExpired -ne $false -OR $ADUserProps.LockedOut -eq $TRUE){
@@ -1214,7 +1232,11 @@ $ADUserProps = (Get-ADUser $ADUser -Properties SamAccountName,enabled,AccountExp
     }
 
 
-Get-ADUser $ADUser -Properties SamAccountName,enabled,AccountExpirationDate,accountExpires,accountlockouttime,PasswordExpired,PasswordLastSet,PasswordNeverExpires,LockedOut | fl SamAccountName,enabled,AccountExpirationDate,accountExpires,accountlockouttime,PasswordExpired,PasswordLastSet,PasswordNeverExpires,LockedOut
+try { Get-ADUser $ADUser -Properties SamAccountName,enabled,AccountExpirationDate,accountExpires,accountlockouttime,PasswordExpired,PasswordLastSet,PasswordNeverExpires,LockedOut | fl SamAccountName,enabled,AccountExpirationDate,accountExpires,accountlockouttime,PasswordExpired,PasswordLastSet,PasswordNeverExpires,LockedOut
+    }
+catch {
+    Log-ScriptEvent $LogFilePath  "Error looking up AD User:`r`n`r`n$error" NDES_Validation 3
+    }
     
 #endregion
 
@@ -1266,7 +1288,7 @@ Log-ScriptEvent $LogFilePath "Checking NDES Service Account local permissions" N
 
         if ($LocalAdminsMember -like "*$NDESServiceAccount*"){
         
-            Write-Warning "NDES Service Account is a member of the local Administrators group. This will provide the requisite rights but is _not_ a secure configuration. Use IIS_IUSERS instead."
+            Write-Output "Warning: NDES Service Account is a member of the local Administrators group. This will provide the requisite rights but is _not_ a secure configuration. Use IIS_IUSERS instead."
             Log-ScriptEvent $LogFilePath "NDES Service Account is a member of the local Administrators group. This will provide the requisite rights but is _not_ a secure configuration. Use IIS_IUSERS instead."  NDES_Validation 2
 
         }
@@ -1304,9 +1326,15 @@ Log-ScriptEvent $LogFilePath "Checking NDES Service Account local permissions" N
             $TempFile = [System.IO.Path]::GetTempFileName()
             &amp; "secedit" "/export" "/cfg" "$TempFile" | Out-Null
             $LocalSecPol = Get-Content $TempFile
-            $ADUserProps = Get-ADUser $ADUser
-            $NDESSVCAccountSID = $ADUserProps.SID.Value 
-            $LocalSecPolResults = $LocalSecPol | Select-String $NDESSVCAccountSID
+            try {
+                $ADUserProps = Get-ADUser $ADUser
+                $NDESSVCAccountSID = $ADUserProps.SID.Value 
+                $LocalSecPolResults = $LocalSecPol | Select-String $NDESSVCAccountSID
+                }
+            catch {
+                Log-ScriptEvent $LogFilePath  "Error looking up AD User:`r`n`r`n$error" NDES_Validation 3
+                }
+            
 
                 if ($LocalSecPolResults -match "SeInteractiveLogonRight" -AND $LocalSecPolResults -match "SeBatchLogonRight" -AND $LocalSecPolResults -match "SeServiceLogonRight"){
             
@@ -1348,7 +1376,7 @@ Log-ScriptEvent $LogFilePath "Checking NDES Service Account local permissions" N
 
    else {
 
-        Write-Warning "No local Administrators group exists, likely due to this being a Domain Controller. It is not recommended to run NDES on a Domain Controller."
+        Write-Output "Warning: No local Administrators group exists, likely due to this being a Domain Controller. It is not recommended to run NDES on a Domain Controller."
         Log-ScriptEvent $LogFilePath "No local Administrators group exists, likely due to this being a Domain Controller. It is not recommended to run NDES on a Domain Controller." NDES_Validation 2
     
     }
@@ -1449,7 +1477,7 @@ Log-ScriptEvent $LogFilePath "Checking IIS Application Pool health" NDES_Validat
         # If SCEP AppPool Exists    
         if (Test-Path 'IIS:\AppPools\SCEP'){
 
-        $IISSCEPAppPoolAccount = Get-Item 'IIS:\AppPools\SCEP' | select -expandproperty processmodel | select -Expand username
+        $IISSCEPAppPoolAccount = (Get-Item 'IIS:\AppPools\SCEP' -ErrorAction SilentlyContinue | select -ExpandProperty processmodel).username
             
             if ((Get-WebAppPoolState "SCEP").value -match "Started"){
             
@@ -1486,7 +1514,7 @@ Log-ScriptEvent $LogFilePath "Checking IIS Application Pool health" NDES_Validat
                 
         if ($SCEPAppPoolRunning){
                 
-            Write-Output "Success: SCEP Application Pool is Started " 
+            Write-Output "Success: SCEP Application Pool is Started "     
             Log-ScriptEvent $LogFilePath "SCEP Application Pool is Started"  NDES_Validation 1
                 
         }
@@ -1637,7 +1665,12 @@ Log-ScriptEvent $LogFilePath "Checking SPN has been set" NDES_Validation 1
 
 $hostname = ([System.Net.Dns]::GetHostByName(($env:computerName))).hostname
 
-$spn = setspn.exe -L $ADUser
+try { 
+        $spn = setspn.exe -L $ADUser 2&gt;&gt;$LogFilePath
+    }
+catch {
+        Log-ScriptEvent $LogFilePath  "Error looking up SPNs:`r`n`r`n$error" NDES_Validation 3
+    }
 
     if ($spn -match $hostname){
     
@@ -1949,7 +1982,7 @@ $ServerCertObject = Get-ChildItem Cert:\LocalMachine\My\$BoundServerCertThumb
             Write-Output ""
             Write-Output "Valid Until: $($ServerCertObject.NotAfter)" 
             Write-Output ""
-            Write-Output "If this NDES server is in your perimeter network, please ensure the external hostname is shown below:"  -BackgroundColor White
+            Write-Output "If this NDES server is in your perimeter network, please ensure the external hostname is shown below:"
             $DNSNameList = $ServerCertObject.DNSNameList.unicode
             Write-Output ""
             Write-Output "Internal and External hostnames: $($DNSNameList)" 
@@ -2425,8 +2458,9 @@ else {
 
     $IISLogPath = (Get-WebConfigurationProperty "/system.applicationHost/sites/siteDefaults" -name logfile.directory).Value + "\W3SVC1" -replace "%SystemDrive%",$env:SystemDrive
     $IISLogs = Get-ChildItem $IISLogPath| Sort-Object -Descending -Property LastWriteTime | Select-Object -First 3
-    $NDESConnectorLogs = Get-ChildItem "C:\Program Files\Microsoft Intune\NDESConnectorSvc\Logs\Logs\NDESConnector*" | Sort-Object -Descending -Property LastWriteTime | Select-Object -First 3
-    $NDESPluginLogs = Get-ChildItem "C:\Program Files\Microsoft Intune\NDESPolicyModule\Logs\NDESPlugin.log"
+    # redundant.  already collected by ODC
+    #$NDESConnectorLogs = Get-ChildItem "C:\Program Files\Microsoft Intune\NDESConnectorSvc\Logs\Logs\NDESConnector*" | Sort-Object -Descending -Property LastWriteTime | Select-Object -First 3
+    #$NDESPluginLogs = Get-ChildItem "C:\Program Files\Microsoft Intune\NDESPolicyModule\Logs\NDESPlugin.log"
     $MSCEPLogs = Get-ChildItem "c:\users\*\mscep.log" | Sort-Object -Descending -Property LastWriteTime | Select-Object -First 3
     $CRPLogs = Get-ChildItem "C:\Program Files\Microsoft Intune\NDESConnectorSvc\Logs\Logs\CertificateRegistrationPoint*" | Sort-Object -Descending -Property LastWriteTime | Select-Object -First 3
 
@@ -2473,6 +2507,15 @@ else {
     Write-Output ""
     Write-Output "Success: Log files copied to $($Currentlocation)\$($date)-Logs-$($hostname).zip"
     Write-Output ""
+    
+    # for ODC
+    if ($unattend ){
+            if ( -not (test-path $outputPath) ) { mkdir $outputPath -Force }
+            Move-Item $TempDirPath\* $outputPath -Force -ErrorAction SilentlyContinue
+            }
+    
+    # Cleanup
+    rmdir -Recurse -Force -ErrorAction SilentlyContinue -Path $TempDirPath
 
     }
 
@@ -2486,32 +2529,7 @@ else {
 
 #endregion
 
-#################################################################
 
-#region Ending script
-
-Write-Output ""
-Write-Output "......................................................."
-Write-Output ""
-Write-Output "End of NDES configuration validation" 
-Write-Output ""
-
-    if ($WriteLogOutputPath -eq $True) {
-
-        Write-Output "Log file copied to $($LogFilePath)"
-        Write-Output ""
-        # for ODC
-        $copyPath = "$env:temp\CollectedData\Intune\Files\NDES"
-        if ($unattend ){
-            if ( -not (test-path $copyPath) ) { mkdir $copyPath -Force }
-            copy $LogFilePath $copyPath
-            }
-
-
-    }
-Write-Output "Ending script..." 
-Write-Output ""
-#endregion
 
 #################################################################
 
@@ -2531,6 +2549,8 @@ exit
 }</Command>
       <Command Type="PS" Team="General" OutputFileName="Services.txt">Get-Service | fl *</Command>
       <Command Type="PS" Team="General" OutputFileName="MDM_Policies">get-item 'HKLM:\Software\Microsoft\PolicyManager\current\device\*'</Command>
+      <Command Type="PS" Team="NDES" OutputFileName="localmachine_cert_info">dir Cert:\LocalMachine\My | Select-Object * -ExpandProperty Extensions -ExcludeProperty RawData</Command>
+      <Command Type="PS" Team="NDES" OutputFileName="currentuser_cert_info">dir Cert:\CurrentUser\My | Select-Object * -ExpandProperty Extensions -ExcludeProperty RawData</Command>
     </Commands>
     <EventLogs>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
