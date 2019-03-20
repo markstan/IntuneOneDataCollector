@@ -2551,6 +2551,14 @@ exit
       <Command Type="PS" Team="General" OutputFileName="MDM_Policies">get-item 'HKLM:\Software\Microsoft\PolicyManager\current\device\*'</Command>
       <Command Type="PS" Team="NDES" OutputFileName="localmachine_cert_info">dir Cert:\LocalMachine\My | Select-Object * -ExpandProperty Extensions -ExcludeProperty RawData</Command>
       <Command Type="PS" Team="NDES" OutputFileName="currentuser_cert_info">dir Cert:\CurrentUser\My | Select-Object * -ExpandProperty Extensions -ExcludeProperty RawData</Command>
+      <Command Type="PS" Team="Sidecar" OutputFileName="SideCar_download_directoriescontents">dir $env:systemroot\IMECache -recurse
+dir "${env:ProgramFiles(x86)}\Microsoft Intune Management Extension" -recurse</Command>
+      <Command Type="PS" Team="Sidecar" OutputFileName="Sidecar_Info">"Service information"
+get-service IntuneManagementExtension |fl *
+
+"Scheduled task information"
+Get-ScheduledTask  -TaskName "Intune Management Extension Health Evaluation"  | Select-Object * -ExpandProperty CimInstanceProperties
+Get-ScheduledTask  -TaskName "Intune Management Extension Health Evaluation" | Get-ScheduledTaskInfo  | Select-Object * -ExpandProperty CimInstanceProperties</Command>
     </Commands>
     <EventLogs>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
@@ -2618,6 +2626,7 @@ exit
       <File Team="General">"%systemroot%\temp\stdout.log"</File>
       <File Team="NDES">"%ProgramFiles%\Microsoft Intune\NDESConnectorSvc\NDESConnector.exe.config"</File>
       <File Team="Autopilot">%windir%\Provisioning\AutoPilot\AutoPilotConfigurationFile.json</File>
+      <File Team="Sidecar">%systemroot%\system32\config\systemprofile\AppData\Local\mdm\*.log</File>
     </Files>
     <Registries>
       <Registry Team="Registry" OutputFileName="REG_MicrosoftAntimalware.TXT">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Microsoft Antimalware</Registry>
