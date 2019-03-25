@@ -2,7 +2,7 @@
 <DataPoints xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:Microsoft.One.DataCollector">
   <Package ID="Intune">
     <Commands>
-      <Command Type="PS" Team="General" OutputFileName="dsreg">dsregcmd /status</Command>
+      <Command Type="PS" Team="General" OutputFileName="dsreg_status">dsregcmd /status</Command>
       <Command Type="PS" Team="General" OutputFileName="whoami">function RunCommand {
    Param ([string]$cmdToRun)
    
@@ -427,7 +427,10 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
  # Add-Member -InputObject $CS_Summary -MemberType NoteProperty -name "RAM (physical)" -value (FormatBytes -bytes $WMICS.TotalPhysicalMemory -precision 1)
  $OS_Summary | fl
  $CS_Summary | fl 
- systeminfo.exe</Command>
+ systeminfo.exe
+
+"BIOS Information"
+Get-WmiObject  -Class Win32_BIOS</Command>
       <Command Type="CMD" Team="General" OutputFileName="Installed_Products.txt">wmic product list brief </Command>
       <Command Type="CMD" Team="General" OutputFileName="proxy_settings.txt">netsh winhttp show proxy</Command>
       <Command Type="PS" Team="General" OutputFileName="Firewall_Settings">function RunCommand {
