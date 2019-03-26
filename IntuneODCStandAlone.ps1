@@ -1769,23 +1769,35 @@ function Write-DiagProgress {
 
     )
 
-    Write-Output "[$activity], $status"
+    Write-Output "$status"
+    $status | Out-File $env:systemroot\temp\stdout.log -Append -Force
 
 }
 
 
 Initialize # Initializing the types so below functionalities can be used.
 
-#Region stand-alon
 
-Initialize # Initializing the types so below functionalities can be used.
+Function Test-IsAdmin
+{
+    ([Security.Principal.WindowsPrincipal] `
+      [Security.Principal.WindowsIdentity]::GetCurrent() `
+    ).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
 
 #Region stand-alone
 
+Initialize # Initializing the types so below functionalities can be used.
+if (-not (Test-IsAdmin) ) {
+    Return "Please run PowerShell elevated (run as administrator) and run the script again."
+    Break
+    }
 $ResultRootDirectory = [System.IO.Path]::Combine(($env:TEMP), 'CollectedData')
 $CompressedResultFileName = "CollectedData.ZIP"
-
 $xmlPath =  join-path $pwd "Intune.XML"
+
+
+
 
 if (-not (Test-Path $xmlPath) ) {
     try {
@@ -1803,11 +1815,18 @@ if (-not (Test-Path $xmlPath) ) {
     }
 
     catch {
-        "Unable to download Intune.XML.  Exiting"
+        $message = "Unable to download Intune.XML.  Exiting"
+        Write-Output $message
+        $message | Out-File $env:systemroot\temp\stdout.log -Append -Force
+        Pop-Message -Caption "Unable to download Intune.xml" -message "Unable to download Intune.XML.  Please download from http://aka.ms/IntuneXML and run the script again" -Type 48
     }
 }
 
 $package = get-packages -Filename $xmlPath
 Process-Package -Package $package.ValidPackages[0]
 Compress-CollectedDataAndReport
+if (Test-Path .\collecteddata.zip) {
+    rd -Path .\CollectedData -Recurse -Force -ErrorAction SilentlyContinue
+}
+start .
 
