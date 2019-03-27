@@ -104,7 +104,9 @@ catch {
 </Command>
       <Command Type="PS" Team="General" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\General"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
-msinfo32.exe /nfo "$outputPath\msinfo32.nfo" /report "$outputPath\msinfo32.txt"</Command>
+msinfo32.exe /NFO    "$outputPath\msinfo32.nfo" 
+msinfo32.exe /report "$outputPath\msinfo32.txt"
+</Command>
       <Command Type="CMD" Team="General" OutputFileName="DIR_SystemCenterAdvisor_Agent.txt">dir /s "%programfiles%\System Center Advisor\AgentData\AdvisorMonitor"</Command>
       <Command Type="PS" Team="General" OutputFileName="BasicSystemInfo.txt">Function GetAgeDescription($TimeSpan, [switch] $Localized) {
  $Age = $TimeSpan
@@ -2562,6 +2564,39 @@ get-service IntuneManagementExtension |fl *
 "Scheduled task information"
 Get-ScheduledTask  -TaskName "Intune Management Extension Health Evaluation"  | Select-Object * -ExpandProperty CimInstanceProperties
 Get-ScheduledTask  -TaskName "Intune Management Extension Health Evaluation" | Get-ScheduledTaskInfo  | Select-Object * -ExpandProperty CimInstanceProperties</Command>
+      <Command Type="PS" Team="General" OutputFileName="File collection.log"># workaround
+$ErrorActionPreference = "silentlycontinue"
+
+foreach ($file in $Package.files.file) {
+     $file | fl *
+     $expandedPath = [System.Environment]::ExpandEnvironmentVariables($file.value)
+     $expandedPath
+     if (test-path $expandedPath) {
+      [string]$team = $file.team
+     "team = $team"
+      $newFolder = [System.Environment]::ExpandEnvironmentVariables( $(join-path "$ResultRootDirectory\Intune\Files"  $team)  )
+      mkdir $newFolder -Force -errorAction SilentlyContinue
+    "running   xcopy  $expandedPath $NewFolder" 
+      xcopy $expandedPath $NewFolder /C /Y
+    }
+}
+dir $resultrootdirectory -recurse 
+</Command>
+      <Command Type="PS" Team="General" OutputFileName="NA"># make sure msinfo32 has exited
+$timeoutInSec = 180
+$elapsed = 0
+$stillRunning = $true
+
+while ( ($elapsed -lt $timeoutInSec) -and $stillRunning ) {
+    if (Get-Process -Name msinfo32 -ErrorAction SilentlyContinue) {
+        sleep 2
+        $elapsed += 2
+        Write-DiagProgress "Waiting for msinfo32 to complete... $elapsed / $timeoutInSec seconds"
+    } 
+    else {
+        $stillRunning = $false
+    }
+}</Command>
     </Commands>
     <EventLogs>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
