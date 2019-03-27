@@ -1,7 +1,8 @@
 # Customer-ready email template
 
-1. First, please download the IntuneODCStandAlone.ps1 file from [this link](https://raw.githubusercontent.com/markstan/IntuneOneDataCollector/master/IntuneODCStandAlone.ps1) (right-click and choose "save as..." in IE and Chrome; Edge users should copy all text to a plain text file and save as 'IntuneODCStandAlone.ps1').<br>
-The script will attempt to automatically download its data collection settings.  If you encounter problems during this phase, you can also manually download Intune.XML from  [this link](https://raw.githubusercontent.com/markstan/IntuneOneDataCollector/master/Intune.xml) and place it in the same folder as IntuneODCStandAlone.ps1.
+1. Please download the IntuneODCStandAlone.ps1 file from [this link](https://raw.githubusercontent.com/markstan/IntuneOneDataCollector/master/IntuneODCStandAlone.ps1) (right-click and choose "save as..." in IE and Chrome; Edge users should copy all text to a plain text file and save as 'IntuneODCStandAlone.ps1').</br>
+The script will attempt to automatically download its data collection settings.  If you encounter problems during this phase, you can also manually download Intune.XML from  [this link](https://raw.githubusercontent.com/markstan/IntuneOneDataCollector/master/Intune.xml) and place it in the same folder as IntuneODCStandAlone.ps1.</br>
+
 
 1. Open an **elevated** PowerShell window by right-clicking on your PowerShell shortcut and choosing 'Run as Administrator'
 
@@ -11,3 +12,10 @@ The script will attempt to automatically download its data collection settings. 
 
 1. An Explorer window will open in your download directory.  Please upload the CollectedData.zip file to the Microsoft secure file transfer site provided to you.
 
+
+**Hint**: You can download both files and run the collector quickly using these PowerShell commands:</br>
+
+             wget https://aka.ms/intunexml -outfile Intune.xml
+             wget https://aka.ms/intuneps1 -outfile IntuneODCStandAlone.ps1
+             .\IntuneODCStandAlone.ps1
+</br>![Intune ODC Stand-alone output](./intuneodcstandalone.PNG)
