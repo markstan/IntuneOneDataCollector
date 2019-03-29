@@ -2554,8 +2554,8 @@ exit
 }</Command>
       <Command Type="PS" Team="General" OutputFileName="Services.txt">Get-Service | fl *</Command>
       <Command Type="PS" Team="General" OutputFileName="MDM_Policies">get-item 'HKLM:\Software\Microsoft\PolicyManager\current\device\*'</Command>
-      <Command Type="PS" Team="NDES" OutputFileName="localmachine_cert_info">dir Cert:\LocalMachine\My | Select-Object * -ExpandProperty Extensions -ExcludeProperty RawData</Command>
-      <Command Type="PS" Team="NDES" OutputFileName="currentuser_cert_info">dir Cert:\CurrentUser\My | Select-Object * -ExpandProperty Extensions -ExcludeProperty RawData</Command>
+      <Command Type="PS" Team="NDES" OutputFileName="localmachine_cert_info">dir Cert:\LocalMachine\My | Select-Object * -ExpandProperty Extensions -ExcludeProperty RawData, PrivateKey</Command>
+      <Command Type="PS" Team="NDES" OutputFileName="currentuser_cert_info">dir Cert:\CurrentUser\My | Select-Object * -ExpandProperty Extensions -ExcludeProperty RawData, PrivateKey</Command>
       <Command Type="PS" Team="Sidecar" OutputFileName="SideCar_download_directoriescontents">dir $env:systemroot\IMECache -recurse
 dir "${env:ProgramFiles(x86)}\Microsoft Intune Management Extension" -recurse</Command>
       <Command Type="PS" Team="Sidecar" OutputFileName="Sidecar_Info">"Service information"
