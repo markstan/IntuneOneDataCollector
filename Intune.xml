@@ -2718,6 +2718,7 @@ while ( ($elapsed -lt $timeoutInSec) -and $stillRunning ) {
       <Registry Team="Registry" OutputFileName="REG_SYSTEM_CCS_Services_HTTP_Parameters">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\HTTP\Parameters</Registry>
       <Registry Team="AutoPilot" OutputFileName="REG_SW_Microsoft_Provisioning_Diagnostics_Autopilot">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\Diagnostics\AutoPilot</Registry>
       <Registry Team="AV" OutputFileName="REG_SW_Policies_Microsoft_Windows_Defender">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender</Registry>
+      <Registry Team="General" OutputFileName="REG_SW_Microsoft_Windows_CV_MDM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\MDM</Registry>
     </Registries>
   </Package>
 </DataPoints>
