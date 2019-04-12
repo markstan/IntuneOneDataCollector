@@ -2,6 +2,38 @@
 <DataPoints xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:Microsoft.One.DataCollector">
   <Package ID="Intune">
     <Commands>
+      <Command Type="PS" Team="General" OutputFileName="NA">try {
+    [double]$Currentversion = (wget https://raw.githubusercontent.com/markstan/IntuneOneDataCollector/master/Utilities/version.txt).content
+    [double]$MyVersion = 1.3
+
+    if ($Currentversion -ne $MyVersion) {
+
+        $UserChoice = Pop-Message -Message "Warning:  more recent version of Intune.XML is available.  Download and restart?" -Caption "Newer version detected" -Type 4
+        # 6 = Yes, 7 = No
+        if ($UserChoice -eq 6) {
+            del .\Intune.xml
+            wget https://aka.ms/intunexml -OutFile Intune.xml
+
+
+            $xmlPath =  join-path $pwd "Intune.XML"
+            $package = get-packages -Filename $xmlPath
+            Process-Package -Package $package.ValidPackages[0]
+
+
+        }
+
+    }
+}
+catch {
+    $outputPath = "$env:temp\CollectedData\Intune\Commands\General"
+    $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
+    "Error trying to detect version: $error" | Out-File $outputPath\versionCheck.txt
+}</Command>
+      <Command Type="PS" Team="General" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\General"
+$x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
+msinfo32.exe /NFO    "$outputPath\msinfo32.nfo" 
+msinfo32.exe /report "$outputPath\msinfo32.txt"
+</Command>
       <Command Type="PS" Team="General" OutputFileName="dsreg_status">dsregcmd /status</Command>
       <Command Type="PS" Team="General" OutputFileName="whoami">function RunCommand {
    Param ([string]$cmdToRun)
@@ -101,11 +133,6 @@ catch {
         "*" * 120                                         | Out-File $filepath -Append -Force -Encoding ascii
     } 
 }
-</Command>
-      <Command Type="PS" Team="General" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\General"
-$x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
-msinfo32.exe /NFO    "$outputPath\msinfo32.nfo" 
-msinfo32.exe /report "$outputPath\msinfo32.txt"
 </Command>
       <Command Type="CMD" Team="General" OutputFileName="DIR_SystemCenterAdvisor_Agent.txt">dir /s "%programfiles%\System Center Advisor\AgentData\AdvisorMonitor"</Command>
       <Command Type="PS" Team="General" OutputFileName="BasicSystemInfo.txt">Function GetAgeDescription($TimeSpan, [switch] $Localized) {
@@ -435,6 +462,24 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
 Get-WmiObject  -Class Win32_BIOS</Command>
       <Command Type="CMD" Team="General" OutputFileName="Installed_Products.txt">wmic product list brief </Command>
       <Command Type="CMD" Team="General" OutputFileName="proxy_settings.txt">netsh winhttp show proxy</Command>
+      <Command Type="PS" Team="General" OutputFileName="Bitlocker_and_TPM">function RunCommand {
+   Param ([string]$cmdToRun)
+   
+   echo "`r`n===========================================`r`n`t`t $cmdToRun `r`n===========================================`r`n"
+   try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
+   catch { $error[0].ToString()}
+   
+}
+
+
+RunCommand "manage-bde -status"
+RunCommand "Get-BitLockerVolume |fl * -Force"
+RunCommand "Get-Tpm"
+RunCommand "echo 'SelfTest:' $(Get-Tpm | Select-Object -ExpandProperty SelfTest)"
+RunCommand "Get-TpmEndorsementKeyInfo"
+RunCommand "Get-TpmSupportedFeature -Verbose"
+RunCommand "Get-CimInstance -ClassName Win32_Tpm -Namespace 'root\CIMV2\Security\MicrosoftTpm' "
+RunCommand "Get-CimInstance -ClassName  Win32_baseboard -Namespace 'root\CIMV2' "</Command>
       <Command Type="PS" Team="General" OutputFileName="Firewall_Settings">function RunCommand {
    Param ([string]$cmdToRun)
    
@@ -863,7 +908,7 @@ if ($ccmFolder) {
     foreach ($fileToCollect in $filesToCollect) { copy $fileToCollect.PSPath $copyPath}
   
 }</Command>
-      <Command Type="PS" Team="NDES" OutputFileName="certificate_templates.txt">function RunCommand {
+      <Command Type="PS" Team="NDES" OutputFileName="Certificate_templates.txt">function RunCommand {
    Param ([string]$cmdToRun)
    
    echo "`r`n===========================================`r`n`t`t $cmdToRun `r`n===========================================`r`n"
