@@ -2490,7 +2490,7 @@ while ( ($elapsed -lt $timeoutInSec) -and $stillRunning ) {
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*intune*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*bitlocker*</EventLog>
       <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-SENSE%4Operational.evtx</EventLog>
-      <EventLog Team="Event Log">Microsoft-Windows-HelloForBusiness%4Operational.evtx</EventLog>
+      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-HelloForBusiness%4Operational.evtx</EventLog>
     </EventLogs>
     <Files>
       <File Team="Advisor">%programfiles%\System Center Advisor\AgentData\Logs\*</File>
