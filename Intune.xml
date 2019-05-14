@@ -53,7 +53,8 @@ RunCommand "whoami /upn"
 RunCommand "whoami /all"
 RunCommand "whoami /logonid"
 RunCommand "whoami /fqdn"</Command>
-      <Command Type="PS" Team="General" OutputFileName="NA"># Attempt to run using local tools first
+      <Command Type="PS" Team="General" OutputFileName="NA"># dsregcmd_debug
+# Attempt to run using local tools first
     $ErrorActionPreference = "Stop"
     $Error.Clear()
     $line = "`*" * 120
@@ -79,6 +80,7 @@ try {
     $User= "NT AUTHORITY\SYSTEM"
     $Action= New-ScheduledTaskAction -Execute "cmd.exe" -Argument "/c dsregcmd /debug &gt;&gt; $filepath"
     $nil = Register-ScheduledTask -TaskName $taskName -Trigger $Trigger -User $User -Action $Action -RunLevel Highest –Force
+    $nil = Start-ScheduledTask -TaskName $taskName
     sleep 5
     #cleanup
     $nil = Unregister-ScheduledTask -TaskName $taskName -TaskPath "\" -PassThru -Confirm:$false
