@@ -2489,57 +2489,56 @@ move .\MDMDiagReport.* $outputPath</Command>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*momlog*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*AAD*.evtx</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-Provisioning-*</EventLog>
-      <EventLog Team="Event Log">%windir%\System32\Winevt\Logs\Microsoft-Windows-DeviceSetupManager*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-DeviceSetupManager*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*appx*</EventLog>
-      <EventLog Team="Event Log">%windir%\System32\Winevt\Logs\Microsoft-Windows-Shell-Core%4Operational.evtx</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*autopilot*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-Shell-Core%4Operational.evtx</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*intune*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*bitlocker*</EventLog>
-      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-SENSE%4Operational.evtx</EventLog>
-      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-HelloForBusiness%4Operational.evtx</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-SENSE%4Operational.evtx</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-HelloForBusiness%4Operational.evtx</EventLog>
     </EventLogs>
     <Files>
-      <File Team="Advisor">%programfiles%\System Center Advisor\AgentData\Logs\*</File>
-      <File Team="Advisor">%programfiles%\System Center Advisor\GatewayData\Logs\*.*</File>
-      <File Team="General">%programfiles%\Microsoft\OnlineManagement\PolicyAgent\ReportCache\3DA21691-E39D-4DA6-8A4B-B43877BCB1B7\*.xml</File>
-      <File Team="Antimalware">%programfiles%\Microsoft Antimalware\Support\*.*</File>
-      <File Team="Antimalware">%programdata%\Microsoft\Microsoft Antimalware\Support\*.cab</File>
+      <File Team="Advisor">%ProgramFiles%\System Center Advisor\AgentData\Logs\*</File>
+      <File Team="Advisor">%ProgramFiles%\System Center Advisor\GatewayData\Logs\*.*</File>
+      <File Team="General">%ProgramFiles%\Microsoft\OnlineManagement\PolicyAgent\ReportCache\3DA21691-E39D-4DA6-8A4B-B43877BCB1B7\*.xml</File>
+      <File Team="Antimalware">%ProgramFiles%\Microsoft Antimalware\Support\*.*</File>
+      <File Team="Antimalware">%ProgramData%\Microsoft\Microsoft Antimalware\Support\*.cab</File>
       <File Team="Antimalware">%ALLUSERSPROFILE%\Microsoft\Microsoft Antimalware\Support\*.cab</File>
       <File Team="CBS">%systemroot%\Logs\CBS\*.log</File>
       <File Team="Intune">%LOCALAPPDATA%\Microsoft\Windows\clientui.log</File>
       <File Team="Intune">%LOCALAPPDATA%\Microsoft\OnlineManagement\Logs\clientui.log</File>
       <File Team="Intune">%TEMP%\clientui.log</File>
       <File Team="Configmgr">%SMS_LOG_PATH%\*.*</File>
-      <File Team="DirSync">%programfiles%\Microsoft Online Directory Sync\*.log</File>
+      <File Team="DirSync">%ProgramFiles%\Microsoft Online Directory Sync\*.log</File>
       <File Team="General">%temp%\supportconsole*.*</File>
-      <File Team="Exchange Connector">%programdata%\Microsoft\Windows Intune Exchange Connector\*.*</File>
+      <File Team="Exchange Connector">%ProgramData%\Microsoft\Windows Intune Exchange Connector\*.*</File>
       <File Team="General">%LOCALAPPDATA%\Temp\*.log</File>
-      <File Team="Exchange Connector">%programdata%\Microsoft\Windows Intune Exchange Connector\Logs\*.*</File>
+      <File Team="Exchange Connector">%ProgramData%\Microsoft\Windows Intune Exchange Connector\Logs\*.*</File>
       <File Team="Homegroup">%windir%\Logs\HomeGroup\*.*</File>
       <File Team="General">%windir%\PolicyClient*.log</File>
       <File Team="MSI Logs">%windir%\temp\MSI*.*</File>
       <File Team="MSI Logs">%temp%\MSI*.*</File>
       <File Team="OpsMgr">%windir%\Temp\OpsMgrTrace\*.*</File>
-      <File Team="Intune">%programfiles%\microsoft policy platform\policyplatformclient*.log</File>
+      <File Team="Intune">%ProgramFiles%\microsoft policy platform\policyplatformclient*.log</File>
       <File Team="General">%windir%\SoftwareDistribution\ReportingEvents*.log</File>
       <File Team="Intune">%Temp%\SoftwarePublishing\*.log</File>
       <File Team="Intune">%windir%\scoconnector.etl</File>
-      <File Team="Intune">%programfiles%\Microsoft\OnlineManagement\Logs\*.log</File>
-      <File Team="Intune">%programfiles\%Microsoft\OnlineManagement\PolicyAgent\InventoryCache\3DA21691-E39D-4DA6-8A4B-B43877BCB1B7\*.xml</File>
-      <File Team="Intune">%programfiles%\Microsoft\OnlineManagement\PolicyAgent\ReportCache\3DA21691-E39D-4DA6-8A4B-B43877BCB1B7\*.xml</File>
+      <File Team="Intune">%ProgramFiles%\Microsoft\OnlineManagement\Logs\*.log</File>
+      <File Team="Intune">%ProgramFiles%\Microsoft\OnlineManagement\PolicyAgent\InventoryCache\3DA21691-E39D-4DA6-8A4B-B43877BCB1B7\*.xml</File>
+      <File Team="Intune">%ProgramFiles%\Microsoft\OnlineManagement\PolicyAgent\ReportCache\3DA21691-E39D-4DA6-8A4B-B43877BCB1B7\*.xml</File>
       <File Team="WMI">%windir%\system32\wbem\logs\*.*</File>
       <File Team="WMI">%windir%\system32\wbem\tmf\*.*</File>
       <File Team="Windows Update">%windir%\windowsupdate*.log</File>
       <File Team="General">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
-      <File Team="General">%programdata%\microsoft\diagnosticlogcsp\collectors\*</File>
+      <File Team="General">%ProgramData%\microsoft\diagnosticlogcsp\collectors\*</File>
       <File Team="Intune">%public%\Documents\MDMDiagnostics\*</File>
-      <File Team="NDES">%programfiles%\Microsoft Intune\NDESConnectorUI\NDESConnectorUI.log</File>
-      <File Team="NDES">%programfiles%\Microsoft Intune\NDESConnectorSvc\logs\logs\*</File>
-      <File Team="NDES">%programfiles%\Microsoft Intune\NDESConnectorUI\Logs\*</File>
+      <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorUI\NDESConnectorUI.log</File>
+      <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorSvc\logs\logs\*</File>
+      <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorUI\Logs\*</File>
       <File Team="NDES">C:\inetpub\logs\LogFiles\W3SVC1\u_ex*.log </File>
-      <File Team="NDES">%programfiles%\Microsoft Intune\NDESPolicyModule\Logs\NDESPlugin.log</File>
+      <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESPolicyModule\Logs\NDESPlugin.log</File>
       <File Team="NDES">C:\NDESConnectorSetup\*.log</File>
-      <File Team="NDES">%programfiles%\Microsoft Configuration Manager\logs\ndes*</File>
+      <File Team="NDES">%ProgramFiles%\Microsoft Configuration Manager\logs\ndes*</File>
       <File Team="Sidecar">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
       <File Team="General">%systemroot%\temp\stdout.log</File>
       <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorSvc\NDESConnector.exe.config</File>
@@ -2572,7 +2571,6 @@ move .\MDMDiagReport.* $outputPath</Command>
       <Registry Team="Registry" OutputFileName="REG_Windows_CV_Uninstall">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Enrollments">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Enrollments</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Enrollments">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Enrollments</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Enrollments">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Enrollments</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_PolicyManager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager</Registry>
       <Registry Team="Intune" OutputFileName="REG_SW_Microsoft_MicrosoftIntune">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MicrosoftIntune</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_EnterpriseDesktopAppManagement">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\EnterpriseDesktopAppManagement</Registry>
@@ -2580,7 +2578,6 @@ move .\MDMDiagReport.* $outputPath</Command>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Provisioning_NodeCache_CSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\NodeCache\CSP</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW-Microsoft_EnterpriseModernAppManagement">HKEY_LOCAL_MACHINE\SOFTWARE\microsoft\enterprisemodernappmanagement</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_AssignedAccessConfiguration">HKEY_LOCAL_MACHINE\SOFTWARE\microsoft\windows\assignedaccessconfiguration</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Policymanager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\policymanager</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Provisioning">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\provisioning</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Multivariant">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\multivariant</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_MSFT_Windows_Assignedaccessconfiguration">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\windows\assignedaccessconfiguration</Registry>
@@ -2598,7 +2595,7 @@ move .\MDMDiagReport.* $outputPath</Command>
       <Registry Team="Registry" OutputFileName="REG_SYSTEM_CCS_Services_HTTP_Parameters">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\HTTP\Parameters</Registry>
       <Registry Team="AutoPilot" OutputFileName="REG_SW_Microsoft_Provisioning_Diagnostics_Autopilot">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\Diagnostics\AutoPilot</Registry>
       <Registry Team="AV" OutputFileName="REG_SW_Policies_Microsoft_Windows_Defender">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender</Registry>
-      <Registry Team="General" OutputFileName="REG_SW_Microsoft_Windows_CV_MDM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\MDM</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_MDM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\MDM</Registry>
       <Registry Team="NDES" OutputFileName="REG_HKCU_Software_Microsoft_SCEP">HKEY_CURRENT_USER\Software\Microsoft\SCEP</Registry>
     </Registries>
   </Package>
