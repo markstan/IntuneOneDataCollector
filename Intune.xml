@@ -2597,6 +2597,11 @@ move .\MDMDiagReport.* $outputPath</Command>
       <Registry Team="AV" OutputFileName="REG_SW_Policies_Microsoft_Windows_Defender">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_MDM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\MDM</Registry>
       <Registry Team="NDES" OutputFileName="REG_HKCU_Software_Microsoft_SCEP">HKEY_CURRENT_USER\Software\Microsoft\SCEP</Registry>
+      <Registry Team="CSPs" OutputFileName="REG_SW_Microsoft_BitLockerCsp">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\BitLockerCsp</Registry>
+      <Registry Team="CSPs" OutputFileName="REG_SW_Microsoft_DeviceManageabilityCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DeviceManageabilityCSP</Registry>
+      <Registry Team="CSPs" OutputFileName="REG_SW_Microsoft_DiagnosticLogCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DiagnosticLogCSP</Registry>
+      <Registry Team="CSPs" OutputFileName="REG_SW_Microsoft_HVSICSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\HVSICSP</Registry>
+      <Registry Team="CSPs" OutputFileName="REG_SW_Microsoft_OfficeCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OfficeCSP</Registry>
     </Registries>
   </Package>
 </DataPoints>
