@@ -469,8 +469,8 @@ Get-WmiObject  -Class Win32_BIOS</Command>
       <Command Type="CMD" Team="General" OutputFileName="proxy_settings.txt">netsh winhttp show proxy</Command>
       <Command Type="PS" Team="General" OutputFileName="Bitlocker_and_TPM">function RunCommand {
    Param ([string]$cmdToRun)
-   
-   echo "`r`n===========================================`r`n`t`t $cmdToRun `r`n===========================================`r`n"
+   $line = "`r`n================================================================================================"
+   echo "`r`n$line`r`n`t`t $cmdToRun $line`r`n"
    try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
    catch { $error[0].ToString()}
    
@@ -480,11 +480,25 @@ Get-WmiObject  -Class Win32_BIOS</Command>
 RunCommand "manage-bde -status"
 RunCommand "Get-BitLockerVolume |fl * -Force"
 RunCommand "Get-Tpm"
-RunCommand "echo 'SelfTest:' $(Get-Tpm | Select-Object -ExpandProperty SelfTest)"
+RunCommand "Manage-bde -protectors -get $env:systemdrive"
+RunCommand "'SelfTest:' $(Get-Tpm | Select-Object -ExpandProperty SelfTest)"
 RunCommand "Get-TpmEndorsementKeyInfo"
 RunCommand "Get-TpmSupportedFeature -Verbose"
 RunCommand "Get-CimInstance -ClassName Win32_Tpm -Namespace 'root\CIMV2\Security\MicrosoftTpm' "
-RunCommand "Get-CimInstance -ClassName  Win32_baseboard -Namespace 'root\CIMV2' "</Command>
+RunCommand "Get-CimInstance -ClassName  Win32_baseboard -Namespace 'root\CIMV2' "
+RunCommand "reagentc /info 2&gt;NULL"
+RunCommand "bcdedit /enum all"
+RunCommand "gwmi win32_bios | fl *"
+RunCommand "Get-Service tpm |fl *"
+RunCommand "powercfg /a"
+
+
+# Registry keys
+RunCommand "Get-Item HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\BitLocker"
+RunCommand "Get-ChildItem HKLM:\SOFTWARE\Microsoft\PolicyManager\default\Bitlocker"
+RunCommand "Get-Item HKLM:\SOFTWARE\Policies\Microsoft\FVE"
+RunCommand "Get-ChildItem HKLM:\SOFTWARE\Microsoft\PolicyManager\Providers\*\Bitlocker -Recurse" 
+</Command>
       <Command Type="PS" Team="General" OutputFileName="Firewall_Settings">function RunCommand {
    Param ([string]$cmdToRun)
    
