@@ -2558,6 +2558,10 @@ move .\MDMDiagReport.* $outputPath</Command>
       <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorSvc\NDESConnector.exe.config</File>
       <File Team="Autopilot">%windir%\Provisioning\AutoPilot\AutoPilotConfigurationFile.json</File>
       <File Team="Sidecar">%systemroot%\system32\config\systemprofile\AppData\Local\mdm\*.log</File>
+      <File Team="Teams">%LocalAppData%\Microsoft\Teams\SquirrelSetup.log</File>
+      <File Team="Teams">%AppData%\Microsoft\Teams\*.txt</File>
+      <File Team="Teams">%LocalAppData%\SquirrelTemp\*</File>
+      <File Team="Teams">%LocalAppData%\Microsoft\Teams\current\SquirrelSetup.log</File>
     </Files>
     <Registries>
       <Registry Team="AV" OutputFileName="REG_MicrosoftAntimalware.TXT">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Microsoft Antimalware</Registry>
@@ -2616,6 +2620,7 @@ move .\MDMDiagReport.* $outputPath</Command>
       <Registry Team="CSPs" OutputFileName="REG_SW_Microsoft_DiagnosticLogCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DiagnosticLogCSP</Registry>
       <Registry Team="CSPs" OutputFileName="REG_SW_Microsoft_HVSICSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\HVSICSP</Registry>
       <Registry Team="CSPs" OutputFileName="REG_SW_Microsoft_OfficeCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OfficeCSP</Registry>
+      <Registry Team="General" OutputFileName="REG_HKCU_Software_Microsoft_Windows_CurrentVersion_Uninstall">HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
     </Registries>
   </Package>
 </DataPoints>
