@@ -2486,7 +2486,7 @@ while ( ($elapsed -lt $timeoutInSec) -and $stillRunning ) {
         $stillRunning = $false
     }
 }</Command>
-      <Command Type="PS" Team="General" OutputFileName="NA">MdmDiagnosticsTool.exe  -out $pwd
+      <Command Type="PS" Team="General" OutputFileName="NA">MdmDiagnosticsTool.exe  -out $pwd/
 $outputPath = "$env:temp\CollectedData\Intune\Commands\General"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 move .\MDMDiagReport.* $outputPath</Command>
