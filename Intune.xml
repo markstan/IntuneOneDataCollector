@@ -2564,12 +2564,11 @@ move .\MDMDiagReport.* $outputPath</Command>
       <File Team="Teams">%LocalAppData%\Microsoft\Teams\current\SquirrelSetup.log</File>
     </Files>
     <Registries>
-      <Registry Team="AV" OutputFileName="REG_MicrosoftAntimalware.TXT">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Microsoft Antimalware</Registry>
-      <Registry Team="AV" OutputFileName="REG_Wow6432Node_MicrosoftAntimalware.TXT">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies\Microsoft\Microsoft Antimalware</Registry>
+      <Registry Team="Registry" OutputFileName="REG_MicrosoftAntimalware">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Microsoft Antimalware</Registry>
+      <Registry Team="Registry" OutputFileName="REG_Wow6432Node_MicrosoftAntimalware">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies\Microsoft\Microsoft Antimalware</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Installer">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18</Registry>
-      <Registry Team="Intune" OutputFileName="REG_SW_IntuneManagementExtension">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\IntuneManagementExtension</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft-SystemCenterAdvisor">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCenterAdvisor</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Policies_Microsoft_Windows_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\windows\WindowsUpdate</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_IntuneManagementExtension">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\IntuneManagementExtension</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_SystemCenterAdvisor">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCenterAdvisor</Registry>
       <Registry Team="Registry" OutputFileName="REG_Updates_SW_Microsoft_Updates">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Updates</Registry>
       <Registry Team="Registry" OutputFileName="REG_WOW64_Policies_Microsoft_Windows_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\WindowsUpdate</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_OnlineManagement_PolicyAgent">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OnlineManagement\PolicyAgent</Registry>
@@ -2581,7 +2580,7 @@ move .\MDMDiagReport.* $outputPath</Command>
       <Registry Team="Registry" OutputFileName="REG_SYSTEM_CCS_Control_ProductOptions_ProductSuite">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\ProductOptions\ProductSuite</Registry>
       <Registry Team="Registry" OutputFileName="REG_SYSTEM_CCS_Control_Windows_CSDVersion">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Windows\CSDVersion</Registry>
       <Registry Team="Registry" OutputFileName="REG_WindowsEmbedded_ProductVersion">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WindowsEmbedded\ProductVersion</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW-Microsoft_WEPOS_Version">HKEY_LOCAL_MACHINE\Software\Microsoft\WEPOS\Version</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_WEPOS_Version">HKEY_LOCAL_MACHINE\Software\Microsoft\WEPOS\Version</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_POSReady">HKEY_LOCAL_MACHINE\Software\Microsoft\POSReady</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_OnlineManagement">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OnlineManagement</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Microsoft_Operations_Manager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft Operations Manager</Registry>
@@ -2589,38 +2588,36 @@ move .\MDMDiagReport.* $outputPath</Command>
       <Registry Team="Registry" OutputFileName="REG_Windows_CV_Uninstall">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Enrollments">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Enrollments</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Enrollments">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Enrollments</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_PolicyManager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager</Registry>
-      <Registry Team="Intune" OutputFileName="REG_SW_Microsoft_MicrosoftIntune">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MicrosoftIntune</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_MicrosoftIntune">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MicrosoftIntune</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_EnterpriseDesktopAppManagement">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\EnterpriseDesktopAppManagement</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Policies_Microsoft_Windows_Appx">HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\Appx</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Policies">HKEY_LOCAL_MACHINE\Software\Policies</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Provisioning_NodeCache_CSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\NodeCache\CSP</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW-Microsoft_EnterpriseModernAppManagement">HKEY_LOCAL_MACHINE\SOFTWARE\microsoft\enterprisemodernappmanagement</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_EnterpriseModernAppManagement">HKEY_LOCAL_MACHINE\SOFTWARE\microsoft\enterprisemodernappmanagement</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_AssignedAccessConfiguration">HKEY_LOCAL_MACHINE\SOFTWARE\microsoft\windows\assignedaccessconfiguration</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Provisioning">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\provisioning</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Multivariant">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\multivariant</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_MSFT_Windows_Assignedaccessconfiguration">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\windows\assignedaccessconfiguration</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Assignedaccesscsp">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\windows\assignedaccesscsp</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Policies_Microsoft_Windows_CV_MDM">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\MDM</Registry>
-      <Registry Team="NDES" OutputFileName="REG_SYSTEM_CCS_Services_Crypt32">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\crypt32</Registry>
-      <Registry Team="NDES" OutputFileName="REG_SYSTEM_CCS_services_CryptSvc">HKEY_LOCAL_MACHINE\SYSTEM\SYSTEM\CurrentControlSet\services\CryptSvc</Registry>
-      <Registry Team="NDES" OutputFileName="REG_SYSTEM_CCS_services_CertPropSvc">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\CertPropSvc</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SYSTEM_CCS_Services_Crypt32">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\crypt32</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SYSTEM_CCS_services_CryptSvc">HKEY_LOCAL_MACHINE\SYSTEM\SYSTEM\CurrentControlSet\services\CryptSvc</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SYSTEM_CCS_services_CertPropSvc">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\CertPropSvc</Registry>
       <Registry Team="Registry" OutputFileName="REG_SYSTEM_CCS_services_SCardSvr">HKEY_LOCAL_MACHINE\HKLM\SYSTEM\CurrentControlSet\services\SCardSvr</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_Services_SCPolicySvc">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\SCPolicySvc</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Provisioning_Diagnostics_Autopilot">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\Diagnostics\AutoPilot</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_DotNetFW_v4">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\.NETFramework\v4.0.30319</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_OfficeCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OfficeCSP</Registry>
-      <Registry Team="NDES" OutputFileName="REG_SW_Microsoft_Cryptography_MSCEP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\MSCEP</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Cryptography_MSCEP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\MSCEP</Registry>
       <Registry Team="Registry" OutputFileName="REG_SYSTEM_CCS_Services_HTTP_Parameters">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\HTTP\Parameters</Registry>
-      <Registry Team="AutoPilot" OutputFileName="REG_SW_Microsoft_Provisioning_Diagnostics_Autopilot">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\Diagnostics\AutoPilot</Registry>
-      <Registry Team="AV" OutputFileName="REG_SW_Policies_Microsoft_Windows_Defender">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Provisioning_Diagnostics_Autopilot">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\Diagnostics\AutoPilot</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Policies_Microsoft_Windows_Defender">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_MDM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\MDM</Registry>
-      <Registry Team="NDES" OutputFileName="REG_HKCU_Software_Microsoft_SCEP">HKEY_CURRENT_USER\Software\Microsoft\SCEP</Registry>
-      <Registry Team="CSPs" OutputFileName="REG_SW_Microsoft_BitLockerCsp">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\BitLockerCsp</Registry>
-      <Registry Team="CSPs" OutputFileName="REG_SW_Microsoft_DeviceManageabilityCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DeviceManageabilityCSP</Registry>
-      <Registry Team="CSPs" OutputFileName="REG_SW_Microsoft_DiagnosticLogCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DiagnosticLogCSP</Registry>
-      <Registry Team="CSPs" OutputFileName="REG_SW_Microsoft_HVSICSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\HVSICSP</Registry>
-      <Registry Team="CSPs" OutputFileName="REG_SW_Microsoft_OfficeCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OfficeCSP</Registry>
-      <Registry Team="General" OutputFileName="REG_HKCU_Software_Microsoft_Windows_CurrentVersion_Uninstall">HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
+      <Registry Team="Registry" OutputFileName="REG_HKCU_Software_Microsoft_SCEP">HKEY_CURRENT_USER\Software\Microsoft\SCEP</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_BitLockerCsp">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\BitLockerCsp</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_DeviceManageabilityCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DeviceManageabilityCSP</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_DiagnosticLogCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DiagnosticLogCSP</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_HVSICSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\HVSICSP</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_OfficeCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OfficeCSP</Registry>
+      <Registry Team="Registry" OutputFileName="REG_HKCU_Software_Microsoft_Windows_CurrentVersion_Uninstall">HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
     </Registries>
   </Package>
 </DataPoints>
