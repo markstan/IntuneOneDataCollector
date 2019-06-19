@@ -498,7 +498,13 @@ RunCommand "Get-Item HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\BitLo
 RunCommand "Get-ChildItem HKLM:\SOFTWARE\Microsoft\PolicyManager\default\Bitlocker"
 RunCommand "Get-Item HKLM:\SOFTWARE\Policies\Microsoft\FVE"
 RunCommand "Get-ChildItem HKLM:\SOFTWARE\Microsoft\PolicyManager\Providers\*\Bitlocker -Recurse" 
-</Command>
+
+
+# Disk config
+RunCommand "Get-Disk | fl *"
+RunCommand "gwmi Win32_DiskPartition"
+RunCommand "gwmi -class win32_logicaldisk"
+RunCommand "gwmi -class win32_volume"</Command>
       <Command Type="PS" Team="General" OutputFileName="Firewall_Settings">function RunCommand {
    Param ([string]$cmdToRun)
    
@@ -2490,6 +2496,17 @@ while ( ($elapsed -lt $timeoutInSec) -and $stillRunning ) {
 $outputPath = "$env:temp\CollectedData\Intune\Commands\General"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 move .\MDMDiagReport.* $outputPath</Command>
+      <Command Type="PS" Team="General" OutputFileName="Eventlog_metadata">function RunCommand {
+   Param ([string]$cmdToRun)
+   
+   echo "`r`n===========================================`r`n`t`t $cmdToRun `r`n===========================================`r`n"
+   try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
+   catch { $error[0].ToString()}
+   
+}
+
+RunCommand -cmdToRun "Get-WinEvent -ErrorAction SilentlyContinue -ListLog *   | fl *"
+RunCommand -cmdToRun "dir $env:windir\system32\winevt\logs"</Command>
     </Commands>
     <EventLogs>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
@@ -2510,6 +2527,7 @@ move .\MDMDiagReport.* $outputPath</Command>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*bitlocker*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-SENSE%4Operational.evtx</EventLog>
       <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-HelloForBusiness%4Operational.evtx</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\odj*</EventLog>
     </EventLogs>
     <Files>
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\AgentData\Logs\*</File>
@@ -2562,6 +2580,7 @@ move .\MDMDiagReport.* $outputPath</Command>
       <File Team="Teams">%AppData%\Microsoft\Teams\*.txt</File>
       <File Team="Teams">%LocalAppData%\SquirrelTemp\*</File>
       <File Team="Teams">%LocalAppData%\Microsoft\Teams\current\SquirrelSetup.log</File>
+      <File Team="General">%ProgramFiles%\Microsoft Intune\ODJConnector\ODJConnectorUI\*.log</File>
     </Files>
     <Registries>
       <Registry Team="Registry" OutputFileName="REG_MicrosoftAntimalware">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Microsoft Antimalware</Registry>
@@ -2618,6 +2637,8 @@ move .\MDMDiagReport.* $outputPath</Command>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_HVSICSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\HVSICSP</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_OfficeCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OfficeCSP</Registry>
       <Registry Team="Registry" OutputFileName="REG_HKCU_Software_Microsoft_Windows_CurrentVersion_Uninstall">HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_MSFT_MicrosoftIntune">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MicrosoftIntune</Registry>
+      <Registry Team="General" OutputFileName="REG_SW_MSFT_SystemCertificates">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCertificates\MY\Certificates</Registry>
     </Registries>
   </Package>
 </DataPoints>
