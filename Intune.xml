@@ -441,8 +441,32 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
  add-member -inputobject $OS_Summary -membertype noteproperty -name "UAC" -value $UACDisplay
  
 
-  add-member -inputobject $OS_Summary -membertype noteproperty -name "Username" -value ($Env:USERDOMAIN + "\" + $Env:USERNAME)
+ add-member -inputobject $OS_Summary -membertype noteproperty -name "Username" -value ($Env:USERDOMAIN + "\" + $Env:USERNAME)
+ $versions = @{
+ "18362" =     "1903"
+ "17763" =   "1809"
+ "17134" =   "1803"
+ "16299" =   "1709"
+ "15063" =   "1703"
+ "14393" =   "1607"
+ "10586" =   "1511"
+  "10240" =     "RTM"    
+ }
 
+ $marketingNames = @{
+  "18362" =    "May 2019 Update"
+ "17763" =   "October 2018 Update"
+ "17134" =   "April 2018 Update"
+ "16299" =   "Fall Creators Update"
+ "15063" =   "Creators Update"
+ "14393" =   "Anniversary Update"
+ "10586" =   "November Update"
+  "10240" =   "RTM" 
+ }
+
+ $Win10Version = Get-WmiObject -Class Win32_OperatingSystem
+
+ 
  
  #System Center Advisor Information
  $SCAKey = "HKLM:\SOFTWARE\Microsoft\SystemCenterAdvisor"
@@ -458,11 +482,12 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
   }  
  }
 
- # Add-Member -InputObject $CS_Summary -MemberType NoteProperty -name "RAM (physical)" -value (FormatBytes -bytes $WMICS.TotalPhysicalMemory -precision 1)
- $OS_Summary | fl
- $CS_Summary | fl 
- systeminfo.exe
-
+$OS_Summary | fl
+"Windows build:     $($Win10Version.version)"
+"Windows version:   $($versions[$Win10Version.BuildNumber])"
+"Windows name :     $($marketingNames[$Win10Version.BuildNumber])" 
+$CS_Summary | fl 
+systeminfo.exe
 "BIOS Information"
 Get-WmiObject  -Class Win32_BIOS</Command>
       <Command Type="CMD" Team="General" OutputFileName="Installed_Products.txt">wmic product list brief </Command>
@@ -2505,8 +2530,31 @@ move .\MDMDiagReport.* $outputPath</Command>
    
 }
 
-RunCommand -cmdToRun "Get-WinEvent -ErrorAction SilentlyContinue -ListLog *   | fl *"
-RunCommand -cmdToRun "dir $env:windir\system32\winevt\logs"</Command>
+RunCommand -cmdToRun "Get-WinEvent -ErrorAction SilentlyContinue -ListLog * | Select-Object LogName, LogFilePath, FileSize, LastWriteTime, IsEnabled | Sort IsEnabled, LogName | Format-Table -Wrap" 
+
+RunCommand -cmdToRun "dir $env:windir\system32\winevt\logs | select FullName, Length, LastWriteTime"</Command>
+      <Command Type="PS" Team="General" OutputFileName="AV_(WATP)_info.txt">function RunCommand {
+   Param ([string]$cmdToRun)
+   $line = "=" * 120
+   echo "`r`n$line`r`n`t`t $cmdToRun `r`n$line`r`n"
+   try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
+   catch { $error[0].ToString()}
+   
+}
+
+
+RunCommand -cmdToRun "Get-CimInstance -ClassName AntiVirusProduct            -Namespace  ROOT\SecurityCenter2"
+RunCommand -cmdToRun "Get-CimInstance -ClassName AntiSpywareProduct          -Namespace  ROOT\SecurityCenter2"
+RunCommand -cmdToRun "Get-CimInstance -ClassName FirewallProduct             -Namespace  ROOT\SecurityCenter2"
+RunCommand -cmdToRun "Get-CimInstance -ClassName MSFT_MpComputerStatus       -Namespace  ROOT\Microsoft\ProtectionManagement"
+RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Namespace  ROOT\Microsoft\SecurityClient"
+RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareHealthStatus     -Namespace  ROOT\Microsoft\SecurityClient"
+RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareInfectionStatus  -Namespace  ROOT\Microsoft\SecurityClient"
+RunCommand -cmdToRun "Get-CimInstance -ClassName Malware                     -Namespace  ROOT\Microsoft\SecurityClient"
+RunCommand -cmdToRun "Get-CimInstance -ClassName ProtectionTechnologyStatus  -Namespace  ROOT\Microsoft\SecurityClient"
+RunCommand -cmdToRun "Get-CimInstance -ClassName SerializableToXml           -Namespace  ROOT\Microsoft\SecurityClient"
+RunCommand -cmdToRun "Get-CimInstance -ClassName Win32_ProviderEx            -Namespace  ROOT\Microsoft\SecurityClient"
+RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Namespace  ROOT\Microsoft\SecurityClient"</Command>
     </Commands>
     <EventLogs>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
