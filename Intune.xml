@@ -464,6 +464,18 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
   "10240" =   "RTM" 
  }
 
+
+  $codeNames = @{
+ "18362" =   "19H1"
+ "17763" =   "Redstone 5"
+ "17134" =   "Redstone 4"
+ "16299" =   "Redstone 3"
+ "15063" =   "Redstone 2"
+ "14393" =   "Redstone 1"
+ "10586" =   "Threshold 2"
+  "10240" =  "Threshold 1"    
+ }
+
  $Win10Version = Get-WmiObject -Class Win32_OperatingSystem
 
  
@@ -482,10 +494,47 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
   }  
  }
 
+
+# Joined/Registered status
+$ds = dsregcmd /status
+[bool]$isRegistered = [bool]($ds -match "Work account")
+[bool]$isJoined = [bool]($ds -match "AzureAdJoined : YES")
+
+$Policies =  "HKLM:\SOFTWARE\Microsoft\IntuneManagementExtension\Policies"
+if (test-path $Policies) {
+    foreach ($Policy in (dir $Policies)) {
+     if ([guid]::Empty -ne  $Policy.PSChildName) { $UserID = $Policy.PSChildName }
+    }
+
+}
+
+
+
+
+$MachineID = $(dir hklm:SOFTWARE\Microsoft\Enrollments -Recurse | Where {$_.Name -match 'MS DM Server'}).GetValue("ENTDMID")
+$SubscriptionID = $ds -match "SubscriptionID : (.+)"
+
+# Start reporting
+
 $OS_Summary | fl
+if ($Win10Version.BuildNumber -gt 18362) { "**** WARNING:  Beta version of Windows detected:  Build $($Win10Version.version) *****"}
 "Windows build:     $($Win10Version.version)"
 "Windows version:   $($versions[$Win10Version.BuildNumber])"
-"Windows name :     $($marketingNames[$Win10Version.BuildNumber])" 
+"Windows name:      $($marketingNames[$Win10Version.BuildNumber])" 
+"Windows code name: $($codeNames[$Win10Version.BuildNumber])" 
+if ($isRegistered) {
+    "Azure AD status:   Registered"
+    }
+elseif ($isJoined) {
+    "Azure AD status:   Joined"
+    }
+else {
+    "Azure AD status:   Not registered/joined or unknown"
+}
+
+if ($UserID) {         "UserID:            $UserID" }
+if ($MachineID) {      "MachineID:         $MachineID"}
+if ($SubscriptionID) { "SubscriptionID:    $SubscriptionID" }
 $CS_Summary | fl 
 systeminfo.exe
 "BIOS Information"
