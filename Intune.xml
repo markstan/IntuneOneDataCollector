@@ -2579,10 +2579,10 @@ move .\MDMDiagReport.* $outputPath</Command>
    
 }
 
-RunCommand -cmdToRun "Get-WinEvent -ErrorAction SilentlyContinue -ListLog * | Select-Object LogName, LogFilePath, FileSize, LastWriteTime, IsEnabled | Sort IsEnabled, LogName | Format-Table -Wrap" 
+RunCommand -cmdToRun "Get-WinEvent -ErrorAction SilentlyContinue -ListLog * | Select-Object LogName, LogFilePath, FileSize, LastWriteTime, IsEnabled | Sort IsEnabled, LogName" 
 
 RunCommand -cmdToRun "dir $env:windir\system32\winevt\logs | select FullName, Length, LastWriteTime"</Command>
-      <Command Type="PS" Team="General" OutputFileName="AV_(WATP)_info.txt">function RunCommand {
+      <Command Type="PS" Team="General" OutputFileName="Windows_AV_(WATP)_info.txt">function RunCommand {
    Param ([string]$cmdToRun)
    $line = "=" * 120
    echo "`r`n$line`r`n`t`t $cmdToRun `r`n$line`r`n"
@@ -2724,7 +2724,6 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_OfficeCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OfficeCSP</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Cryptography_MSCEP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\MSCEP</Registry>
       <Registry Team="Registry" OutputFileName="REG_SYSTEM_CCS_Services_HTTP_Parameters">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\HTTP\Parameters</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Provisioning_Diagnostics_Autopilot">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\Diagnostics\AutoPilot</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Policies_Microsoft_Windows_Defender">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_MDM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\MDM</Registry>
       <Registry Team="Registry" OutputFileName="REG_HKCU_Software_Microsoft_SCEP">HKEY_CURRENT_USER\Software\Microsoft\SCEP</Registry>
@@ -2735,7 +2734,7 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_OfficeCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OfficeCSP</Registry>
       <Registry Team="Registry" OutputFileName="REG_HKCU_Software_Microsoft_Windows_CurrentVersion_Uninstall">HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_MSFT_MicrosoftIntune">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MicrosoftIntune</Registry>
-      <Registry Team="General" OutputFileName="REG_SW_MSFT_SystemCertificates">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCertificates\MY\Certificates</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_MSFT_SystemCertificates">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCertificates\MY\Certificates</Registry>
     </Registries>
   </Package>
 </DataPoints>
