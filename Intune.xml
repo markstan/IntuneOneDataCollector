@@ -511,7 +511,7 @@ if (test-path $Policies) {
 
 
 
-$MachineID = $(dir hklm:SOFTWARE\Microsoft\Enrollments -Recurse | Where {$_.Name -match 'MS DM Server'}).GetValue("ENTDMID")
+$MachineID = $(dir hklm:SOFTWARE\Microsoft\Enrollments -Recurse | Where {$_.Name -match 'MS DM Server'}) | Get-ItemPropertyValue -Name EntDMID
 $SubscriptionID = $ds -match "SubscriptionID : (.+)"
 
 # Start reporting
@@ -2731,7 +2731,6 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_DeviceManageabilityCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DeviceManageabilityCSP</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_DiagnosticLogCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DiagnosticLogCSP</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_HVSICSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\HVSICSP</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_OfficeCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OfficeCSP</Registry>
       <Registry Team="Registry" OutputFileName="REG_HKCU_Software_Microsoft_Windows_CurrentVersion_Uninstall">HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_MSFT_MicrosoftIntune">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MicrosoftIntune</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_MSFT_SystemCertificates">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCertificates\MY\Certificates</Registry>
