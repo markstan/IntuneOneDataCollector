@@ -139,7 +139,6 @@ catch {
     } 
 }
 </Command>
-      <Command Type="CMD" Team="General" OutputFileName="DIR_SystemCenterAdvisor_Agent.txt">dir /s "%programfiles%\System Center Advisor\AgentData\AdvisorMonitor"</Command>
       <Command Type="PS" Team="General" OutputFileName="BasicSystemInfo.txt">Function GetAgeDescription($TimeSpan, [switch] $Localized) {
  $Age = $TimeSpan
 
@@ -473,7 +472,7 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
  "15063" =   "Redstone 2"
  "14393" =   "Redstone 1"
  "10586" =   "Threshold 2"
-  "10240" =  "Threshold 1"    
+ "10240" =   "Threshold 1"    
  }
 
  $Win10Version = Get-WmiObject -Class Win32_OperatingSystem
@@ -510,8 +509,13 @@ if (test-path $Policies) {
 
 
 
-
-$MachineID = $(dir hklm:SOFTWARE\Microsoft\Enrollments -Recurse | Where {$_.Name -match 'MS DM Server'}) | Get-ItemPropertyValue -Name EntDMID
+$MachineID = "Unknown"
+$DeviceName = "Unknown"
+$MachineIDContainer = dir hklm:SOFTWARE\Microsoft\Enrollments -Recurse | Where {$_.Name -match 'MS DM Server'} 
+if ($MachineIDContainer){
+        $MachineID = $MachineIDContainer| Get-ItemPropertyValue  -Name EntDMID
+        $DeviceName = $MachineIDContainer| Get-ItemPropertyValue -Name EntDeviceName
+        }
 $SubscriptionID = $ds -match "SubscriptionID : (.+)"
 
 # Start reporting
@@ -534,6 +538,7 @@ else {
 
 if ($UserID) {         "UserID:            $UserID" }
 if ($MachineID) {      "MachineID:         $MachineID"}
+if ($DeviceName) {     "Device Name:       $DeviceName"}
 if ($SubscriptionID) { "SubscriptionID:    $SubscriptionID" }
 $CS_Summary | fl 
 systeminfo.exe
@@ -593,7 +598,20 @@ RunCommand "gwmi -class win32_volume"</Command>
 RunCommand "netsh advfirewall show allprofiles"
 RunCommand "netsh advfirewall show allprofiles"
 RunCommand  "netsh advfirewall show global"</Command>
-      <Command Type="CMD" Team="Antimalware" OutputFileName="mpcmdrun_output">"%programfiles%\Microsoft Security Client\MPCmdRun.exe" -GetFiles</Command>
+      <Command Type="PS" Team="General" OutputFileName="NA">$mpc = "$env:ProgramFiles\Windows Defender\MpCmdRun.exe"
+if (Test-Path -Path $mpc) {
+    $output = &amp;$mpc -getfiles
+
+    $cabPath = $output -match "MpSupportFiles.cab"
+    
+    # Get the full path to the cab
+    $cabPath = $cabPath -replace "^.* *(.:.*)", "`$1"
+    
+    $outputPath = "$env:temp\CollectedData\Intune\Commands\AV"
+    $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
+    copy $cabPath $outPutPath\WindowsDefender-SupportFiles.cab
+
+}</Command>
       <Command Type="PS" Team="Networking" OutputFileName="Networking.txt">function RunCommand {
    Param ([string]$cmdToRun)
    
@@ -719,29 +737,6 @@ echo "======= netsh int ipv4 show neighbors ======"
 netsh int ipv4 show neighbors
 
 </Command>
-      <Command Type="PS" Team="Devices" OutputFileName="NA"># Only run on workstation
-# https://msdn.microsoft.com/en-us/library/aa394239%28v=vs.85%29.aspx
-if ((Get-CimInstance -ClassName Win32_OperatingSystem).ProductType -eq 1) {
-
-    [bool]$isWATIInstalled = $false
-
-    if (get-module -ListAvailable | where { $_.Name -eq 'WindowsAutoPilotIntune'} ) {
-        $isWATIInstalled = $true
-    }
-
-    $outputPath = "$env:temp\CollectedData\Intune\Commands\Devices"
-    $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
-
-
-    Install-Module -Name WindowsAutoPilotIntune -Force
-    Install-Script -Name Get-WindowsAutoPilotInfo -Force
-    .\Get-WindowsAutoPilotInfo.ps1 -OutputFile $outputPath\Get-WindowsAutoPilotInfo.csv
-
-    # Remove module if it was not previously installed
-    if (-not $isWATIInstalled) {
-        Uninstall-Module WindowsAutoPilotIntune -Force -ErrorAction SilentlyContinue
-        }
-}</Command>
       <Command Type="PS" Team="Networking" OutputFileName="Connectivity_tests">$uniqueURLs = (dsregcmd /status) | ForEach-Object { if ($_ -match ".*https://(\w+.+?)\/") { $matches[1]} } | Get-Unique
 $uniqueURLs  | ForEach-Object  { Test-NetConnection -Port 443 $_ -ErrorAction SilentlyContinue}
 
@@ -767,39 +762,41 @@ $uniqueURLs  | ForEach-Object  { Test-NetConnection -Port 443 $_ -ErrorAction Si
     }
 
 
+if (Test-Path HKLM:\SOFTWARE\Microsoft\MicrosoftIntune\NDESConnector) {
+    $installFolder = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\MicrosoftIntune\NDESConnector).InstallFolder
+    $copyPath = "$env:temp\CollectedData\Intune\Files\NDES"
 
-$installFolder = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\MicrosoftIntune\NDESConnector).InstallFolder
-$copyPath = "$env:temp\CollectedData\Intune\Files\NDES"
+    if ($installFolder) {
 
-if ($installFolder) {
-
-    $ndesPaths = @(
-        "$installFolder\NDESPolicyModule\Logs\NDESPlugin.log",
-        "$installFolder\NDESConnectorSvc\Logs\Logs\NDESConnector*",
-        "$installFolder\NDESConnectorSvc\Logs\Logs\CertificateRegistrationPoint*",
-        "$installFolder\NDESConnectorUI\NDESConnectorUI.log",
-        "$installFolder\NDESConnectorUI\Logs\*",
-        "C:\inetpub\logs\LogFiles\W3SVC1\u_ex*.log"
-        "$installFolder\NDESPolicyModule\Logs\NDESPlugin.log",
-        "C:\NDESConnectorSetup\*.log",
-        "$env:programfiles\Microsoft Configuration Manager\logs\ndes*"
-         )
+        $ndesPaths = @(
+            "$installFolder\NDESPolicyModule\Logs\NDESPlugin.log",
+            "$installFolder\NDESConnectorSvc\Logs\Logs\NDESConnector*",
+            "$installFolder\NDESConnectorSvc\Logs\Logs\CertificateRegistrationPoint*",
+            "$installFolder\NDESConnectorUI\NDESConnectorUI.log",
+            "$installFolder\NDESConnectorUI\Logs\*",
+            "C:\inetpub\logs\LogFiles\W3SVC1\u_ex*.log"
+            "$installFolder\NDESPolicyModule\Logs\NDESPlugin.log",
+            "C:\NDESConnectorSetup\*.log",
+            "$env:programfiles\Microsoft Configuration Manager\logs\ndes*"
+             )
 
     
-    if (-not(test-path $copyPath) ) { $x = mkdir $copyPath -Force }
+        if (-not(test-path $copyPath) ) { $x = mkdir $copyPath -Force }
 
-    ForEach ($ndesPath in $ndesPaths) {
+        ForEach ($ndesPath in $ndesPaths) {
 
-        if (Test-Path $ndesPath) {
-            $filesToCollect = Get-FilesOlderThan -path $ndesPath -days 3
-            foreach ($fileToCollect in $filesToCollect) { copy $fileToCollect $copyPath}
-            }
+            if (Test-Path $ndesPath) {
+                $filesToCollect = Get-FilesOlderThan -path $ndesPath -days 3
+                foreach ($fileToCollect in $filesToCollect) { copy $fileToCollect $copyPath}
+                }
 
+
+        }
+        copy "C:\NDESConnectorSetupMSI\*" $copyPath
 
     }
-    copy "C:\NDESConnectorSetupMSI\*" $copyPath
-
-}</Command>
+}
+</Command>
       <Command Type="PS" Team="NDES" OutputFileName="certificate_authority.txt">certutil.exe</Command>
       <Command Type="PS" Team="Configmgr" OutputFileName="NA">function Get-FilesOlderThan
     {
@@ -821,16 +818,20 @@ if ($installFolder) {
     }
 
 
+if (Test-Path HKLM:\SOFTWARE\Microsoft\CCM\Logging\@Global) {
+    $ccmFolder = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\CCM\Logging\@Global).LogDirectory
+    $copyPath = "$env:temp\CollectedData\Intune\Files\ConfigMgr"
 
-$ccmFolder = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\CCM\Logging\@Global).LogDirectory
-$copyPath = "$env:temp\CollectedData\Intune\Files\ConfigMgr"
+    if ($ccmFolder) {
 
-if ($ccmFolder) {
-
-    if (-not(test-path $copyPath) ) { $x = mkdir $copyPath -Force }
-    $filesToCollect = Get-FilesOlderThan -path $ccmFolder -days 3
-    foreach ($fileToCollect in $filesToCollect) { copy $fileToCollect.PSPath $copyPath}
+        if (-not(test-path $copyPath) ) { $x = mkdir $copyPath -Force }
+        $filesToCollect = Get-FilesOlderThan -path $ccmFolder -days 3
+        foreach ($fileToCollect in $filesToCollect) { copy $fileToCollect.PSPath $copyPath}
   
+    }
+}
+else {
+    "CCM folder not found.  Exiting."
 }</Command>
       <Command Type="PS" Team="NDES" OutputFileName="Certificate_templates.txt">function RunCommand {
    Param ([string]$cmdToRun)
@@ -841,10 +842,15 @@ if ($ccmFolder) {
    
 }
 
-$config = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Cryptography\MSCEP\CAInfo).Configuration
+
 
 RunCommand -cmdToRun "certutil -v -template"
-RunCommand -cmdToRun "certutil -CATemplates -config $config"</Command>
+
+if (Test-Path HKLM:\SOFTWARE\Microsoft\Cryptography\MSCEP\CAInfo) {
+    $config = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Cryptography\MSCEP\CAInfo).Configuration
+    RunCommand -cmdToRun "certutil -CATemplates -config $config"
+    }
+</Command>
       <Command Type="PS" Team="NDES" OutputFileName="Validate-NDES-Output.txt">&lt;#
 
 .SYNOPSIS
@@ -896,7 +902,8 @@ Param(
 
         $EnteredDomain = $_.split("\")
         $ads = New-Object -ComObject ADSystemInfo
-        $Domain = $ads.GetType().InvokeMember('DomainShortName','GetProperty', $Null, $ads, $Null)
+        try {
+            $Domain = $ads.GetType().InvokeMember('DomainShortName','GetProperty', $Null, $ads, $Null)
     
             if ($EnteredDomain -like "$Domain") {
 
@@ -910,6 +917,10 @@ Param(
                 }
 
             }
+        }
+        catch {
+            "Unable to query domain.  Verify that server is domain joined"
+        }
 
         }
     )]
@@ -1053,7 +1064,7 @@ function Get-NDESHelp {
 #Requires -RunAsAdministrator
 
 #######################################################################
-
+if (Get-Service NDESConnectorSvc -ErrorAction SilentlyContinue ) {
 $parent = [System.IO.Path]::GetTempPath()
 [string] $name = [System.Guid]::NewGuid()
 New-Item -ItemType Directory -Path (Join-Path $parent $name) | Out-Null
@@ -2520,19 +2531,59 @@ Write-Output "Exiting................................................"
 Write-Output ""
 exit
 
+}
+
+}
+
+else {
+    "Not on NDES Server.  Exiting"
 }</Command>
       <Command Type="PS" Team="General" OutputFileName="Services.txt">Get-Service | fl *</Command>
-      <Command Type="PS" Team="General" OutputFileName="MDM_Policies">get-item 'HKLM:\Software\Microsoft\PolicyManager\current\device\*'</Command>
-      <Command Type="PS" Team="NDES" OutputFileName="localmachine_cert_info">dir Cert:\LocalMachine\My | Select-Object * -ExpandProperty Extensions -ExcludeProperty RawData, PrivateKey</Command>
-      <Command Type="PS" Team="NDES" OutputFileName="currentuser_cert_info">dir Cert:\CurrentUser\My | Select-Object * -ExpandProperty Extensions -ExcludeProperty RawData, PrivateKey</Command>
-      <Command Type="PS" Team="Sidecar" OutputFileName="SideCar_download_directoriescontents">dir $env:systemroot\IMECache -recurse
-dir "${env:ProgramFiles(x86)}\Microsoft Intune Management Extension" -recurse</Command>
+      <Command Type="PS" Team="General" OutputFileName="MDM_Policies">if (Test-Path -Path 'HKLM:\Software\Microsoft\PolicyManager\current\device') {
+
+    get-item 'HKLM:\Software\Microsoft\PolicyManager\current\device\*'
+
+}
+else {
+    "Warning - no policies found under HKLM:\Software\Microsoft\PolicyManager\current\device"
+}</Command>
+      <Command Type="PS" Team="NDES" OutputFileName="localmachine_cert_info">if ( (dir Cert:\LocalMachine\My).Count -gt 0) {
+
+    dir Cert:\LocalMachine\My | Select-Object * -ExpandProperty Extensions -ExcludeProperty RawData, PrivateKey 
+    }
+else {
+    "Warning - no certs found in Local Machine personal certificate store (cert:\localmachine\my)"
+}</Command>
+      <Command Type="PS" Team="NDES" OutputFileName="currentuser_cert_info">if ( (dir Cert:\CurrentUser\My).Count -gt 0) {
+
+    dir Cert:\CurrentUser\My | Select-Object * -ExpandProperty Extensions -ExcludeProperty RawData, PrivateKey 
+    }
+else {
+    "Warning - no certs found in Local Machine personal certificate store (cert:\localmachine\my)"
+}</Command>
+      <Command Type="PS" Team="Sidecar" OutputFileName="SideCar_download_directoriescontents">dir $env:systemroot\IMECache -ErrorAction SilentlyContinue
+dir "${env:ProgramFiles(x86)}\Microsoft Intune Management Extension" -Recurse -ErrorAction SilentlyContinue</Command>
       <Command Type="PS" Team="Sidecar" OutputFileName="Sidecar_Info">"Service information"
-get-service IntuneManagementExtension |fl *
+$ErrorActionPreference = "Stop"
+$Error.Clear()
+try {
+    Get-Service IntuneManagementExtension |fl *
+    }
+catch {
+    "IntuneManagementExtension service not installed.  Verify that device is compliant and marked as corporate ownership."
+    $Error
+}
 
 "Scheduled task information"
-Get-ScheduledTask  -TaskName "Intune Management Extension Health Evaluation"  | Select-Object * -ExpandProperty CimInstanceProperties
-Get-ScheduledTask  -TaskName "Intune Management Extension Health Evaluation" | Get-ScheduledTaskInfo  | Select-Object * -ExpandProperty CimInstanceProperties</Command>
+try {
+    Get-ScheduledTask  -TaskName "Intune Management Extension Health Evaluation"  | Select-Object * -ExpandProperty CimInstanceProperties
+    Get-ScheduledTask  -TaskName "Intune Management Extension Health Evaluation" | Get-ScheduledTaskInfo  | Select-Object * -ExpandProperty CimInstanceProperties
+    }
+catch {
+    "Warning:  Unable to find IME scheduled tasks"
+    $Error
+}
+    </Command>
       <Command Type="PS" Team="General" OutputFileName="File collection.log"># workaround
 $ErrorActionPreference = "silentlycontinue"
 
