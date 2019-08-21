@@ -2676,6 +2676,7 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
       <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-SENSE%4Operational.evtx</EventLog>
       <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-HelloForBusiness%4Operational.evtx</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\odj*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*-bits-*</EventLog>
     </EventLogs>
     <Files>
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\AgentData\Logs\*</File>
