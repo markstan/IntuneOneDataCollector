@@ -2655,6 +2655,7 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName ProtectionTechnologyStatus  -Na
 RunCommand -cmdToRun "Get-CimInstance -ClassName SerializableToXml           -Namespace  ROOT\Microsoft\SecurityClient"
 RunCommand -cmdToRun "Get-CimInstance -ClassName Win32_ProviderEx            -Namespace  ROOT\Microsoft\SecurityClient"
 RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Namespace  ROOT\Microsoft\SecurityClient"</Command>
+      <Command Type="PS" Team="General" OutputFileName="BITS_transfers.txt">Get-BitsTransfer -AllUsers -Verbose |fl *</Command>
     </Commands>
     <EventLogs>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
