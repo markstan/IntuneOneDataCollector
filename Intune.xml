@@ -522,24 +522,24 @@ $SubscriptionID = $ds -match "SubscriptionID : (.+)"
 
 $OS_Summary | fl
 if ($Win10Version.BuildNumber -gt 18362) { "**** WARNING:  Beta version of Windows detected:  Build $($Win10Version.version) *****"}
-"Windows build:     $($Win10Version.version)"
-"Windows version:   $($versions[$Win10Version.BuildNumber])"
-"Windows name:      $($marketingNames[$Win10Version.BuildNumber])" 
-"Windows code name: $($codeNames[$Win10Version.BuildNumber])" 
+"Windows build:        $($Win10Version.version)"
+"Windows version:      $($versions[$Win10Version.BuildNumber])"
+"Windows name:         $($marketingNames[$Win10Version.BuildNumber])" 
+"Windows code name:    $($codeNames[$Win10Version.BuildNumber])" 
 if ($isRegistered) {
-    "Azure AD status:   Registered"
+    "Azure AD status:      Registered"
     }
 elseif ($isJoined) {
-    "Azure AD status:   Joined"
+    "Azure AD status:      Joined"
     }
 else {
-    "Azure AD status:   Not registered/joined or unknown"
+    "Azure AD status:      Not registered/joined or unknown"
 }
 
-if ($UserID) {         "UserID:            $UserID" }
-if ($MachineID) {      "MachineID:         $MachineID"}
-if ($DeviceName) {     "Device Name:       $DeviceName"}
-if ($SubscriptionID) { "SubscriptionID:    $SubscriptionID" }
+if ($UserID) {         "UserID:               $UserID" }
+if ($MachineID) {      "Intune Device ID:     $MachineID"}
+if ($DeviceName) {     "Device Name:          $DeviceName"}
+if ($SubscriptionID) { "SubscriptionID:       $SubscriptionID" }
 $CS_Summary | fl 
 systeminfo.exe
 "BIOS Information"

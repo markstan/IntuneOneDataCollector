@@ -1795,7 +1795,9 @@ if (-not (Test-IsAdmin) ) {
 $ResultRootDirectory = [System.IO.Path]::Combine(($env:TEMP), 'CollectedData')
 $CompressedResultFileName = "CollectedData.ZIP"
 $xmlPath =  join-path $pwd "Intune.XML"
-
+# we assume that the XML and .ps1 are in the same folder
+$scriptDir = Split-Path $script:MyInvocation.MyCommand.Path
+cd $scriptDir
 
 
 
