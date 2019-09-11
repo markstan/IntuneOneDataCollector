@@ -507,6 +507,18 @@ if (test-path $Policies) {
 
 }
 
+# Regsistered User and Tenant info
+
+
+# Sort so we always get the most current in case there are orphaned certs
+$cert = (dir Cert:\LocalMachine\My\ | where { $_.Issuer -match "CN=MS-Organization-Access" } | Sort-Object -Property NotBefore -Descending)[0]
+
+# use to find registry path
+$thumbPrint = $cert.Thumbprint
+# Get the tenant name from the registry
+$userEmail = (Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\CloudDomainJoin\JoinInfo\$($thumbPrint)).UserEmail
+$tenant = $userEmail.Split('@')[1]
+
 
 
 $MachineID = "Unknown"
@@ -540,6 +552,12 @@ if ($UserID) {         "UserID:               $UserID" }
 if ($MachineID) {      "Intune Device ID:     $MachineID"}
 if ($DeviceName) {     "Device Name:          $DeviceName"}
 if ($SubscriptionID) { "SubscriptionID:       $SubscriptionID" }
+if ($tenant) {         "Tenant name:          $tenant"}
+if ($userEmail) {     "User UPN:             $userEmail"}
+
+
+
+
 $CS_Summary | fl 
 systeminfo.exe
 "BIOS Information"
