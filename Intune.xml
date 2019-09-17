@@ -516,8 +516,10 @@ $cert = (dir Cert:\LocalMachine\My\ | where { $_.Issuer -match "CN=MS-Organizati
 # use to find registry path
 $thumbPrint = $cert.Thumbprint
 # Get the tenant name from the registry
-$userEmail = (Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\CloudDomainJoin\JoinInfo\$($thumbPrint)).UserEmail
-$tenant = $userEmail.Split('@')[1]
+if (Test-Path HKLM:\SYSTEM\CurrentControlSet\Control\CloudDomainJoin\JoinInfo\$($thumbPrint)) {
+    $userEmail = (Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\CloudDomainJoin\JoinInfo\$($thumbPrint)).UserEmail
+    $tenant = $userEmail.Split('@')[1]
+    }
 
 
 
@@ -615,7 +617,10 @@ RunCommand "gwmi -class win32_volume"</Command>
 
 RunCommand "netsh advfirewall show allprofiles"
 RunCommand "netsh advfirewall show allprofiles"
-RunCommand  "netsh advfirewall show global"</Command>
+RunCommand  "netsh advfirewall show global"
+RunCommand  "Get-NetFirewallProfile"
+RunCommand  "Get-NetFirewallRule"
+RunCommand  "Get-NetFirewallSetting"</Command>
       <Command Type="PS" Team="General" OutputFileName="NA">$mpc = "$env:ProgramFiles\Windows Defender\MpCmdRun.exe"
 if (Test-Path -Path $mpc) {
     $output = &amp;$mpc -getfiles
@@ -2807,6 +2812,7 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_SystemCertificates">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCertificates\MY\Certificates</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Defender">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_Control_CloudDomainJoin">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\CloudDomainJoin</Registry>
+      <Registry Team="Registry" OutputFileName="REG_CCS_Services_SharedAccess_Parameters_FirewallPolicy">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy</Registry>
     </Registries>
   </Package>
 </DataPoints>
