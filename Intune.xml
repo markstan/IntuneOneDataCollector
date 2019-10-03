@@ -2701,6 +2701,7 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
       <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-HelloForBusiness%4Operational.evtx</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\odj*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*-bits-*</EventLog>
+      <EventLog Team="Event Log">Microsoft-Windows-ModernDeployment-*</EventLog>
     </EventLogs>
     <Files>
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\AgentData\Logs\*</File>
@@ -2754,6 +2755,7 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
       <File Team="Teams">%LocalAppData%\SquirrelTemp\*</File>
       <File Team="Teams">%LocalAppData%\Microsoft\Teams\current\SquirrelSetup.log</File>
       <File Team="General">%ProgramFiles%\Microsoft Intune\ODJConnector\ODJConnectorUI\*.log</File>
+      <File Team="Autopilot">%systemroot%\ServiceState\Autopilot\*.json</File>
     </Files>
     <Registries>
       <Registry Team="Registry" OutputFileName="REG_SW_Policies_MSFT_MicrosoftAntimalware">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Microsoft Antimalware</Registry>
