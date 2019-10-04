@@ -2683,7 +2683,7 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
 
      $outputPath = "$env:temp\CollectedData\Intune\Commands\Debug"
      $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
-     copy c:\mdmtrace\* $outputpath
+     copy c:\mdmtrace\* $outputpath -force
 }
 
 </Command>
