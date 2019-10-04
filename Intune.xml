@@ -2679,6 +2679,14 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName SerializableToXml           -Na
 RunCommand -cmdToRun "Get-CimInstance -ClassName Win32_ProviderEx            -Namespace  ROOT\Microsoft\SecurityClient"
 RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Namespace  ROOT\Microsoft\SecurityClient"</Command>
       <Command Type="PS" Team="General" OutputFileName="BITS_transfers.txt">Get-BitsTransfer -AllUsers -Verbose |fl *</Command>
+      <Command Type="PS" Team="Debug" OutputFileName="NA">if (test-path c:\mdmtrace) {
+
+     $outputPath = "$env:temp\CollectedData\Intune\Commands\Debug"
+     $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
+     copy c:\mdmtrace\* $outputpath
+}
+
+</Command>
     </Commands>
     <EventLogs>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
