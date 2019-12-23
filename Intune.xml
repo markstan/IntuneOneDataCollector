@@ -2766,6 +2766,7 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
       <File Team="Autopilot">%systemroot%\ServiceState\Autopilot\*.json</File>
       <File Team="LegacyPCClient">%ProgramFiles%\Microsoft\OnlineManagement\Logs\*</File>
       <File Team="LegacyPCClient">%ProgramFiles%\Microsoft\OnlineManagement\Updates\ReportingEvents.log</File>
+      <File Team="Configmgr">%systemroot%\ccmsetup\Logs\*</File>
     </Files>
     <Registries>
       <Registry Team="Registry" OutputFileName="REG_SW_Policies_MSFT_MicrosoftAntimalware">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Microsoft Antimalware</Registry>
