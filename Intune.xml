@@ -2710,6 +2710,7 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\odj*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*-bits-*</EventLog>
       <EventLog Team="Event Log">Microsoft-Windows-ModernDeployment-*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*firewall*</EventLog>
     </EventLogs>
     <Files>
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\AgentData\Logs\*</File>
