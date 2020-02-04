@@ -1,4 +1,4 @@
-﻿$xmlPath = "C:\Users\markstan\Documents\GitHub\IntuneOneDataCollector\Intune.XML"
+﻿$xmlPath = "..\Intune.XML"
 [xml]$IntuneXML = Get-Content $xmlPath
 
 $regTable =   $IntuneXML.DataPoints.Package.Registries.Registry          | Select-Object @{Name="Output File Path"; Expression="OutputFileName"}, @{Name="Path"; Expression="`#text"} | ConvertTo-Html -Fragment
