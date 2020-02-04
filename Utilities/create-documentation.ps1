@@ -5,6 +5,7 @@ $regTable =   $IntuneXML.DataPoints.Package.Registries.Registry          | Selec
 $fileTable =  $IntuneXML.DataPoints.Package.Files.File | Sort Team       | Select-Object @{Name="Classification"; Expression="Team"}, @{Name="Path"; Expression="`#text"} | ConvertTo-Html -Fragment
 $eventTable = $IntuneXML.DataPoints.Package.EventLogs.EventLog           | Select-Object @{Name="Classification"; Expression="Team"}, @{Name="Path"; Expression="`#text"} | ConvertTo-Html -Fragment
 $commands =   $IntuneXML.DataPoints.Package.Commands.Command    | Sort Team | Select-Object @{Name="Classification"; Expression="Team"}, @{Name="Output File"; Expression="OutputFileName"}, @{Name="Command"; Expression="`#text"} | ConvertTo-Html -Fragment   | % { $_ -replace "`n", '<br>' }
+$now = Get-Date
 
 $header = @"
     <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -30,6 +31,9 @@ margin-bottom: 20px;
 text-align:center;}
 </style>
 </head><body>
+
+<H1>Intune One Data Collector Data Gathered</H1>
+<P>last updated: $now</P>
 
 "@
 
