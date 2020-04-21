@@ -621,7 +621,8 @@ RunCommand  "netsh advfirewall show global"
 RunCommand  "Get-NetFirewallProfile"
 RunCommand  "Get-NetFirewallRule"
 RunCommand  "Get-NetFirewallSetting"</Command>
-      <Command Type="PS" Team="General" OutputFileName="NA">$mpc = "$env:ProgramFiles\Windows Defender\MpCmdRun.exe"
+      <Command Type="PS" Team="General" OutputFileName="NA">#Gather Defender files
+$mpc = "$env:ProgramFiles\Windows Defender\MpCmdRun.exe"
 if (Test-Path -Path $mpc) {
     $output = &amp;$mpc -getfiles
 
@@ -682,7 +683,13 @@ RunCommand -cmdToRun "net accounts"
 RunCommand -cmdToRun "net statistics workstation"   </Command>
       <Command Type="PS" Team="General" OutputFileName="sym_Process.txt">Get-Process | select Name, FileVersion, Path, ProductVersion | ft -auto -wrap</Command>
       <Command Type="PS" Team="General" OutputFileName="sym_drivers.txt">Get-WmiObject Win32_PnPSignedDriver| select DeviceName, DriverVersion | ft -auto -wrap</Command>
-      <Command Type="PS" Team="General" OutputFileName="sym_SysWOW64_sys_Drivers.txt">get-childitem $env:windir\syswow64\drivers -recurse -file | select DeviceName, DriverVersion | ft -auto -wrap</Command>
+      <Command Type="PS" Team="General" OutputFileName="sym_SysWOW64_sys_Drivers.txt">if (Test-Path $env:windir\syswow64\drivers) {
+     get-childitem $env:windir\syswow64\drivers -recurse -file | select DeviceName, DriverVersion | ft -auto -wrap
+}
+else {
+    "$env:windir\syswow64\drivers not found.  This is normal on an x86 system."
+}
+</Command>
       <Command Type="PS" Team="General" OutputFileName="sym_RunningDrivers.txt">Get-WmiObject Win32_PnPSignedDriver | select DeviceName, DriverVersion | ft -auto</Command>
       <Command Type="CMD" Team="General" OutputFileName="ScheduledTasks">schtasks.exe /Query</Command>
       <Command Type="PS" Team="General" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\General"
@@ -765,7 +772,8 @@ $uniqueURLs  | ForEach-Object  { Test-NetConnection -Port 443 $_ -ErrorAction Si
 
 </Command>
       <Command Type="PS" Team="General" OutputFileName="TimeZoneSettings">w32tm /tz</Command>
-      <Command Type="PS" Team="NDES" OutputFileName="NA">function Get-FilesOlderThan
+      <Command Type="PS" Team="NDES" OutputFileName="NA">#NDES
+function Get-FilesOlderThan
     {
     Param ([int]$days = 2,
            [string]$path = $pwd
@@ -821,7 +829,8 @@ if (Test-Path HKLM:\SOFTWARE\Microsoft\MicrosoftIntune\NDESConnector) {
 }
 </Command>
       <Command Type="PS" Team="NDES" OutputFileName="certificate_authority.txt">certutil.exe</Command>
-      <Command Type="PS" Team="Configmgr" OutputFileName="NA">function Get-FilesOlderThan
+      <Command Type="PS" Team="Configmgr" OutputFileName="NA">#ConfigMgr
+function Get-FilesOlderThan
     {
     Param ([int]$days = 2,
            [string]$path = $pwd
@@ -2771,6 +2780,7 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
       <File Team="LegacyPCClient">%ProgramFiles%\Microsoft\OnlineManagement\Updates\ReportingEvents.log</File>
       <File Team="Configmgr">%systemroot%\ccmsetup\Logs\*</File>
       <File Team="BitLocker">%SystemRoot%\Logs\MeasuredBoot\*.log</File>
+      <File Team="Sidecar">%LocalAppData%\mdm\*.log</File>
     </Files>
     <Registries>
       <Registry Team="Registry" OutputFileName="REG_SW_Policies_MSFT_MicrosoftAntimalware">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Microsoft Antimalware</Registry>
