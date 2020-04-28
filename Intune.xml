@@ -442,29 +442,32 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
 
  add-member -inputobject $OS_Summary -membertype noteproperty -name "Username" -value ($Env:USERDOMAIN + "\" + $Env:USERNAME)
  $versions = @{
- "18362" =     "1903"
+ "18363" =   "1909"
+ "18362" =   "1903"
  "17763" =   "1809"
  "17134" =   "1803"
  "16299" =   "1709"
  "15063" =   "1703"
  "14393" =   "1607"
  "10586" =   "1511"
-  "10240" =     "RTM"    
+ "10240" =   "RTM"    
  }
 
  $marketingNames = @{
-  "18362" =    "May 2019 Update"
+ "18363" =   "November 2019 Update"
+ "18362" =   "May 2019 Update"
  "17763" =   "October 2018 Update"
  "17134" =   "April 2018 Update"
  "16299" =   "Fall Creators Update"
  "15063" =   "Creators Update"
  "14393" =   "Anniversary Update"
  "10586" =   "November Update"
-  "10240" =   "RTM" 
+ "10240" =   "RTM" 
  }
 
 
   $codeNames = @{
+ "18363" =   "19H2"
  "18362" =   "19H1"
  "17763" =   "Redstone 5"
  "17134" =   "Redstone 4"
@@ -535,7 +538,7 @@ $SubscriptionID = $ds -match "SubscriptionID : (.+)"
 # Start reporting
 
 $OS_Summary | fl
-if ($Win10Version.BuildNumber -gt 18362) { "**** WARNING:  Beta version of Windows detected:  Build $($Win10Version.version) *****"}
+if ($Win10Version.BuildNumber -gt 18363) { "**** WARNING:  Beta version of Windows detected:  Build $($Win10Version.version) *****"}
 "Windows build:        $($Win10Version.version)"
 "Windows version:      $($versions[$Win10Version.BuildNumber])"
 "Windows name:         $($marketingNames[$Win10Version.BuildNumber])" 
