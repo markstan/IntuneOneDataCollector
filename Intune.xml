@@ -2652,10 +2652,14 @@ while ( ($elapsed -lt $timeoutInSec) -and $stillRunning ) {
         $stillRunning = $false
     }
 }</Command>
-      <Command Type="PS" Team="General" OutputFileName="NA">MdmDiagnosticsTool.exe  -out $pwd/
+      <Command Type="PS" Team="General" OutputFileName="NA">#MDMDiagnostics
+$compWithUS = $env:COMPUTERNAME + "_"
+$outpath = Join-Path $pwd $compWithUS
+ 
+MdmDiagnosticsTool.exe  -out $outpath
 $outputPath = "$env:temp\CollectedData\Intune\Commands\General"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
-move .\MDMDiagReport.* $outputPath</Command>
+move .\*MDMDiagReport.* $outputPath -Force</Command>
       <Command Type="PS" Team="General" OutputFileName="Eventlog_metadata">function RunCommand {
    Param ([string]$cmdToRun)
    
@@ -2845,6 +2849,7 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
       <Registry Team="Registry" OutputFileName="REG_CCS_Services_SharedAccess_Parameters_FirewallPolicy">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_MSFT_PolicyManager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_CCM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CCM</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Policies</Registry>
     </Registries>
   </Package>
 </DataPoints>
