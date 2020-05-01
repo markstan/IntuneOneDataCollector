@@ -2848,8 +2848,9 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
       <Registry Team="Registry" OutputFileName="REG_CCS_Control_CloudDomainJoin">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\CloudDomainJoin</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_Services_SharedAccess_Parameters_FirewallPolicy">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_MSFT_PolicyManager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_CCM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CCM</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Policies</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_MSFT_CCM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CCM</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_MSFT_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Policies</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_MSFT_PolicyManager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager</Registry>
     </Registries>
   </Package>
 </DataPoints>
