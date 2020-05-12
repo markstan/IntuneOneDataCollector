@@ -2703,6 +2703,498 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
 }
 
 </Command>
+      <Command Type="PS" Team="AutoPilot" OutputFileName="Get-AutopilotESPStatus.txt"># From https://oofhours.com/2020/02/17/what-happened-during-windows-autopilot-esp-decode-it/
+
+[CmdletBinding()]
+param(
+ [Parameter(Mandatory=$False)] [String] $CABFile = $null,
+ [Parameter(Mandatory=$False)] [Switch] $Online = $false,
+ [Parameter(Mandatory=$False)] [Switch] $AllSessions = $false
+)
+
+Begin
+{
+    # If using a CAB file, load up the registry information
+    if ($CABFile) {
+
+        # Extract the .reg file
+        if (-not (Test-Path "$($env:TEMP)\ESPStatus.tmp"))
+        {
+            New-Item -Path "$($env:TEMP)\ESPStatus.tmp" -ItemType "directory" | Out-Null
+        }
+        $null = &amp; expand.exe "$CABFile" -F:MdmDiagReport_RegistryDump.reg "$($env:TEMP)\ESPStatus.tmp\" 
+        if (-not (Test-Path "$($env:TEMP)\ESPStatus.tmp\MdmDiagReport_RegistryDump.reg"))
+        {
+            Write-Error "Unable to extract registrion information from $CABFile"
+        }
+
+        # Edit the path in the .reg file
+        $content = Get-Content -Path "$($env:TEMP)\ESPStatus.tmp\MdmDiagReport_RegistryDump.reg"
+        $content = $content -replace "\[HKEY_CURRENT_USER\\", "[HKEY_CURRENT_USER\ESPStatus.tmp\USER\"
+        $content = $content -replace "\[HKEY_LOCAL_MACHINE\\", "[HKEY_CURRENT_USER\ESPStatus.tmp\MACHINE\"
+        $content = $content -replace '^    "','"'
+        $content = $content -replace '^    @','@'
+        $content = $content -replace 'DWORD:','dword:'
+        "Windows Registry Editor Version 5.00`n" | Set-Content -Path "$($env:TEMP)\ESPStatus.tmp\MdmDiagReport_Edited.reg"
+        $content | Add-Content -Path "$($env:TEMP)\ESPStatus.tmp\MdmDiagReport_Edited.reg"
+
+        # Remove the registry info if it exists
+        if (Test-Path "HKCU:\ESPStatus.tmp")
+        {
+            Remove-Item -Path "HKCU:\ESPStatus.tmp" -Recurse -Force
+        }
+
+        # Import the .reg file
+        $null = &amp; reg.exe IMPORT "$($env:TEMP)\ESPStatus.tmp\MdmDiagReport_Edited.reg" 2&gt;&amp;1
+
+        # Configure the (not live) constants
+        $script:autopilotDiagPath = "HKCU:\ESPStatus.tmp\MACHINE\software\microsoft\provisioning\Diagnostics\Autopilot"
+        $script:omadmPath = "HKCU:\ESPStatus.tmp\MACHINE\software\microsoft\provisioning\OMADM"
+        $script:path = "HKCU:\ESPStatus.tmp\MACHINE\Software\Microsoft\Windows\Autopilot\EnrollmentStatusTracking\ESPTrackingInfo\Diagnostics"
+        $script:msiPath = "HKCU:\ESPStatus.tmp\MACHINE\Software\Microsoft\EnterpriseDesktopAppManagement"
+        $script:officePath = "HKCU:\ESPStatus.tmp\MACHINE\Software\Microsoft\OfficeCSP"
+        $script:sidecarPath = "HKCU:\ESPStatus.tmp\MACHINE\Software\Microsoft\IntuneManagementExtension\Win32Apps"
+    }
+    else {
+        # Configure live constants
+        $script:autopilotDiagPath = "HKLM:\software\microsoft\provisioning\Diagnostics\Autopilot"
+        $script:omadmPath = "HKLM:\software\microsoft\provisioning\OMADM"
+        $script:path = "HKLM:\Software\Microsoft\Windows\Autopilot\EnrollmentStatusTracking\ESPTrackingInfo\Diagnostics"
+        $script:msiPath = "HKLM:\Software\Microsoft\EnterpriseDesktopAppManagement"
+        $script:officePath = "HKLM:\Software\Microsoft\OfficeCSP"
+        $script:sidecarPath = "HKLM:\Software\Microsoft\IntuneManagementExtension\Win32Apps"
+    }
+
+    # Configure other constants
+    $script:statusCodes = @{"10" = "Initialized"; "20" = "Download In Progress"; "25" = "Pending Download Retry";
+        "30" = "Download Failed"; "40" = "Download Completed"; "48" = "Pending User Session"; "50" = "Enforcement In Progress"; 
+        "55" = "Pending Enforcement Retry"; "60" = "Enforcement Failed"; 70 = "Success / Enforcement Completed"}
+    $script:espStatus = @{"1" = "Not Installed"; "2" = "Downloading / Installing"; "3" = "Success / Installed"; "4" = "Error / Failed"}
+    $script:policyStatus = @{"0" = "Not Processed"; "1" = "Processed"}
+    $script:sidecarMSI = @("093ea47b-ef2c-4f46-a022-6f57a50e39a2","be41a3fa-539c-47dc-88ca-74e65b7a7ec5")
+}
+
+Process
+{
+    #------------------------
+    # Functions
+    #------------------------
+
+    Function ProcessApps() {
+    param
+    (
+        [Parameter(Mandatory=$true,ValueFromPipeline=$True)] [Microsoft.Win32.RegistryKey] $currentKey,
+        [Parameter(Mandatory=$true)] $currentUser
+    )
+
+    Begin {
+        Write-Host "Apps:"
+    }
+
+    Process {
+        Write-Host "  $($currentKey.PSChildName)"
+        $currentKey.Property | % {
+            if ($_.StartsWith("./Device/Vendor/MSFT/EnterpriseDesktopAppManagement/MSI/")) {
+                $msiKey = [URI]::UnescapeDataString(($_.Split("/"))[6])
+                $fullPath = "$msiPath\$currentUser\MSI\$msiKey"
+                if (Test-Path $fullPath) {
+                    $status = Get-ItemPropertyValue -Path $fullPath -Name Status
+                }
+                else
+                {
+                    $status = "Not found"
+                } 
+                if ($sidecarMSI -contains $msiKey)
+                {
+                    $msiKey = "Intune Management Extensions ($($msiKey))"
+                }
+                elseif ($Online) {
+                    $found = $apps | ? {$_.ProductCode -contains $msiKey}
+                    $msiKey = "$($found.DisplayName) ($($msiKey))"
+                }
+                if ($status -eq 70) {
+                    Write-Host "    MSI $msiKey : $status ($($statusCodes[$status]))" -ForegroundColor Green
+                }
+                else {
+                    Write-Host "    MSI $msiKey : $status ($($statusCodes[$status]))" -ForegroundColor Yellow
+                }
+            }
+            elseif ($_.StartsWith("./Vendor/MSFT/Office/Installation/")) {
+                $officeKey = [URI]::UnescapeDataString(($_.Split("/"))[5])
+                $fullPath = "$officepath\$officeKey"
+                if (Test-Path $fullPath) {
+                    $status = Get-ItemPropertyValue -Path $fullPath -Name FinalStatus -ErrorAction Ignore
+                    if ($status -eq $null)
+                    {
+                        $status = Get-ItemPropertyValue -Path $fullPath -Name Status -ErrorAction Ignore
+                        if ($status -eq $null)
+                        {
+                            $status = "None"
+                        }
+                    }
+                }
+                else
+                {
+                    # Office CSP info isn't available, so just get the MSI status, where 1 = done
+                    $status = Get-ItemPropertyValue -Path $currentKey.PSPath -Name $_
+                    if ($status -eq 1) { $status = 70 }
+                }
+                if ($status -eq 70) {
+                    Write-Host "    Office $officeKey : $status ($($statusCodes[$status]))" -ForegroundColor Green
+                }
+                else {
+                    Write-Host "    Office $officeKey : $status ($($statusCodes[$status]))" -ForegroundColor Yellow
+                }
+            }
+            else
+            {
+                Write-Host "    $_ : Unknown app"
+            }
+        }
+    }
+
+    }
+
+    Function ProcessModernApps() {
+    param
+    (
+        [Parameter(Mandatory=$true,ValueFromPipeline=$True)] [Microsoft.Win32.RegistryKey] $currentKey,
+        [Parameter(Mandatory=$true)] $currentUser
+    )
+
+    Begin {
+        Write-Host "Modern Apps:"
+    }
+
+    Process {
+        Write-Host "  $($currentKey.PSChildName)"
+        $currentKey.Property | % {
+            $status = (Get-ItemPropertyValue -path $currentKey.PSPath -Name $_).ToString()
+            if ($_.StartsWith("./User/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement/")) {
+                $appID = [URI]::UnescapeDataString(($_.Split("/"))[7])
+                $type = "User UWP"
+            }
+            elseif ($_.StartsWith("./Device/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement/")) {
+                $appID = [URI]::UnescapeDataString(($_.Split("/"))[7])
+                $type = "Device UWP"
+            }
+            else
+            {
+                $appID = $_
+                $type = "Unknown UWP"
+            }
+            if ($status -eq "1") {
+                Write-Host "    $type $appID : $status ($($policyStatus[$status]))" -ForegroundColor Green
+            }
+            else {
+                Write-Host "    $type $appID : $status ($($policyStatus[$status]))" -ForegroundColor Yellow
+            }
+        }
+    }
+
+    }
+
+    Function ProcessSidecar() {
+    param
+    (
+        [Parameter(Mandatory=$true,ValueFromPipeline=$True)] [Microsoft.Win32.RegistryKey] $currentKey,
+        [Parameter(Mandatory=$true)] $currentUser
+    )
+
+    Begin {
+        Write-Host "Sidecar apps:"
+    }
+
+    Process {
+        Write-Host "  $($currentKey.PSChildName)"
+        $currentKey.Property | % {
+            $win32Key = [URI]::UnescapeDataString(($_.Split("/"))[9])
+            $status = Get-ItemPropertyValue -path $currentKey.PSPath -Name $_
+            if ($Online) {
+                $found = $apps | ? {$win32Key -match $_.Id }
+                $win32Key = "$($found.DisplayName) ($($win32Key))"
+            }
+            $appGuid = $win32Key.Substring(9)
+            $sidecarApp = "$sidecarPath\$currentUser\$appGuid"
+            $exitCode = ""
+            if (Test-Path $sidecarApp)
+            {
+                $exitCode = Get-ItemPropertyValue -Path $sidecarApp -Name ExitCode -ErrorAction Ignore
+            }
+            if ($status -eq "3") {
+                if ($exitCode -ne "") {
+                    Write-Host "    Win32 $win32Key : $status ($($espStatus[$status.ToString()]), rc = $exitCode)" -ForegroundColor Green
+                }
+                else {
+                    Write-Host "    Win32 $win32Key : $status ($($espStatus[$status.ToString()]))" -ForegroundColor Green
+                }
+            }
+            else {
+                if ($exitCode -ne "")
+                {
+                    Write-Host "    Win32 $win32Key : $status ($($espStatus[$status.ToString()]), rc = $exitCode)" -ForegroundColor Yellow
+                }
+                else {
+                    Write-Host "    Win32 $win32Key : $status ($($espStatus[$status.ToString()]))" -ForegroundColor Yellow
+                }
+            }
+        }
+    }
+
+    }
+
+    Function ProcessPolicies() {
+    param
+    (
+        [Parameter(Mandatory=$true,ValueFromPipeline=$True)] [Microsoft.Win32.RegistryKey] $currentKey
+    )
+
+    Begin {
+        Write-Host "Policies:"
+    }
+
+    Process {
+        Write-Host "  $($currentKey.PSChildName)"
+        $currentKey.Property | % {
+            $status = Get-ItemPropertyValue -path $currentKey.PSPath -Name $_
+            Write-Host "    Policy $_ : $status ($($policyStatus[$status.ToString()]))"
+        }
+    }
+
+    }
+
+
+    Function ProcessCerts() {
+    param
+    (
+        [Parameter(Mandatory=$true,ValueFromPipeline=$True)] [Microsoft.Win32.RegistryKey] $currentKey
+    )
+
+    Begin {
+        Write-Host "Certificates:"
+    }
+
+    Process {
+        Write-Host "  $($currentKey.PSChildName)"
+        $currentKey.Property | % {
+            $certKey = [URI]::UnescapeDataString(($_.Split("/"))[6])
+            $status = Get-ItemPropertyValue -path $currentKey.PSPath -Name $_
+            if ($Online) {
+                $found = $policies | ? { $certKey.Replace("_","-") -match $_.Id }
+                $certKey = "$($found.DisplayName) ($($certKey))"
+            }
+            if ($status -eq "1") {
+                Write-Host "    Cert $certKey : $status ($($policyStatus[$status.ToString()]))" -ForegroundColor Green
+            }
+            else {
+                Write-Host "    Cert $certKey : $status ($($policyStatus[$status.ToString()]))" -ForegroundColor Yellow
+            }
+        }
+    }
+
+    }
+
+    Function GetIntuneObjects() {
+        param
+        (
+            [Parameter(Mandatory=$true)] [String] $uri
+        )
+
+        Process {
+
+            Write-Verbose "GET $uri"
+            try {
+                $response = Invoke-MSGraphRequest -Url $uri -HttpMethod Get
+
+                $objects = $response.value
+                $objectsNextLink = $response."@odata.nextLink"
+    
+                while ($objectsNextLink -ne $null){
+                    $response = (Invoke-MSGraphRequest -Url $devicesNextLink -HttpMethod Get)
+                    $objectsNextLink = $response."@odata.nextLink"
+                    $objects += $response.value
+                }
+
+                return $objects
+            }
+            catch {
+                Write-Error $_.Exception
+                return $null
+                break
+            }
+
+        }
+    }
+
+    #------------------------
+    # Main code
+    #------------------------
+
+    # Make sure the tracking path exists
+    if (-not (Test-Path $path)) {
+        Write-Host "ESP diagnostics info does not (yet) exist."
+        exit 0
+    }
+
+    # If online, make sure we are able to authenticate
+    if ($Online) {
+
+        # Make sure we can connect
+        $module = Import-Module Microsoft.Graph.Intune -PassThru -ErrorAction Ignore
+        if (-not $module) {
+            Write-Host "Installing module Microsoft.Graph.Intune"
+            Install-Module Microsoft.Graph.Intune -Force
+        }
+        Import-Module Microsoft.Graph.Intune
+        $graph = Connect-MSGraph
+        Write-Host "Connected to tenant $($graph.TenantId)"
+
+        # Get a list of apps
+        Write-Host "Getting list of apps"
+        $script:apps = GetIntuneObjects("https://graph.microsoft.com/beta/deviceAppManagement/mobileApps")
+
+        # Get a list of policies (for certs)
+        Write-Host "Getting list of policies"
+        $script:policies = GetIntuneObjects("https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations")
+    }
+
+    # Display Autopilot diag details
+    if (Test-Path $autopilotDiagPath)
+    {
+     Write-Host ""
+     Write-Host "AUTOPILOT DIAGNOSTICS"
+     Write-Host ""
+
+        $values = Get-ItemProperty "$autopilotDiagPath"
+        Write-Host "TenantDomain:   $($values.CloudAssignedTenantDomain)"
+        Write-Host "TenantID:       $($values.CloudAssignedTenantId)"
+        Write-Host "OobeConfig:     $($values.CloudAssignedOobeConfig)"
+        $values = Get-ItemProperty "$autopilotDiagPath\EstablishedCorrelations"
+        Write-Host "EntDMID:        $($values.EntDMID)"
+        if (Test-Path "$omadmPath\SyncML\ODJApplied")
+        {
+            Write-Host "ODJ applied:    YES"
+        }
+    }
+        
+    # Process device ESP sessions
+    Write-Host " "
+    Write-Host "DEVICE ESP:"
+    Write-Host " "
+
+    if (Test-Path "$path\ExpectedMSIAppPackages") {
+        $items = Get-ChildItem "$path\ExpectedMSIAppPackages"
+        if ($AllSessions) {
+            $items | ProcessApps -currentUser "S-0-0-00-0000000000-0000000000-000000000-000"
+        }
+        elseif ($items.Count -gt 0) {
+            $items[$items.Count - 1] | ProcessApps -currentUser "S-0-0-00-0000000000-0000000000-000000000-000"
+        }
+    }
+    if (Test-Path "$path\ExpectedModernAppPackages") {
+        $items = Get-ChildItem "$path\ExpectedModernAppPackages"
+        if ($AllSessions) {
+            $items | ProcessModernApps -currentUser "S-0-0-00-0000000000-0000000000-000000000-000"
+        }
+        elseif ($items.Count -gt 0) {
+            $items[$items.Count - 1] | ProcessModernApps -currentUser "S-0-0-00-0000000000-0000000000-000000000-000"
+        }
+    }
+    if (Test-Path "$path\Sidecar") {
+        $items = Get-ChildItem "$path\Sidecar"
+        if ($AllSessions) {
+            $items | ProcessSidecar -currentUser "00000000-0000-0000-0000-000000000000"
+        }
+        elseif ($items.Count -gt 0) {
+            $items[$items.Count - 1] | ProcessSidecar -currentUser "00000000-0000-0000-0000-000000000000"
+        }
+    }
+    if (Test-Path "$path\ExpectedPolicies") {
+        $items = Get-ChildItem "$path\ExpectedPolicies" 
+        if ($AllSessions) {
+            $items | ProcessPolicies
+        }
+        elseif ($items.Count -gt 0) {
+            $items[$items.Count - 1] | ProcessPolicies
+        }
+    }
+    if (Test-Path "$path\ExpectedSCEPCerts") {
+        $items = Get-ChildItem "$path\ExpectedSCEPCerts"
+        if ($AllSessions) {
+            $items | ProcessCerts
+        }
+        elseif ($items.Count -gt 0) {
+            $items[$items.Count - 1] | ProcessCerts
+        }
+    }
+
+    # Process user ESP sessions
+    Get-ChildItem "$path" | ? { $_.PSChildName.StartsWith("S-") } | % {
+        $userPath = $_.PSPath
+        $userSid = $_.PSChildName
+        Write-Host " "
+        Write-Host "USER ESP for $($userSid):"
+        Write-Host " "
+        if (Test-Path "$userPath\ExpectedMSIAppPackages") {
+            $items = Get-ChildItem "$userPath\ExpectedMSIAppPackages" 
+            if ($AllSessions) {
+                $items | ProcessApps -currentUser $userSid
+            }
+            elseif ($items.Count -gt 0) {
+                $items[$items.Count - 1] | ProcessApps -currentUser $userSid
+            }
+        }
+        if (Test-Path "$userPath\ExpectedModernAppPackages") {
+            $items = Get-ChildItem "$userPath\ExpectedModernAppPackages"
+            if ($AllSessions) {
+                $items | ProcessModernApps -currentUser $userSid
+            }
+            elseif ($items.Count -gt 0) {
+                $items[$items.Count - 1] | ProcessModernApps -currentUser $userSid
+            }
+        }
+        if (Test-Path "$userPath\Sidecar") {
+            $items = Get-ChildItem "$userPath\Sidecar"
+            if ($AllSessions) {
+                $items | ProcessSidecar -currentUser $userSid
+            }
+            elseif ($items.Count -gt 0) {
+                $items[$items.Count - 1] | ProcessSidecar -currentUser $userSid
+            }
+        }
+        if (Test-Path "$userPath\ExpectedPolicies") {
+            $items = Get-ChildItem "$userPath\ExpectedPolicies"
+            if ($AllSessions) {
+                $items | ProcessPolicies
+            }
+            elseif ($items.Count -gt 0) {
+                $items[$items.Count - 1] | ProcessPolicies
+            }
+        }
+        if (Test-Path "$userPath\ExpectedSCEPCerts") {
+            $items = Get-ChildItem "$userPath\ExpectedSCEPCerts"
+            if ($AllSessions) {
+                $items | ProcessCerts
+            }
+            elseif ($items.Count -gt 0) {
+                $items[$items.Count - 1] | ProcessCerts
+            }
+        }
+    }
+
+    Write-Host ""
+}
+
+End {
+
+    # Remove the registry info if it exists
+    if (Test-Path "HKCU:\ESPStatus.tmp")
+    {
+        Remove-Item -Path "HKCU:\ESPStatus.tmp" -Recurse -Force
+    }
+}
+
+</Command>
     </Commands>
     <EventLogs>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
@@ -2729,6 +3221,7 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*firewall*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*defender*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\PFX*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*WMI*</EventLog>
     </EventLogs>
     <Files>
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\AgentData\Logs\*</File>
@@ -2847,10 +3340,11 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Defender">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_Control_CloudDomainJoin">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\CloudDomainJoin</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_Services_SharedAccess_Parameters_FirewallPolicy">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_MSFT_PolicyManager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_MSFT_CCM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CCM</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_MSFT_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Policies</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_MSFT_PolicyManager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_PolicyManager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_CCM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CCM</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Policies</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_PolicyManager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager</Registry>
+      <Registry Team="Registry" OutputFileName="RET_SW_Microsoft_Windows_Autopilot">HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\Autopilot</Registry>
     </Registries>
   </Package>
 </DataPoints>
