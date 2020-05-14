@@ -3195,6 +3195,229 @@ End {
 }
 
 </Command>
+      <Command Type="PS" Team="Windows Update" OutputFileName="Update_History"># https://gallery.technet.microsoft.com/scriptcenter/Show-Windows-Update-c7ee69bd
+
+$objSession = new-object -com "Microsoft.Update.Session" 
+$objSearcher = $objSession.CreateupdateSearcher() 
+$intCount = $objSearcher.GetTotalHistoryCount() 
+$colHistory = $objSearcher.QueryHistory(0, $intCount) 
+foreach ($objHistory in $colHistory) 
+{  
+  $title = ($objHistory.Date).ToString("yyyy/MM/dd hh:mm UTC") + " " + $objHistory.Title +  "`t"
+  if ($objHistory.HResult -eq 0) { 
+    Write-Output  "$title - Successfully installed" 
+  } elseif ($objHistory.HResult -eq -2145116140) { 
+    Write-Output "$title - Pending Reboot" 
+  } else { 
+    # Report errors for the past month 
+    if (($objHistory.Date).AddMonths(1) -gt (Get-Date)) { 
+      $hexErr = "0x$($objHistory.HResult.ToString("X8"))"
+      Write-Output "$title - Failed to install. `tError: $hexErr"  
+    } 
+  } 
+}
+Write-Output "=======================================================================================`r`n`r`n"
+Write-Output "=============                     Verbose Output                        ===============`r`n`r`n"
+Write-Output "=======================================================================================`r`n`r`n"
+
+# Verbose output
+foreach ($objHistory in $colHistory) 
+{ 
+  $objHistory | Format-Table -Wrap 
+   
+}</Command>
+      <Command Type="PS" Team="Windows Update" OutputFileName="NA"># Windows Update Debug
+# Attempt to run using local tools first
+$ErrorActionPreference = "Stop"
+$Error.Clear()
+$line = "`*" * 120
+
+# write temp file
+$tempFilePath = Join-Path $env:temp  "winupdatetemp.ps1" 
+$tempfileContents = @'
+param( [string]$OutFile = "c:\temp\winupdate_debug.txt")
+$computer = $env:COMPUTERNAME
+$namespace = "ROOT\CIMV2\mdm\dmmap"
+
+$classname = "MDM_DeviceUpdateCenter_Enrollment01"
+
+"====================================="  | Out-file $OutFile  -Force -Append -Encoding ascii
+"CLASS    : $classname " | Out-file $OutFile  -Force -Append -Encoding ascii
+"=====================================" | Out-file $OutFile  -Force -Append -Encoding ascii
+
+Get-WmiObject -Class $classname -ComputerName $computer -Namespace $namespace |
+    Select-Object * -ExcludeProperty PSComputerName, Scope, Path, Options, ClassPath, Properties, SystemProperties, Qualifiers, Site, Container |
+    Format-List -Property [a-z]* | Out-file $OutFile -Force -Append -Encoding ascii
+
+$classname = "MDM_Policy_Config01_Update02"
+
+"====================================="  | Out-file $OutFile  -Force -Append -Encoding ascii
+"CLASS    : $classname " | Out-file $OutFile  -Force -Append -Encoding ascii
+"=====================================" | Out-file $OutFile  -Force -Append -Encoding ascii
+ 
+
+Get-WmiObject -Class $classname -ComputerName $computer -Namespace $namespace |
+    Select-Object * -ExcludeProperty PSComputerName, Scope, Path, Options, ClassPath, Properties, SystemProperties, Qualifiers, Site, Container |
+    Format-List -Property [a-z]* | Out-file $OutFile  -Force -Append -Encoding ascii
+
+ 
+$classname = "MDM_Policy_Result01_Update02"
+
+"====================================="  | Out-file $OutFile  -Force -Append -Encoding ascii
+"CLASS    : $classname " | Out-file $OutFile  -Force -Append -Encoding ascii
+"=====================================" | Out-file $OutFile  -Force -Append -Encoding ascii
+
+Get-WmiObject -Class $classname -ComputerName $computer -Namespace $namespace |
+    Select-Object * -ExcludeProperty PSComputerName, Scope, Path, Options, ClassPath, Properties, SystemProperties, Qualifiers, Site, Container |
+    Format-List -Property [a-z]*   | Out-file $OutFile  -Force -Append -Encoding ascii
+
+$classname = "MDM_Update"
+
+"====================================="  | Out-file $OutFile  -Force -Append -Encoding ascii
+"CLASS    : $classname " | Out-file $OutFile  -Force -Append -Encoding ascii
+"=====================================" | Out-file $OutFile  -Force -Append -Encoding ascii
+
+Get-WmiObject -Class $classname -ComputerName $computer -Namespace $namespace |
+    Select-Object * -ExcludeProperty PSComputerName, Scope, Path, Options, ClassPath, Properties, SystemProperties, Qualifiers, Site, Container |
+    Format-List -Property [a-z]* | Out-file $OutFile  -Force -Append -Encoding ascii
+
+$classname = "MDM_Update_ApprovedUpdates01_01"
+
+"====================================="  | Out-file $OutFile  -Force -Append -Encoding ascii
+"CLASS    : $classname " | Out-file $OutFile  -Force -Append -Encoding ascii
+"=====================================" | Out-file $OutFile  -Force -Append -Encoding ascii
+
+Get-WmiObject -Class $classname -ComputerName $computer -Namespace $namespace |
+    Select-Object * -ExcludeProperty PSComputerName, Scope, Path, Options, ClassPath, Properties, SystemProperties, Qualifiers, Site, Container |
+    Format-List -Property [a-z]*  | Out-file $OutFile  -Force -Append -Encoding ascii
+
+$classname = "MDM_Update_FailedUpdates01_01"
+
+"====================================="  | Out-file $OutFile  -Force -Append -Encoding ascii
+"CLASS    : $classname " | Out-file $OutFile  -Force -Append -Encoding ascii
+"=====================================" | Out-file $OutFile  -Force -Append -Encoding ascii
+
+Get-WmiObject -Class $classname -ComputerName $computer -Namespace $namespace |
+    Select-Object * -ExcludeProperty PSComputerName, Scope, Path, Options, ClassPath, Properties, SystemProperties, Qualifiers, Site, Container |
+    Format-List -Property [a-z]*  | Out-file $OutFile  -Force -Append -Encoding ascii
+
+$classname = "MDM_Update_InstallableUpdates01_01"
+
+"====================================="  | Out-file $OutFile  -Force -Append -Encoding ascii
+"CLASS    : $classname " | Out-file $OutFile  -Force -Append -Encoding ascii
+"=====================================" | Out-file $OutFile  -Force -Append -Encoding ascii
+
+Get-WmiObject -Class $classname -ComputerName $computer -Namespace $namespace |
+    Select-Object * -ExcludeProperty PSComputerName, Scope, Path, Options, ClassPath, Properties, SystemProperties, Qualifiers, Site, Container |
+    Format-List -Property [a-z]*  | Out-file $OutFile  -Force -Append -Encoding ascii
+
+$classname = "MDM_Update_PendingRebootUpdates01_01"
+
+"====================================="  | Out-file $OutFile  -Force -Append -Encoding ascii
+"CLASS    : $classname " | Out-file $OutFile  -Force -Append -Encoding ascii
+"=====================================" | Out-file $OutFile  -Force -Append -Encoding ascii
+
+Get-WmiObject -Class $classname -ComputerName $computer -Namespace $namespace |
+    Select-Object * -ExcludeProperty PSComputerName, Scope, Path, Options, ClassPath, Properties, SystemProperties, Qualifiers, Site, Container |
+    Format-List -Property [a-z]* | Out-file $OutFile  -Force -Append -Encoding ascii
+
+$classname = "MDM_Update_Rollback01"
+
+"====================================="  | Out-file $OutFile  -Force -Append -Encoding ascii
+"CLASS    : $classname " | Out-file $OutFile  -Force -Append -Encoding ascii
+"=====================================" | Out-file $OutFile  -Force -Append -Encoding ascii
+
+Get-WmiObject -Class $classname -ComputerName $computer -Namespace $namespace |
+    Select-Object * -ExcludeProperty PSComputerName, Scope, Path, Options, ClassPath, Properties, SystemProperties, Qualifiers, Site, Container |
+    Format-List -Property [a-z]* | Out-file $OutFile  -Force -Append -Encoding ascii
+
+'@
+$tempfileContents | Out-File $tempFilePath -Force
+
+# Launch process as system via scheduled task
+try {
+    $TimeToRun = (Get-Date).AddSeconds(3)
+    $taskName = "ODC Windows Update Debug"
+    $folderPath = "$env:temp\CollectedData\Intune\Commands\Windows Update"
+    $filepath = Join-Path $folderPath  "$($env:COMPUTERNAME)_Windows_Updates_Debug.txt"
+
+    # Create folder if it does not exist for uploader
+    if ( -not ( Test-Path $folderPath -ErrorAction SilentlyContinue) ) {
+        $nil = mkdir $folderPath -Force
+    }
+
+    $line | Out-File $filepath -Force -Encoding ascii
+    "Starting update query using Scheduled Task as SYSTEM`r`n" | Out-File $filepath -Append -Force -Encoding ascii
+    $line | Out-File $filepath -Force -Append -Encoding ascii
+
+
+
+    $Trigger= New-ScheduledTaskTrigger -At $TimeToRun -Once
+    $User= "NT AUTHORITY\SYSTEM"
+    $Action= New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File `"$tempFilePath`" -Nologo -OutFile `"$filepath`"" # "/c dsregcmd /debug &gt;&gt; $filepath"
+    $nil = Register-ScheduledTask -TaskName $taskName -Trigger $Trigger -User $User -Action $Action -RunLevel Highest –Force
+    $nil = Start-ScheduledTask -TaskName $taskName
+    sleep 5
+    #cleanup
+    $nil = Unregister-ScheduledTask -TaskName $taskName -TaskPath "\" -PassThru -Confirm:$false
+    }
+
+# second chance - we'll attempt to download PSExec
+
+catch {
+
+    "$line"                                                       | Out-File $filepath -Append -Force -Encoding ascii
+    "`r`n" * 3                                                    | Out-File $filepath -Append -Force -Encoding ascii
+    "Scheduled Task failed, trying to download PSExec.`r`n$error" | Out-File $filepath -Append -Force -Encoding ascii
+    "`r`n" * 3                                                    | Out-File $filepath -Append -Force -Encoding ascii
+    "$line"                                                       | Out-File $filepath -Append -Force -Encoding ascii
+
+    [string]$downloadLocation = "https://live.sysinternals.com/psexec.exe"
+    [string]$psexec = ""
+    $folderPath = "$env:temp\CollectedData\Intune\Commands\Windows Update"
+    $filepath = Join-Path $folderPath  "$($env:COMPUTERNAME)_Windows_Updates_Debug.txt"
+    
+    $myproxy = "No proxy (direct connection)"
+    if ( Get-Command psexec.exe -ErrorAction SilentlyContinue ) {
+        $psexec = $(Get-Command psexec.exe).Source
+    }
+    elseif (Get-Item ".\psexec.exe" -ErrorAction SilentlyContinue) {
+       $psexec = Join-Path $pwd psexec.exe  
+    }
+    else {
+        try {
+            if ( [System.Net.WebProxy]::GetDefaultProxy().Address -eq $null ) {
+                Invoke-WebRequest -Uri $downLoadLocation -OutFile .\psexec.exe
+                }
+            else {
+    
+                $myproxy = ([System.Net.WebProxy]::GetDefaultProxy().Address.AbsoluteURI)    
+                Invoke-WebRequest -Uri $downLoadLocation -OutFile .\psexec.exe -Proxy $myproxy
+            }
+            $psexec = Join-Path $pwd psexec.exe
+            }
+        catch {
+            "One Data Collector was unable to download psexec.exe from $downLoadLocation (proxy settings: $myproxy.  Please download PSExec manually."| Out-File $filepath -Append -Force
+            $err| Out-File $filepath -Append -Force
+        }
+    }
+    try {
+  
+        &amp; "$psexec" -nobanner -accepteula -s -e  powershell.exe -File `"$tempFilePath`" -Nologo| Out-File $filepath -Append -Force -Encoding ascii
+
+        }
+    catch [System.Management.Automation.RemoteException] {
+        # expected, do nothing
+        "." * 120 | Out-File $filepath -Append -Force -Encoding ascii
+    }
+    catch {
+        "`r`n" * 3                                        | Out-File $filepath -Append -Force -Encoding ascii
+        "$line"                                           | Out-File $filepath -Append -Force -Encoding ascii
+        "An error occured running psexec.`r`n $error"     | Out-File $filepath -Append -Force -Encoding ascii
+        "*" * 120                                         | Out-File $filepath -Append -Force -Encoding ascii
+    } 
+}
+</Command>
     </Commands>
     <EventLogs>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
