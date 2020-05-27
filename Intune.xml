@@ -514,7 +514,12 @@ if (test-path $Policies) {
 
 
 # Sort so we always get the most current in case there are orphaned certs
-$cert = (dir Cert:\LocalMachine\My\ | where { $_.Issuer -match "CN=MS-Organization-Access" } | Sort-Object -Property NotBefore -Descending)[0]
+if ( (Get-ChildItem Cert:\LocalMachine\My).count -eq 0) {
+    Write-Output "No certs in Local Machine store, skipping"
+    }
+else {
+    $cert = (dir Cert:\LocalMachine\My\ | where { $_.Issuer -match "CN=MS-Organization-Access" } | Sort-Object -Property NotBefore -Descending)[0]
+    }
 
 # use to find registry path
 $thumbPrint = $cert.Thumbprint
