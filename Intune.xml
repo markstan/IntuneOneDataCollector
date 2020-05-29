@@ -63,7 +63,7 @@ try {
     $TimeToRun = (Get-Date ).AddSeconds(3)
     $taskName = "dsregcmd debug"
     $folderPath = "$env:temp\CollectedData\Intune\Commands\General"
-    $filepath = Join-Path $folderPath  "$($env:COMPUTERNAME)_dsregcmd_debug.txt"
+    $filepath = Join-Path $folderPath  $($env:ComputerName + "_dsregcmd_debug.txt")
 
     # Create folder if it does not exist for uploader
     if ( -not ( Test-Path $folderPath -ErrorAction SilentlyContinue) ) {
@@ -593,7 +593,7 @@ RunCommand "Get-TpmEndorsementKeyInfo"
 RunCommand "Get-TpmSupportedFeature -Verbose"
 RunCommand "Get-CimInstance -ClassName Win32_Tpm -Namespace 'root\CIMV2\Security\MicrosoftTpm' "
 RunCommand "Get-CimInstance -ClassName  Win32_baseboard -Namespace 'root\CIMV2' "
-RunCommand "reagentc /info 2&gt;NULL"
+RunCommand "reagentc /info 2&gt;NUL"
 RunCommand "bcdedit /enum all"
 RunCommand "gwmi win32_bios | fl *"
 RunCommand "Get-Service tpm |fl *"
@@ -700,7 +700,7 @@ else {
 </Command>
       <Command Type="PS" Team="General" OutputFileName="sym_RunningDrivers.txt">Get-WmiObject Win32_PnPSignedDriver | select DeviceName, DriverVersion | ft -auto</Command>
       <Command Type="CMD" Team="General" OutputFileName="ScheduledTasks">schtasks.exe /Query</Command>
-      <Command Type="PS" Team="General" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\General"
+      <Command Type="PS" Team="Windows Update" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\Windows Update"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 Get-WindowsUpdateLog -Logpath $outputPath\$($env:COMPUTERNAME)_WindowsUpdate.log</Command>
       <Command Type="CMD" Team="General" OutputFileName="GPResult.txt">gpresult.exe /V</Command>
@@ -2616,31 +2616,56 @@ catch {
 
 "Scheduled task information"
 try {
-    Get-ScheduledTask  -TaskName "Intune Management Extension Health Evaluation"  | Select-Object * -ExpandProperty CimInstanceProperties
-    Get-ScheduledTask  -TaskName "Intune Management Extension Health Evaluation" | Get-ScheduledTaskInfo  | Select-Object * -ExpandProperty CimInstanceProperties
+    Get-ScheduledTask  -TaskName "Intune Management Extension Health Evaluation"  -ErrorAction SilentlyContinue| Select-Object * -ExpandProperty CimInstanceProperties
+    Get-ScheduledTask  -TaskName "Intune Management Extension Health Evaluation" -ErrorAction SilentlyContinue | Get-ScheduledTaskInfo  | Select-Object * -ExpandProperty CimInstanceProperties
     }
 catch {
     "Warning:  Unable to find IME scheduled tasks"
     $Error
 }
     </Command>
-      <Command Type="PS" Team="General" OutputFileName="File collection.log"># workaround
-$ErrorActionPreference = "silentlycontinue"
+	<Command Type="PS" Team="General" OutputFileName="File collection.log"># workaround
+ 
+		$ErrorActionPreference = "silentlycontinue"
 
-foreach ($file in $Package.files.file) {
-     $file | fl *
-     $expandedPath = [System.Environment]::ExpandEnvironmentVariables($file.value)
-     $expandedPath
-     if (test-path $expandedPath) {
-      [string]$team = $file.team
-     "team = $team"
-      $newFolder = [System.Environment]::ExpandEnvironmentVariables( $(join-path "$ResultRootDirectory\Intune\Files"  $team)  )
-      mkdir $newFolder -Force -errorAction SilentlyContinue
-    "running   xcopy  $expandedPath $NewFolder" 
-      xcopy $expandedPath $NewFolder /C /Y
-    }
-}
-dir $resultrootdirectory -recurse 
+		foreach ($file in $Package.files.file) {
+			 $file | fl *
+			 $expandedPath = [System.Environment]::ExpandEnvironmentVariables($file.value)
+			 $expandedPath
+			 if (test-path $expandedPath) {
+			  [string]$team = $file.team
+			  $newFolder = [System.Environment]::ExpandEnvironmentVariables( $(join-path "$ResultRootDirectory\Intune\Files"  $team)  )
+			  mkdir $newFolder -Force -errorAction SilentlyContinue
+			  
+			  $FilesToCheck = dir $expandedPath
+			  
+			  foreach ($fileToCheck in $FilesToCheck) {
+				
+				if (test-path $fileToCheck){
+					[string]$team = $file.team
+					 
+					$parentFolder =  [System.Environment]::ExpandEnvironmentVariables( $(join-path "$ResultRootDirectory\Intune\Files"  $team)  )
+					
+					$renamedFile =  $env:COMPUTERNAME + "_" + ( Split-Path $fileToCheck -leaf)
+					$myfullPath = Join-Path   $parentFolder $renamedFile
+					
+					if (Test-Path $myfullPath){
+						#file found, skip
+						"found $myfullPath"
+					}
+					else {
+						if (-not (Test-Path $parentFolder) ) {
+							$nil = mkdir $parentFolder 
+							}
+						copy $fileToCheck $myfullPath
+						}
+					}
+				
+				}	 
+			}
+		}
+		  
+ 
 </Command>
       <Command Type="PS" Team="General" OutputFileName="NA"># make sure msinfo32 has exited
 $timeoutInSec = 180
@@ -2664,7 +2689,12 @@ $outpath = Join-Path $pwd $compWithUS
 MdmDiagnosticsTool.exe  -out $outpath
 $outputPath = "$env:temp\CollectedData\Intune\Commands\General"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
-move .\*MDMDiagReport.* $outputPath -Force</Command>
+move .\*MDMDiagReport.* $outputPath -Force
+# cleanup
+if (test-path $outpath) {
+	rmdir $outpath
+}
+</Command>
       <Command Type="PS" Team="General" OutputFileName="Eventlog_metadata">function RunCommand {
    Param ([string]$cmdToRun)
    
@@ -2706,7 +2736,6 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
      $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
      copy c:\mdmtrace\* $outputpath -force
 }
-
 </Command>
       <Command Type="PS" Team="AutoPilot" OutputFileName="Get-AutopilotESPStatus.txt"># From https://oofhours.com/2020/02/17/what-happened-during-windows-autopilot-esp-decode-it/
 
@@ -3455,61 +3484,63 @@ catch {
     <Files>
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\AgentData\Logs\*</File>
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\GatewayData\Logs\*.*</File>
-      <File Team="General">%ProgramFiles%\Microsoft\OnlineManagement\PolicyAgent\ReportCache\3DA21691-E39D-4DA6-8A4B-B43877BCB1B7\*.xml</File>
-      <File Team="Antimalware">%ProgramFiles%\Microsoft Antimalware\Support\*.*</File>
-      <File Team="Antimalware">%ProgramData%\Microsoft\Microsoft Antimalware\Support\*.cab</File>
       <File Team="Antimalware">%ALLUSERSPROFILE%\Microsoft\Microsoft Antimalware\Support\*.cab</File>
+      <File Team="Antimalware">%ProgramData%\Microsoft\Microsoft Antimalware\Support\*.cab</File>
+      <File Team="Antimalware">%ProgramFiles%\Microsoft Antimalware\Support\*.*</File>
+      <File Team="Autopilot">%systemroot%\ServiceState\Autopilot\*.json</File>
+      <File Team="Autopilot">%windir%\Provisioning\AutoPilot\AutoPilotConfigurationFile.json</File>
+      <File Team="BitLocker">%SystemRoot%\Logs\MeasuredBoot\*.log</File>
       <File Team="CBS">%systemroot%\Logs\CBS\*.log</File>
-      <File Team="Intune">%LOCALAPPDATA%\Microsoft\Windows\clientui.log</File>
-      <File Team="Intune">%LOCALAPPDATA%\Microsoft\OnlineManagement\Logs\clientui.log</File>
-      <File Team="Intune">%TEMP%\clientui.log</File>
       <File Team="Configmgr">%SMS_LOG_PATH%\*.*</File>
+      <File Team="Configmgr">%systemroot%\ccmsetup\Logs\*</File>
       <File Team="DirSync">%ProgramFiles%\Microsoft Online Directory Sync\*.log</File>
-      <File Team="General">%temp%\supportconsole*.*</File>
       <File Team="Exchange Connector">%ProgramData%\Microsoft\Windows Intune Exchange Connector\*.*</File>
-      <File Team="General">%LOCALAPPDATA%\Temp\*.log</File>
       <File Team="Exchange Connector">%ProgramData%\Microsoft\Windows Intune Exchange Connector\Logs\*.*</File>
-      <File Team="Homegroup">%windir%\Logs\HomeGroup\*.*</File>
+	  <File Team="General">odc_debug.log</File>
+      <File Team="General">%LOCALAPPDATA%\Temp\*.log</File>
+      <File Team="General">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
+      <File Team="General">%ProgramData%\microsoft\diagnosticlogcsp\collectors\*</File>
+      <File Team="General">%ProgramFiles%\Microsoft Intune\ODJConnector\ODJConnectorUI\*.log</File>
+      <File Team="General">%ProgramFiles%\Microsoft\OnlineManagement\PolicyAgent\ReportCache\3DA21691-E39D-4DA6-8A4B-B43877BCB1B7\*.xml</File>
+      <File Team="General">%systemroot%\temp\stdout.log</File>
+      <File Team="General">%temp%\supportconsole*.*</File>
       <File Team="General">%windir%\PolicyClient*.log</File>
-      <File Team="MSI Logs">%windir%\temp\MSI*.*</File>
-      <File Team="MSI Logs">%temp%\MSI*.*</File>
-      <File Team="OpsMgr">%windir%\Temp\OpsMgrTrace\*.*</File>
-      <File Team="Intune">%ProgramFiles%\microsoft policy platform\policyplatformclient*.log</File>
       <File Team="General">%windir%\SoftwareDistribution\ReportingEvents*.log</File>
-      <File Team="Intune">%Temp%\SoftwarePublishing\*.log</File>
-      <File Team="Intune">%windir%\scoconnector.etl</File>
+      <File Team="Homegroup">%windir%\Logs\HomeGroup\*.*</File>
+      <File Team="Intune">%LOCALAPPDATA%\Microsoft\OnlineManagement\Logs\clientui.log</File>
+      <File Team="Intune">%LOCALAPPDATA%\Microsoft\Windows\clientui.log</File>
       <File Team="Intune">%ProgramFiles%\Microsoft\OnlineManagement\Logs\*.log</File>
       <File Team="Intune">%ProgramFiles%\Microsoft\OnlineManagement\PolicyAgent\InventoryCache\3DA21691-E39D-4DA6-8A4B-B43877BCB1B7\*.xml</File>
       <File Team="Intune">%ProgramFiles%\Microsoft\OnlineManagement\PolicyAgent\ReportCache\3DA21691-E39D-4DA6-8A4B-B43877BCB1B7\*.xml</File>
-      <File Team="WMI">%windir%\system32\wbem\logs\*.*</File>
-      <File Team="WMI">%windir%\system32\wbem\tmf\*.*</File>
-      <File Team="Windows Update">%windir%\windowsupdate*.log</File>
-      <File Team="General">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
-      <File Team="General">%ProgramData%\microsoft\diagnosticlogcsp\collectors\*</File>
+      <File Team="Intune">%ProgramFiles%\microsoft policy platform\policyplatformclient*.log</File>
+      <File Team="Intune">%TEMP%\clientui.log</File>
+      <File Team="Intune">%Temp%\SoftwarePublishing\*.log</File>
       <File Team="Intune">%public%\Documents\MDMDiagnostics\*</File>
-      <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorUI\NDESConnectorUI.log</File>
-      <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorSvc\logs\logs\*</File>
-      <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorUI\Logs\*</File>
-      <File Team="NDES">C:\inetpub\logs\LogFiles\W3SVC1\u_ex*.log </File>
-      <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESPolicyModule\Logs\NDESPlugin.log</File>
-      <File Team="NDES">C:\NDESConnectorSetup\*.log</File>
-      <File Team="NDES">%ProgramFiles%\Microsoft Configuration Manager\logs\ndes*</File>
-      <File Team="Sidecar">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
-      <File Team="General">%systemroot%\temp\stdout.log</File>
-      <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorSvc\NDESConnector.exe.config</File>
-      <File Team="Autopilot">%windir%\Provisioning\AutoPilot\AutoPilotConfigurationFile.json</File>
-      <File Team="Sidecar">%systemroot%\system32\config\systemprofile\AppData\Local\mdm\*.log</File>
-      <File Team="Teams">%LocalAppData%\Microsoft\Teams\SquirrelSetup.log</File>
-      <File Team="Teams">%AppData%\Microsoft\Teams\*.txt</File>
-      <File Team="Teams">%LocalAppData%\SquirrelTemp\*</File>
-      <File Team="Teams">%LocalAppData%\Microsoft\Teams\current\SquirrelSetup.log</File>
-      <File Team="General">%ProgramFiles%\Microsoft Intune\ODJConnector\ODJConnectorUI\*.log</File>
-      <File Team="Autopilot">%systemroot%\ServiceState\Autopilot\*.json</File>
+      <File Team="Intune">%windir%\scoconnector.etl</File>
       <File Team="LegacyPCClient">%ProgramFiles%\Microsoft\OnlineManagement\Logs\*</File>
       <File Team="LegacyPCClient">%ProgramFiles%\Microsoft\OnlineManagement\Updates\ReportingEvents.log</File>
-      <File Team="Configmgr">%systemroot%\ccmsetup\Logs\*</File>
-      <File Team="BitLocker">%SystemRoot%\Logs\MeasuredBoot\*.log</File>
+      <File Team="MSI Logs">%temp%\MSI*.*</File>
+      <File Team="MSI Logs">%windir%\temp\MSI*.*</File>
+      <File Team="NDES">%ProgramFiles%\Microsoft Configuration Manager\logs\ndes*</File>
+      <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorSvc\NDESConnector.exe.config</File>
+      <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorSvc\logs\logs\*</File>
+      <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorUI\Logs\*</File>
+      <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorUI\NDESConnectorUI.log</File>
+      <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESPolicyModule\Logs\NDESPlugin.log</File>
+      <File Team="NDES">C:\NDESConnectorSetup\*.log</File>
+      <File Team="NDES">C:\inetpub\logs\LogFiles\W3SVC1\u_ex*.log </File>
+      <File Team="OpsMgr">%windir%\Temp\OpsMgrTrace\*.*</File>
       <File Team="Sidecar">%LocalAppData%\mdm\*.log</File>
+      <File Team="Sidecar">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
+      <File Team="Sidecar">%systemroot%\system32\config\systemprofile\AppData\Local\mdm\*.log</File>
+      <File Team="Teams">%AppData%\Microsoft\Teams\*.txt</File>
+      <File Team="Teams">%LocalAppData%\Microsoft\Teams\SquirrelSetup.log</File>
+      <File Team="Teams">%LocalAppData%\Microsoft\Teams\current\SquirrelSetup.log</File>
+      <File Team="Teams">%LocalAppData%\SquirrelTemp\*</File>
+      <File Team="WMI">%windir%\system32\wbem\logs\*.*</File>
+      <File Team="WMI">%windir%\system32\wbem\tmf\*.*</File>
+	  <File Team="Windows Update">%windir%\INF\*.log</File>
+      <File Team="Windows Update">%windir%\windowsupdate*.log</File>
     </Files>
     <Registries>
 	  <Registry Team="Registry" OutputFileName="CCS_Services_TPM">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\TPM</Registry>

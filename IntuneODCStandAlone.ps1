@@ -1169,7 +1169,8 @@ namespace Microsoft.One.DataCollector
         }
         catch 
         {
-            $_.Exception.Message | ConvertTo-Xml | Update-DiagReport -ID 'TS_Main' -Name 'Type Initialization Error' -Verbosity Informational			
+            $_.Exception.Message 	| Out-File odc_debug.log -Force -Append
+            $_                  	| Out-File odc_debug.log -Force -Append			
         }
     }
 }
@@ -1212,15 +1213,10 @@ function Collect-Files
 					$resolvedFiles = Get-ChildItem -Path $sourceFilename
 					foreach($resolvedFile in $resolvedFiles)
 					{
-						$teamName = ($file.Team, 'General')[([string]::IsNullOrEmpty($file.Team)) -or ($file.Team.Trim().Length -le 0)];
-							
+						$teamName = ($file.Team, 'General')[([string]::IsNullOrEmpty($file.Team)) -or ($file.Team.Trim().Length -le 0)];							
 						$dstFileName = $env:COMPUTERNAME + "_" + ($resolvedFile.Name)
-
 						$destinationFilename = (@($packageDirectory, $currentActivity, $teamName, $dstFileName) -join '\')| Get-ValidPath | Get-NewFileNameIfExists
-
-						#Update-Progress -Activity $currentActivity -PackageID $PackageID -Filename $destinationFilename
-
-						Copy-Item -Path ($resolvedFile.FullName) -Destination $destinationFilename -Force #-ErrorAction SilentlyContinue | Out-Null
+ 						Copy-Item -Path ($resolvedFile.FullName) -Destination $destinationFilename -Force #-ErrorAction SilentlyContinue | Out-Null
 					}
 				}
 				catch
@@ -1284,7 +1280,7 @@ function Collect-RegistryKeys
 
             $outputFilename = ($registryKey.OutputFileName, ($registryKeyToExport | Get-ValidFileName))[([string]::IsNullOrEmpty($registryKey.OutputFileName)) -or ($registryKey.OutputFileName.Trim().Length -le 0)];
 			$outputFilename = $env:COMPUTERNAME + "_" + $outputFilename 
-            $outputFilename = (@($ResultRootDirectory, $PackageID, $currentActivity, $teamName, ("{0}.reg" -f [System.IO.Path]::GetFileNameWithoutExtension($outputFilename))) -join '\') | Get-ValidPath | Get-NewFileNameIfExists
+            $outputFilename = (@($ResultRootDirectory, $PackageID, $currentActivity, $teamName, ("{0}.txt" -f [System.IO.Path]::GetFileNameWithoutExtension($outputFilename))) -join '\') | Get-ValidPath | Get-NewFileNameIfExists
 
             $registryKey.OutputFileName = [System.IO.Path]::GetFileName($outputFilename)
 
@@ -1728,13 +1724,13 @@ function Process-Package
     )
     PROCESS 
     {
+	    if(($Package.Files) -ne $null -and ($Package.Files.File) -ne $null)
+        {
+            Collect-Files -Files ($Package.Files.File) -PackageID ($Package.ID)
+        }
 		if(($Package.Commands) -ne $null -and ($Package.Commands.Command) -ne $null)
         {
             Collect-Commands -Commands ($Package.Commands.Command) -PackageID ($Package.ID)
-        }
-        if(($Package.Files) -ne $null -and ($Package.Files.File) -ne $null)
-        {
-            Collect-Files -Files ($Package.Files.File) -PackageID ($Package.ID)
         }
         if(($Package.Registries) -ne $null -and ($Package.Registries.Registry) -ne $null)
         {
