@@ -442,6 +442,7 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
 
  add-member -inputobject $OS_Summary -membertype noteproperty -name "Username" -value ($Env:USERDOMAIN + "\" + $Env:USERNAME)
  $versions = @{
+ "19041" =   "2004"
  "18363" =   "1909"
  "18362" =   "1903"
  "17763" =   "1809"
@@ -454,6 +455,7 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
  }
 
  $marketingNames = @{
+ "19041" =   "May 2020 Update"
  "18363" =   "November 2019 Update"
  "18362" =   "May 2019 Update"
  "17763" =   "October 2018 Update"
@@ -467,6 +469,7 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
 
 
   $codeNames = @{
+ "19041" =   "20H1"
  "18363" =   "19H2"
  "18362" =   "19H1"
  "17763" =   "Redstone 5"
@@ -543,7 +546,7 @@ $SubscriptionID = $ds -match "SubscriptionID : (.+)"
 # Start reporting
 
 $OS_Summary | fl
-if ($Win10Version.BuildNumber -gt 18363) { "**** WARNING:  Beta version of Windows detected:  Build $($Win10Version.version) *****"}
+if ($Win10Version.BuildNumber -gt 19041) { "**** WARNING:  Beta version of Windows detected:  Build $($Win10Version.version) *****"}
 "Windows build:        $($Win10Version.version)"
 "Windows version:      $($versions[$Win10Version.BuildNumber])"
 "Windows name:         $($marketingNames[$Win10Version.BuildNumber])" 
@@ -2624,7 +2627,7 @@ catch {
     $Error
 }
     </Command>
-	<Command Type="PS" Team="General" OutputFileName="File collection.log"># workaround
+      <Command Type="PS" Team="General" OutputFileName="File collection.log"># workaround
  
 		$ErrorActionPreference = "silentlycontinue"
 
@@ -3480,6 +3483,7 @@ catch {
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\PFX*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*WMI*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-WindowsUpdateClient*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-NetworkProfile*</EventLog>
     </EventLogs>
     <Files>
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\AgentData\Logs\*</File>
@@ -3496,7 +3500,7 @@ catch {
       <File Team="DirSync">%ProgramFiles%\Microsoft Online Directory Sync\*.log</File>
       <File Team="Exchange Connector">%ProgramData%\Microsoft\Windows Intune Exchange Connector\*.*</File>
       <File Team="Exchange Connector">%ProgramData%\Microsoft\Windows Intune Exchange Connector\Logs\*.*</File>
-	  <File Team="General">odc_debug.log</File>
+      <File Team="General">odc_debug.log</File>
       <File Team="General">%LOCALAPPDATA%\Temp\*.log</File>
       <File Team="General">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
       <File Team="General">%ProgramData%\microsoft\diagnosticlogcsp\collectors\*</File>
@@ -3539,11 +3543,11 @@ catch {
       <File Team="Teams">%LocalAppData%\SquirrelTemp\*</File>
       <File Team="WMI">%windir%\system32\wbem\logs\*.*</File>
       <File Team="WMI">%windir%\system32\wbem\tmf\*.*</File>
-	  <File Team="Windows Update">%windir%\INF\*.log</File>
+      <File Team="Windows Update">%windir%\INF\*.log</File>
       <File Team="Windows Update">%windir%\windowsupdate*.log</File>
     </Files>
     <Registries>
-	  <Registry Team="Registry" OutputFileName="CCS_Services_TPM">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\TPM</Registry>
+      <Registry Team="Registry" OutputFileName="CCS_Services_TPM">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\TPM</Registry>
       <Registry Team="Registry" OutputFileName="CCS_Control_CloudDomainJoin">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\CloudDomainJoin</Registry>
       <Registry Team="Registry" OutputFileName="CCS_Control_ProductOptions_ProductSuite">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\ProductOptions\ProductSuite</Registry>
       <Registry Team="Registry" OutputFileName="CCS_Control_TimeZone">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\TimeZoneInformation</Registry>
