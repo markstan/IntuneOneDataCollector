@@ -3533,6 +3533,7 @@ catch {
       <File Team="Sidecar">%LocalAppData%\mdm\*.log</File>
       <File Team="Sidecar">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
       <File Team="Sidecar">%systemroot%\system32\config\systemprofile\AppData\Local\mdm\*.log</File>
+	  <File Team="Sidecar">%systemroot%\TEMP\IntuneWindowsAgent_Proxy*</File>
       <File Team="Teams">%AppData%\Microsoft\Teams\*.txt</File>
       <File Team="Teams">%LocalAppData%\Microsoft\Teams\SquirrelSetup.log</File>
       <File Team="Teams">%LocalAppData%\Microsoft\Teams\current\SquirrelSetup.log</File>
