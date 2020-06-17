@@ -34,8 +34,8 @@ catch {
 }</Command>
       <Command Type="PS" Team="General" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\General"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
-msinfo32.exe /NFO    "$outputPath\msinfo32.nfo" 
-msinfo32.exe /report "$outputPath\msinfo32.txt"
+msinfo32.exe /NFO    "$outputPath\$($env:COMPUTERNAME)_msinfo32.nfo" 
+msinfo32.exe /report "$outputPath\$($env:COMPUTERNAME)_msinfo32.txt"
 </Command>
       <Command Type="PS" Team="General" OutputFileName="dsreg_status">dsregcmd /status</Command>
       <Command Type="PS" Team="General" OutputFileName="whoami">function RunCommand {
@@ -81,7 +81,7 @@ try {
     $Action= New-ScheduledTaskAction -Execute "cmd.exe" -Argument "/c dsregcmd /debug &gt;&gt; $filepath"
     $nil = Register-ScheduledTask -TaskName $taskName -Trigger $Trigger -User $User -Action $Action -RunLevel Highest –Force
     $nil = Start-ScheduledTask -TaskName $taskName
-    sleep 5
+    sleep 9
     #cleanup
     $nil = Unregister-ScheduledTask -TaskName $taskName -TaskPath "\" -PassThru -Confirm:$false
     }
@@ -575,8 +575,11 @@ $CS_Summary | fl
 systeminfo.exe
 "BIOS Information"
 Get-WmiObject  -Class Win32_BIOS</Command>
-      <Command Type="CMD" Team="General" OutputFileName="Installed_Products.txt">wmic product list brief </Command>
-      <Command Type="CMD" Team="General" OutputFileName="proxy_settings.txt">netsh winhttp show proxy</Command>
+      <Command Type="CMD" Team="General" OutputFileName="Installed_Products.txt">echo "`r`n===========================================`r`n`t`t wmic product list brief   -Recurse `r`n===========================================`r`n"
+
+wmic product list brief </Command>
+      <Command Type="CMD" Team="General" OutputFileName="proxy_settings.txt">echo "`r`n===========================================`r`n`t`t netsh winhttp show proxy  -Recurse `r`n===========================================`r`n"
+netsh winhttp show proxy</Command>
       <Command Type="PS" Team="General" OutputFileName="Bitlocker_and_TPM">function RunCommand {
    Param ([string]$cmdToRun)
    $line = "`r`n================================================================================================"
@@ -692,8 +695,11 @@ RunCommand -cmdToRun "net sessions"
 RunCommand -cmdToRun "net use" 
 RunCommand -cmdToRun "net accounts" 
 RunCommand -cmdToRun "net statistics workstation"   </Command>
-      <Command Type="PS" Team="General" OutputFileName="sym_Process.txt">Get-Process | select Name, FileVersion, Path, ProductVersion | ft -auto -wrap</Command>
-      <Command Type="PS" Team="General" OutputFileName="sym_drivers.txt">Get-WmiObject Win32_PnPSignedDriver| select DeviceName, DriverVersion | ft -auto -wrap</Command>
+      <Command Type="PS" Team="General" OutputFileName="sym_Process.txt">echo "`r`n===========================================`r`n`t`t Get-Process | select Name, FileVersion, Path, ProductVersion | ft -auto -wrap `r`n===========================================`r`n"
+Get-Process | select Name, FileVersion, Path, ProductVersion | ft -auto -wrap
+</Command>
+      <Command Type="PS" Team="General" OutputFileName="sym_drivers.txt">echo "`r`n===========================================`r`n`t`t Get-WmiObject Win32_PnPSignedDriver| select DeviceName, DriverVersion | ft -auto -wrap`r`n===========================================`r`n"
+Get-WmiObject Win32_PnPSignedDriver| select DeviceName, DriverVersion | ft -auto -wrap</Command>
       <Command Type="PS" Team="General" OutputFileName="sym_SysWOW64_sys_Drivers.txt">if (Test-Path $env:windir\syswow64\drivers) {
      get-childitem $env:windir\syswow64\drivers -recurse -file | select DeviceName, DriverVersion | ft -auto -wrap
 }
@@ -701,13 +707,16 @@ else {
     "$env:windir\syswow64\drivers not found.  This is normal on an x86 system."
 }
 </Command>
-      <Command Type="PS" Team="General" OutputFileName="sym_RunningDrivers.txt">Get-WmiObject Win32_PnPSignedDriver | select DeviceName, DriverVersion | ft -auto</Command>
-      <Command Type="CMD" Team="General" OutputFileName="ScheduledTasks">schtasks.exe /Query</Command>
+      <Command Type="PS" Team="General" OutputFileName="sym_RunningDrivers.txt">echo "`r`n===========================================`r`n`t`t Get-WmiObject Win32_PnPSignedDriver | select DeviceName, DriverVersion | ft -auto`r`n===========================================`r`n"
+Get-WmiObject Win32_PnPSignedDriver | select DeviceName, DriverVersion | ft -auto</Command>
+      <Command Type="CMD" Team="General" OutputFileName="ScheduledTasks">echo "`r`n===========================================`r`n`t`t schtasks.exe /Query `r`n===========================================`r`n"
+schtasks.exe /Query</Command>
       <Command Type="PS" Team="Windows Update" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\Windows Update"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 Get-WindowsUpdateLog -Logpath $outputPath\$($env:COMPUTERNAME)_WindowsUpdate.log</Command>
       <Command Type="CMD" Team="General" OutputFileName="GPResult.txt">gpresult.exe /V</Command>
-      <Command Type="PS" Team="General" OutputFileName="InstalledWindowsFeatures">Get-WindowsOptionalFeature -Online | where {$_.State -eq "Enabled"}</Command>
+      <Command Type="PS" Team="General" OutputFileName="InstalledWindowsFeatures">echo "`r`n===========================================`r`n`t`t Get-WindowsOptionalFeature -Online | where {$_.State -eq `"Enabled`"} `r`n===========================================`r`n"
+Get-WindowsOptionalFeature -Online | where {$_.State -eq "Enabled"}</Command>
       <Command Type="PS" Team="Networking" OutputFileName="NetSH_Commands">echo "======= netsh int show int ======"
 netsh int show int
 
@@ -778,11 +787,18 @@ echo "======= netsh int ipv4 show neighbors ======"
 netsh int ipv4 show neighbors
 
 </Command>
+      <Command Type="PS" Team="General" OutputFileName="NA">MdmDiagnosticsTool.exe  -out $pwd
+$outputPath = "$env:temp\CollectedData\Intune\Commands\General"
+$x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
+ren MDMDiagReport.xml $($env:COMPUTERNAME)_MDMDiagReport.xml
+ren MDMDiagReport.html $($env:COMPUTERNAME)_MDMDiagReport.html
+move .\*MDMDiagReport.* $outputPath</Command>
       <Command Type="PS" Team="Networking" OutputFileName="Connectivity_tests">$uniqueURLs = (dsregcmd /status) | ForEach-Object { if ($_ -match ".*https://(\w+.+?)\/") { $matches[1]} } | Get-Unique
 $uniqueURLs  | ForEach-Object  { Test-NetConnection -Port 443 $_ -ErrorAction SilentlyContinue}
 
 </Command>
-      <Command Type="PS" Team="General" OutputFileName="TimeZoneSettings">w32tm /tz</Command>
+      <Command Type="PS" Team="General" OutputFileName="TimeZoneSettings">echo "`r`n===========================================`r`n`t`t w32tm /tz `r`n===========================================`r`n"
+w32tm /tz</Command>
       <Command Type="PS" Team="NDES" OutputFileName="NA">#NDES
 function Get-FilesOlderThan
     {
@@ -2583,12 +2599,23 @@ else {
 }</Command>
       <Command Type="PS" Team="General" OutputFileName="Services.txt">Get-Service | fl *</Command>
       <Command Type="PS" Team="General" OutputFileName="MDM_Policies">if (Test-Path -Path 'HKLM:\Software\Microsoft\PolicyManager\current\device') {
+    echo "`r`n===========================================`r`n`t`t Get-ChildItem 'HKLM:\Software\Microsoft\PolicyManager\current\device\*'  -Recurse `r`n===========================================`r`n" 
 
-    get-item 'HKLM:\Software\Microsoft\PolicyManager\current\device\*'
+    Get-ChildItem 'HKLM:\Software\Microsoft\PolicyManager\current\device\*'  -Recurse
 
 }
 else {
     "Warning - no policies found under HKLM:\Software\Microsoft\PolicyManager\current\device"
+}
+
+if (Test-Path -Path 'HKLM:\Software\Policies\Microsoft') {
+     echo "`r`n===========================================`r`n`t`t Get-ChildItem 'HKLM:\Software\Policies\Microsoft' -Recurse `r`n===========================================`r`n" 
+
+     Get-ChildItem 'HKLM:\Software\Policies\Microsoft' -Recurse
+
+}
+else {
+    "Warning - no policies found under HKLM:\Software\Policies\Microsoft"
 }</Command>
       <Command Type="PS" Team="NDES" OutputFileName="localmachine_cert_info">if ( (dir Cert:\LocalMachine\My).Count -gt 0) {
 
@@ -2685,19 +2712,6 @@ while ( ($elapsed -lt $timeoutInSec) -and $stillRunning ) {
         $stillRunning = $false
     }
 }</Command>
-      <Command Type="PS" Team="General" OutputFileName="NA">#MDMDiagnostics
-$compWithUS = $env:COMPUTERNAME + "_"
-$outpath = Join-Path $pwd $compWithUS
- 
-MdmDiagnosticsTool.exe  -out $outpath
-$outputPath = "$env:temp\CollectedData\Intune\Commands\General"
-$x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
-move .\*MDMDiagReport.* $outputPath -Force
-# cleanup
-if (test-path $outpath) {
-	rmdir $outpath
-}
-</Command>
       <Command Type="PS" Team="General" OutputFileName="Eventlog_metadata">function RunCommand {
    Param ([string]$cmdToRun)
    
@@ -3260,7 +3274,17 @@ Write-Output "==================================================================
 # Verbose output
 foreach ($objHistory in $colHistory) 
 { 
-  $objHistory | Format-Table -Wrap 
+  $o = New-Object PSObject 
+  $o | Add-Member -MemberType NoteProperty -Name Update $(Select-Object * -InputObject $objHistory -ExcludeProperty UninstallationSteps,Categories,UpdateIdentity | Out-String )
+  $o | Add-Member -MemberType NoteProperty -Name UpdateID -Value $($objHistory.UpdateIdentity | Out-String )   
+  $o | Add-Member -MemberType NoteProperty -Name Categories -Value $($objHistory.Categories | Out-String )
+  
+
+
+  "================================================================"
+  "$($objHistory.Title | Out-String)"
+  "================================================================"
+  $o  | fl *
    
 }</Command>
       <Command Type="PS" Team="Windows Update" OutputFileName="NA"># Windows Update Debug
@@ -3394,7 +3418,7 @@ try {
     $Action= New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File `"$tempFilePath`" -Nologo -OutFile `"$filepath`"" # "/c dsregcmd /debug &gt;&gt; $filepath"
     $nil = Register-ScheduledTask -TaskName $taskName -Trigger $Trigger -User $User -Action $Action -RunLevel Highest –Force
     $nil = Start-ScheduledTask -TaskName $taskName
-    sleep 5
+    sleep 9
     #cleanup
     $nil = Unregister-ScheduledTask -TaskName $taskName -TaskPath "\" -PassThru -Confirm:$false
     }
@@ -3537,7 +3561,7 @@ catch {
       <File Team="Sidecar">%LocalAppData%\mdm\*.log</File>
       <File Team="Sidecar">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
       <File Team="Sidecar">%systemroot%\system32\config\systemprofile\AppData\Local\mdm\*.log</File>
-	  <File Team="Sidecar">%systemroot%\TEMP\IntuneWindowsAgent_Proxy*</File>
+      <File Team="Sidecar">%systemroot%\TEMP\IntuneWindowsAgent_Proxy*</File>
       <File Team="Teams">%AppData%\Microsoft\Teams\*.txt</File>
       <File Team="Teams">%LocalAppData%\Microsoft\Teams\SquirrelSetup.log</File>
       <File Team="Teams">%LocalAppData%\Microsoft\Teams\current\SquirrelSetup.log</File>
