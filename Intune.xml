@@ -575,10 +575,9 @@ $CS_Summary | fl
 systeminfo.exe
 "BIOS Information"
 Get-WmiObject  -Class Win32_BIOS</Command>
-      <Command Type="CMD" Team="General" OutputFileName="Installed_Products.txt">echo "`r`n===========================================`r`n`t`t wmic product list brief   -Recurse `r`n===========================================`r`n"
-
+      <Command Type="PS" Team="General" OutputFileName="Installed_Products.txt">echo "`r`n===========================================`r`n`t`t wmic product list brief   `r`n===========================================`r`n"
 wmic product list brief </Command>
-      <Command Type="CMD" Team="General" OutputFileName="proxy_settings.txt">echo "`r`n===========================================`r`n`t`t netsh winhttp show proxy  -Recurse `r`n===========================================`r`n"
+      <Command Type="PS" Team="General" OutputFileName="proxy_settings.txt">echo "`r`n===========================================`r`n`t`t netsh winhttp show proxy   `r`n===========================================`r`n"
 netsh winhttp show proxy</Command>
       <Command Type="PS" Team="General" OutputFileName="Bitlocker_and_TPM">function RunCommand {
    Param ([string]$cmdToRun)
@@ -650,7 +649,7 @@ if (Test-Path -Path $mpc) {
     copy $cabPath $outPutPath\WindowsDefender-SupportFiles.cab
 
 }</Command>
-      <Command Type="PS" Team="Networking" OutputFileName="Networking.txt">function RunCommand {
+      <Command Type="PS" Team="General" OutputFileName="Networking.txt">function RunCommand {
    Param ([string]$cmdToRun)
    
    echo "`r`n===========================================`r`n`t`t $cmdToRun `r`n===========================================`r`n"
@@ -709,7 +708,7 @@ else {
 </Command>
       <Command Type="PS" Team="General" OutputFileName="sym_RunningDrivers.txt">echo "`r`n===========================================`r`n`t`t Get-WmiObject Win32_PnPSignedDriver | select DeviceName, DriverVersion | ft -auto`r`n===========================================`r`n"
 Get-WmiObject Win32_PnPSignedDriver | select DeviceName, DriverVersion | ft -auto</Command>
-      <Command Type="CMD" Team="General" OutputFileName="ScheduledTasks">echo "`r`n===========================================`r`n`t`t schtasks.exe /Query `r`n===========================================`r`n"
+      <Command Type="PS" Team="General" OutputFileName="ScheduledTasks">echo "`r`n===========================================`r`n`t`t schtasks.exe /Query `r`n===========================================`r`n"
 schtasks.exe /Query</Command>
       <Command Type="PS" Team="Windows Update" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\Windows Update"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
@@ -790,8 +789,10 @@ netsh int ipv4 show neighbors
       <Command Type="PS" Team="General" OutputFileName="NA">MdmDiagnosticsTool.exe  -out $pwd
 $outputPath = "$env:temp\CollectedData\Intune\Commands\General"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
-ren MDMDiagReport.xml $($env:COMPUTERNAME)_MDMDiagReport.xml
-ren MDMDiagReport.html $($env:COMPUTERNAME)_MDMDiagReport.html
+$newName = $env:COMPUTERNAME + "_MDMDiagReport.xml"
+ren MDMDiagReport.xml $newName
+$newName = $env:COMPUTERNAME + "_MDMDiagReport.html"
+ren MDMDiagReport.html $newName
 move .\*MDMDiagReport.* $outputPath</Command>
       <Command Type="PS" Team="Networking" OutputFileName="Connectivity_tests">$uniqueURLs = (dsregcmd /status) | ForEach-Object { if ($_ -match ".*https://(\w+.+?)\/") { $matches[1]} } | Get-Unique
 $uniqueURLs  | ForEach-Object  { Test-NetConnection -Port 443 $_ -ErrorAction SilentlyContinue}
@@ -3633,6 +3634,7 @@ catch {
       <Registry Team="Registry" OutputFileName="SW_WOW64_Policies_Microsoft_Windows_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\WindowsUpdate</Registry>
       <Registry Team="Registry" OutputFileName="SW_Windows_CV_Uninstall">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
       <Registry Team="Registry" OutputFileName="SW_Wow6432Node_MicrosoftAntimalware">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies\Microsoft\Microsoft Antimalware</Registry>
+      <Registry Team="Registry" OutputFileName="HKCU_SW_Policies">HKEY_CURRENT_USER\Software\Policies</Registry>
     </Registries>
   </Package>
 </DataPoints>
