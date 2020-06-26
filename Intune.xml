@@ -2712,6 +2712,10 @@ while ( ($elapsed -lt $timeoutInSec) -and $stillRunning ) {
     else {
         $stillRunning = $false
     }
+}
+
+if (Test-Path .\*.evtx) {
+    del .\*.evtx  
 }</Command>
       <Command Type="PS" Team="General" OutputFileName="Eventlog_metadata">function RunCommand {
    Param ([string]$cmdToRun)
@@ -2755,7 +2759,9 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
      copy c:\mdmtrace\* $outputpath -force
 }
 </Command>
-      <Command Type="PS" Team="AutoPilot" OutputFileName="Get-AutopilotESPStatus.txt"># From https://oofhours.com/2020/02/17/what-happened-during-windows-autopilot-esp-decode-it/
+      <Command Type="PS" Team="AutoPilot" OutputFileName="NA">$apscript = @'
+
+# From https://oofhours.com/2020/02/17/what-happened-during-windows-autopilot-esp-decode-it/
 
 [CmdletBinding()]
 param(
@@ -2840,11 +2846,11 @@ Process
     )
 
     Begin {
-        Write-Host "Apps:"
+        Write-Output "Apps:"
     }
 
     Process {
-        Write-Host "  $($currentKey.PSChildName)"
+        Write-Output "  $($currentKey.PSChildName)"
         $currentKey.Property | % {
             if ($_.StartsWith("./Device/Vendor/MSFT/EnterpriseDesktopAppManagement/MSI/")) {
                 $msiKey = [URI]::UnescapeDataString(($_.Split("/"))[6])
@@ -2865,10 +2871,10 @@ Process
                     $msiKey = "$($found.DisplayName) ($($msiKey))"
                 }
                 if ($status -eq 70) {
-                    Write-Host "    MSI $msiKey : $status ($($statusCodes[$status]))" -ForegroundColor Green
+                    Write-Output "    MSI $msiKey : $status ($($statusCodes[$status]))" 
                 }
                 else {
-                    Write-Host "    MSI $msiKey : $status ($($statusCodes[$status]))" -ForegroundColor Yellow
+                    Write-Output "    MSI $msiKey : $status ($($statusCodes[$status]))" 
                 }
             }
             elseif ($_.StartsWith("./Vendor/MSFT/Office/Installation/")) {
@@ -2892,15 +2898,15 @@ Process
                     if ($status -eq 1) { $status = 70 }
                 }
                 if ($status -eq 70) {
-                    Write-Host "    Office $officeKey : $status ($($statusCodes[$status]))" -ForegroundColor Green
+                    Write-Output "    Office $officeKey : $status ($($statusCodes[$status]))" 
                 }
                 else {
-                    Write-Host "    Office $officeKey : $status ($($statusCodes[$status]))" -ForegroundColor Yellow
+                    Write-Output "    Office $officeKey : $status ($($statusCodes[$status]))" 
                 }
             }
             else
             {
-                Write-Host "    $_ : Unknown app"
+                Write-Output "    $_ : Unknown app"
             }
         }
     }
@@ -2915,11 +2921,11 @@ Process
     )
 
     Begin {
-        Write-Host "Modern Apps:"
+        Write-Output "Modern Apps:"
     }
 
     Process {
-        Write-Host "  $($currentKey.PSChildName)"
+        Write-Output "  $($currentKey.PSChildName)"
         $currentKey.Property | % {
             $status = (Get-ItemPropertyValue -path $currentKey.PSPath -Name $_).ToString()
             if ($_.StartsWith("./User/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement/")) {
@@ -2936,10 +2942,10 @@ Process
                 $type = "Unknown UWP"
             }
             if ($status -eq "1") {
-                Write-Host "    $type $appID : $status ($($policyStatus[$status]))" -ForegroundColor Green
+                Write-Output "    $type $appID : $status ($($policyStatus[$status]))" 
             }
             else {
-                Write-Host "    $type $appID : $status ($($policyStatus[$status]))" -ForegroundColor Yellow
+                Write-Output "    $type $appID : $status ($($policyStatus[$status]))" 
             }
         }
     }
@@ -2954,11 +2960,11 @@ Process
     )
 
     Begin {
-        Write-Host "Sidecar apps:"
+        Write-Output "Sidecar apps:"
     }
 
     Process {
-        Write-Host "  $($currentKey.PSChildName)"
+        Write-Output "  $($currentKey.PSChildName)"
         $currentKey.Property | % {
             $win32Key = [URI]::UnescapeDataString(($_.Split("/"))[9])
             $status = Get-ItemPropertyValue -path $currentKey.PSPath -Name $_
@@ -2975,19 +2981,19 @@ Process
             }
             if ($status -eq "3") {
                 if ($exitCode -ne "") {
-                    Write-Host "    Win32 $win32Key : $status ($($espStatus[$status.ToString()]), rc = $exitCode)" -ForegroundColor Green
+                    Write-Output "    Win32 $win32Key : $status ($($espStatus[$status.ToString()]), rc = $exitCode)" 
                 }
                 else {
-                    Write-Host "    Win32 $win32Key : $status ($($espStatus[$status.ToString()]))" -ForegroundColor Green
+                    Write-Output "    Win32 $win32Key : $status ($($espStatus[$status.ToString()]))" 
                 }
             }
             else {
                 if ($exitCode -ne "")
                 {
-                    Write-Host "    Win32 $win32Key : $status ($($espStatus[$status.ToString()]), rc = $exitCode)" -ForegroundColor Yellow
+                    Write-Output "    Win32 $win32Key : $status ($($espStatus[$status.ToString()]), rc = $exitCode)" 
                 }
                 else {
-                    Write-Host "    Win32 $win32Key : $status ($($espStatus[$status.ToString()]))" -ForegroundColor Yellow
+                    Write-Output "    Win32 $win32Key : $status ($($espStatus[$status.ToString()]))" 
                 }
             }
         }
@@ -3002,14 +3008,14 @@ Process
     )
 
     Begin {
-        Write-Host "Policies:"
+        Write-Output "Policies:"
     }
 
     Process {
-        Write-Host "  $($currentKey.PSChildName)"
+        Write-Output "  $($currentKey.PSChildName)"
         $currentKey.Property | % {
             $status = Get-ItemPropertyValue -path $currentKey.PSPath -Name $_
-            Write-Host "    Policy $_ : $status ($($policyStatus[$status.ToString()]))"
+            Write-Output "    Policy $_ : $status ($($policyStatus[$status.ToString()]))"
         }
     }
 
@@ -3023,11 +3029,11 @@ Process
     )
 
     Begin {
-        Write-Host "Certificates:"
+        Write-Output "Certificates:"
     }
 
     Process {
-        Write-Host "  $($currentKey.PSChildName)"
+        Write-Output "  $($currentKey.PSChildName)"
         $currentKey.Property | % {
             $certKey = [URI]::UnescapeDataString(($_.Split("/"))[6])
             $status = Get-ItemPropertyValue -path $currentKey.PSPath -Name $_
@@ -3036,10 +3042,10 @@ Process
                 $certKey = "$($found.DisplayName) ($($certKey))"
             }
             if ($status -eq "1") {
-                Write-Host "    Cert $certKey : $status ($($policyStatus[$status.ToString()]))" -ForegroundColor Green
+                Write-Output "    Cert $certKey : $status ($($policyStatus[$status.ToString()]))" 
             }
             else {
-                Write-Host "    Cert $certKey : $status ($($policyStatus[$status.ToString()]))" -ForegroundColor Yellow
+                Write-Output "    Cert $certKey : $status ($($policyStatus[$status.ToString()]))" 
             }
         }
     }
@@ -3084,7 +3090,7 @@ Process
 
     # Make sure the tracking path exists
     if (-not (Test-Path $path)) {
-        Write-Host "ESP diagnostics info does not (yet) exist."
+        Write-Output "ESP diagnostics info does not (yet) exist."
         exit 0
     }
 
@@ -3094,45 +3100,45 @@ Process
         # Make sure we can connect
         $module = Import-Module Microsoft.Graph.Intune -PassThru -ErrorAction Ignore
         if (-not $module) {
-            Write-Host "Installing module Microsoft.Graph.Intune"
+            Write-Output "Installing module Microsoft.Graph.Intune"
             Install-Module Microsoft.Graph.Intune -Force
         }
         Import-Module Microsoft.Graph.Intune
         $graph = Connect-MSGraph
-        Write-Host "Connected to tenant $($graph.TenantId)"
+        Write-Output "Connected to tenant $($graph.TenantId)"
 
         # Get a list of apps
-        Write-Host "Getting list of apps"
+        Write-Output "Getting list of apps"
         $script:apps = GetIntuneObjects("https://graph.microsoft.com/beta/deviceAppManagement/mobileApps")
 
         # Get a list of policies (for certs)
-        Write-Host "Getting list of policies"
+        Write-Output "Getting list of policies"
         $script:policies = GetIntuneObjects("https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations")
     }
 
     # Display Autopilot diag details
     if (Test-Path $autopilotDiagPath)
     {
-     Write-Host ""
-     Write-Host "AUTOPILOT DIAGNOSTICS"
-     Write-Host ""
+     Write-Output ""
+     Write-Output "AUTOPILOT DIAGNOSTICS"
+     Write-Output ""
 
         $values = Get-ItemProperty "$autopilotDiagPath"
-        Write-Host "TenantDomain:   $($values.CloudAssignedTenantDomain)"
-        Write-Host "TenantID:       $($values.CloudAssignedTenantId)"
-        Write-Host "OobeConfig:     $($values.CloudAssignedOobeConfig)"
+        Write-Output "TenantDomain:   $($values.CloudAssignedTenantDomain)"
+        Write-Output "TenantID:       $($values.CloudAssignedTenantId)"
+        Write-Output "OobeConfig:     $($values.CloudAssignedOobeConfig)"
         $values = Get-ItemProperty "$autopilotDiagPath\EstablishedCorrelations"
-        Write-Host "EntDMID:        $($values.EntDMID)"
+        Write-Output "EntDMID:        $($values.EntDMID)"
         if (Test-Path "$omadmPath\SyncML\ODJApplied")
         {
-            Write-Host "ODJ applied:    YES"
+            Write-Output "ODJ applied:    YES"
         }
     }
         
     # Process device ESP sessions
-    Write-Host " "
-    Write-Host "DEVICE ESP:"
-    Write-Host " "
+    Write-Output " "
+    Write-Output "DEVICE ESP:"
+    Write-Output " "
 
     if (Test-Path "$path\ExpectedMSIAppPackages") {
         $items = Get-ChildItem "$path\ExpectedMSIAppPackages"
@@ -3184,9 +3190,9 @@ Process
     Get-ChildItem "$path" | ? { $_.PSChildName.StartsWith("S-") } | % {
         $userPath = $_.PSPath
         $userSid = $_.PSChildName
-        Write-Host " "
-        Write-Host "USER ESP for $($userSid):"
-        Write-Host " "
+        Write-Output " "
+        Write-Output "USER ESP for $($userSid):"
+        Write-Output " "
         if (Test-Path "$userPath\ExpectedMSIAppPackages") {
             $items = Get-ChildItem "$userPath\ExpectedMSIAppPackages" 
             if ($AllSessions) {
@@ -3234,7 +3240,7 @@ Process
         }
     }
 
-    Write-Host ""
+    Write-Output ""
 }
 
 End {
@@ -3246,7 +3252,19 @@ End {
     }
 }
 
-</Command>
+'@
+
+$outputPath = "$env:temp\CollectedData\Intune\Commands\Autopilot"
+$x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
+$logfile = Join-Path $outputPath Get-AutopilotESPStatus.txt
+$important =   Join-Path $outputPath "!_Important.txt"
+# workaround for process() script block limitation
+$apscript | out-file apinfo.ps1
+ 
+. .\apinfo.ps1 | Out-File $logfile -Force
+del .\apinfo.ps1
+
+echo "Please see internal KB 4570137 for more information regarding decoding Autopilot ETL logs." | Out-File $important -Force</Command>
       <Command Type="PS" Team="Windows Update" OutputFileName="Update_History"># https://gallery.technet.microsoft.com/scriptcenter/Show-Windows-Update-c7ee69bd
 
 $objSession = new-object -com "Microsoft.Update.Session" 
@@ -3479,6 +3497,17 @@ catch {
         "*" * 120                                         | Out-File $filepath -Append -Force -Encoding ascii
     } 
 }
+</Command>
+      <Command Type="PS" Team="Autopilot" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\Autopilot"
+$x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
+
+copy $env:ProgramData\microsoft\diagnosticlogcsp\collectors\*.etl .
+foreach ($file in $(dir *.etl)) {
+    netsh trace convert $file
+}
+
+move *.txt $outputPath -Force
+del .\*DiagnosticLogCSP_Collector*.etl
 </Command>
     </Commands>
     <EventLogs>
