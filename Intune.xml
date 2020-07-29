@@ -786,17 +786,12 @@ echo "======= netsh int ipv4 show neighbors ======"
 netsh int ipv4 show neighbors
 
 </Command>
-      <Command Type="PS" Team="General" OutputFileName="NA">MdmDiagnosticsTool.exe  -out $pwd
+      <Command Type="PS" Team="General" OutputFileName="NA">MdmDiagnosticsTool.exe  -out "$pwd\$($env:COMPUTERNAME)_"
 $outputPath = "$env:temp\CollectedData\Intune\Commands\General"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 
-$MDMDiagFiles = dir .\MDMDiagReport.*
-
-foreach ($MDMDiagFile in $MDMDiagFiles) {
-    ren $MDMDiagFile "$($env:COMPUTERNAME)_$($MDMDiagFile.Name)"
-    }
- 
-$x = move .\*MDMDiagReport.* $outputPath -Force</Command>
+$x = move .\*MDMDiagReport.* $outputPath -Force
+rmdir "$($env:COMPUTERNAME)_" -force</Command>
       <Command Type="PS" Team="Networking" OutputFileName="Connectivity_tests">$uniqueURLs = (dsregcmd /status) | ForEach-Object { if ($_ -match ".*https://(\w+.+?)\/") { $matches[1]} } | Get-Unique
 $uniqueURLs  | ForEach-Object  { Test-NetConnection -Port 443 $_ -ErrorAction SilentlyContinue}
 
