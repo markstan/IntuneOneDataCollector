@@ -603,7 +603,7 @@ RunCommand "bcdedit /enum all"
 RunCommand "gwmi win32_bios | fl *"
 RunCommand "Get-Service tpm |fl *"
 RunCommand "powercfg /a"
-
+RunCommand "Confirm-SecureBootUEFI"
 
 # Registry keys
 RunCommand "Get-Item HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\BitLocker"
@@ -3516,6 +3516,7 @@ del .\*DiagnosticLogCSP_Collector*.etl
       <File Team="WMI">%windir%\system32\wbem\tmf\*.*</File>
       <File Team="Windows Update">%windir%\INF\*.log</File>
       <File Team="Windows Update">%windir%\windowsupdate*.log</File>
+      <File Team="MeasuredBootLogs">%windir%\logs\measuredboot\*</File>
     </Files>
     <Registries>
       <Registry Team="Registry" OutputFileName="CCS_Services_TPM">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\TPM</Registry>
