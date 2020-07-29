@@ -3454,6 +3454,7 @@ del .\*DiagnosticLogCSP_Collector*.etl
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*WMI*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-WindowsUpdateClient*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-NetworkProfile*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*ncrypt*</EventLog>
     </EventLogs>
     <Files>
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\AgentData\Logs\*</File>
