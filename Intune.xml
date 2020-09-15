@@ -786,12 +786,13 @@ echo "======= netsh int ipv4 show neighbors ======"
 netsh int ipv4 show neighbors
 
 </Command>
-      <Command Type="PS" Team="General" OutputFileName="NA">MdmDiagnosticsTool.exe  -out "$pwd\$($env:COMPUTERNAME)_"
+      <Command Type="PS" Team="General" OutputFileName="NA">$x = MdmDiagnosticsTool.exe  -out "$pwd\$($env:COMPUTERNAME)_"
 $outputPath = "$env:temp\CollectedData\Intune\Commands\General"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 
-$x = move .\*MDMDiagReport.* $outputPath -Force
-rmdir "$($env:COMPUTERNAME)_" -force</Command>
+$x = move .\$($env:COMPUTERNAME)_\*MDMDiagReport.* $outputPath -Force
+
+rmdir "$($env:COMPUTERNAME)_" -Force -Recurse</Command>
       <Command Type="PS" Team="Networking" OutputFileName="Connectivity_tests">$uniqueURLs = (dsregcmd /status) | ForEach-Object { if ($_ -match ".*https://(\w+.+?)\/") { $matches[1]} } | Get-Unique
 $uniqueURLs  | ForEach-Object  { Test-NetConnection -Port 443 $_ -ErrorAction SilentlyContinue}
 
@@ -3577,6 +3578,11 @@ del .\*DiagnosticLogCSP_Collector*.etl
       <Registry Team="Registry" OutputFileName="SW_Windows_CV_Uninstall">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
       <Registry Team="Registry" OutputFileName="SW_Wow6432Node_MicrosoftAntimalware">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies\Microsoft\Microsoft Antimalware</Registry>
       <Registry Team="Registry" OutputFileName="HKCU_SW_Policies">HKEY_CURRENT_USER\Software\Policies</Registry>
+      <Registry Team="Registry" OutputFileName="SW_Microsoft_Windows_CurrentVersion_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies</Registry>
+      <Registry Team="Registry" OutputFileName="HKCU_SW_Microsoft_Windows_CurrentVersion_Policies">HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies</Registry>
+      <Registry Team="Registry" OutputFileName="SW_Microsoft_EDPCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\EDPCSP</Registry>
+      <Registry Team="Registry" OutputFileName="SW_Microsoft_EnterpriseResourceManager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\EnterpriseResourceManager</Registry>
+      <Registry Team="Registry" OutputFileName="SW_Microsoft_Windows_Advanced_Threat_Protection">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Advanced Threat Protection</Registry>
     </Registries>
   </Package>
 </DataPoints>
