@@ -789,7 +789,9 @@ netsh int ipv4 show neighbors
       <Command Type="PS" Team="General" OutputFileName="NA">$x = MdmDiagnosticsTool.exe  -out "$pwd\$($env:COMPUTERNAME)_"
 $outputPath = "$env:temp\CollectedData\Intune\Commands\General"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
-
+ 
+ren "$pwd\$($env:COMPUTERNAME)_\MDMDiagReport.html" "$($env:COMPUTERNAME)_MDMDiagReport.html"
+ren "$pwd\$($env:COMPUTERNAME)_\MDMDiagReport.xml" "$($env:COMPUTERNAME)_MDMDiagReport.xml"
 $x = move .\$($env:COMPUTERNAME)_\*MDMDiagReport.* $outputPath -Force
 
 rmdir "$($env:COMPUTERNAME)_" -Force -Recurse</Command>
