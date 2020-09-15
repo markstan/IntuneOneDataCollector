@@ -2,36 +2,6 @@
 <DataPoints xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:Microsoft.One.DataCollector">
   <Package ID="Intune">
     <Commands>
-      <Command Type="PS" Team="General" OutputFileName="NA"># Version check
-try {
-    # current production version.  Update with each new release
-    [double]$Currentversion = (wget https://raw.githubusercontent.com/markstan/IntuneOneDataCollector/master/Utilities/version.txt).content
-    [double]$MyVersion = 1.3
-
-
-    if ( ($Currentversion -ne $MyVersion) -and ( $Currentversion -ne $null) ) {
-    
-        $UserChoice = Pop-Message -Message "Warning:  more recent version of Intune.XML is available.  Download and restart?" -Caption "Newer version detected" -Type 4
-        # 6 = Yes, 7 = No
-        if ($UserChoice -eq 6) {
-            del .\Intune.xml
-            wget https://aka.ms/intunexml -OutFile Intune.xml
-
-
-            $xmlPath =  join-path $pwd "Intune.XML"
-            $package = get-packages -Filename $xmlPath
-            Process-Package -Package $package.ValidPackages[0]
-
-
-        }
-
-    }
-}
-catch {
-    $outputPath = "$env:temp\CollectedData\Intune\Commands\General"
-    $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
-    "Error trying to detect version: $error" | Out-File $outputPath\versionCheck.txt
-}</Command>
       <Command Type="PS" Team="General" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\General"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 msinfo32.exe /NFO    "$outputPath\$($env:COMPUTERNAME)_msinfo32.nfo" 
@@ -2699,25 +2669,6 @@ catch {
 		  
  
 </Command>
-      <Command Type="PS" Team="General" OutputFileName="NA"># make sure msinfo32 has exited
-$timeoutInSec = 180
-$elapsed = 0
-$stillRunning = $true
-
-while ( ($elapsed -lt $timeoutInSec) -and $stillRunning ) {
-    if (Get-Process -Name msinfo32 -ErrorAction SilentlyContinue) {
-        sleep 2
-        $elapsed += 2
-        Write-DiagProgress "Waiting for msinfo32 to complete... $elapsed / $timeoutInSec seconds"
-    } 
-    else {
-        $stillRunning = $false
-    }
-}
-
-if (Test-Path .\*.evtx) {
-    del .\*.evtx  
-}</Command>
       <Command Type="PS" Team="General" OutputFileName="Eventlog_metadata">function RunCommand {
    Param ([string]$cmdToRun)
    
@@ -3413,6 +3364,25 @@ $nil = Unregister-ScheduledTask -TaskName $taskName -TaskPath "\" -PassThru -Con
 
 </Command>
       <Command Type="PS" Team="Autopilot" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\Autopilot"
+	  <Command Type="PS" Team="General" OutputFileName="NA"># make sure msinfo32 has exited
+$timeoutInSec = 240
+$elapsed = 0
+$stillRunning = $true
+
+while ( ($elapsed -lt $timeoutInSec) -and $stillRunning ) {
+    if (Get-Process -Name msinfo32 -ErrorAction SilentlyContinue) {
+        sleep 2
+        $elapsed += 2
+        Write-DiagProgress "Waiting for msinfo32 to complete... $elapsed / $timeoutInSec seconds"
+    } 
+    else {
+        $stillRunning = $false
+    }
+}
+
+if (Test-Path .\*.evtx) {
+    del .\*.evtx  
+}</Command>
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 
 copy $env:ProgramData\microsoft\diagnosticlogcsp\collectors\*.etl .

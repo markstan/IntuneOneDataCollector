@@ -41,8 +41,8 @@
 
 #region Fields
 
-$ResultRootDirectory = [System.IO.Path]::Combine(($env:TEMP), 'CollectedData')
-$CompressedResultFileName = "CollectedData.ZIP"
+$Global:ResultRootDirectory = [System.IO.Path]::Combine(($env:TEMP), 'CollectedData')
+$CompressedResultFileName = "$($env:COMPUTERNAME)_CollectedData.ZIP"
 [System.Nullable[bool]] $newZipperAvailable = $null # Stores flag whether [System.IO.Compression.ZipFile] can be used.
 
 #endregion
@@ -258,7 +258,20 @@ function Create-ZipFromDirectory
 
             if($newZipperAvailable -eq $true) # More efficent and works silently.
             {
-                [System.IO.Compression.ZipFile]::CreateFromDirectory($source.FullName, $ZipFileName, [System.IO.Compression.CompressionLevel]::Optimal, $IncludeParentDirectory)
+                try {
+                    [System.IO.Compression.ZipFile]::CreateFromDirectory($source.FullName, $ZipFileName, [System.IO.Compression.CompressionLevel]::Optimal, $IncludeParentDirectory)
+                    }
+                catch {
+
+                    $timeElapsed = 0
+                    while (tasklist | findstr /i msinfo32) {
+                        sleep 20
+                        $timeElapsed += 20
+                        "Waiting for msinfo32 to exit. Please wait.  This may take 2-3 minutes. Elapsed time:  $timeElapsed seconds."
+                    }
+                   [System.IO.Compression.ZipFile]::CreateFromDirectory($source.FullName, $ZipFileName, [System.IO.Compression.CompressionLevel]::Optimal, $IncludeParentDirectory)
+                 
+                }
             }
             else # Will show progress dialog.
             {
@@ -1748,14 +1761,27 @@ function Compress-CollectedDataAndReport
     if(Test-Path($ResultRootDirectory))
     {
         Write-DiagProgress -Activity ($Utils_OneDataCollector_Strings.ProgressActivity_CompressingData)
-        Create-ZipFromDirectory -Source $ResultRootDirectory -ZipFileName $CompressedResultFileName -Force #-Rooted
-                
-		Copy-Item -Path $ResultRootDirectory -Destination (get-location) -Force -Recurse -ErrorAction SilentlyContinue
+        
+        
+        $ErrorActionPreference = "Stop"
+        # Give long-running processes a chance to exit
+        try {        
+            Create-ZipFromDirectory -Source $ResultRootDirectory -ZipFileName $CompressedResultFileName -Force  
+		    Copy-Item -Path $ResultRootDirectory -Destination (get-location) -Force -Recurse -ErrorAction SilentlyContinue
+        }
+        catch {
+                sleep 15
 
-		Remove-Item -Path $ResultRootDirectory -Force -Recurse -ErrorAction SilentlyContinue
+                Create-ZipFromDirectory -Source $ResultRootDirectory -ZipFileName $CompressedResultFileName -Force  
+        		Copy-Item -Path $ResultRootDirectory -Destination (get-location) -Force -Recurse -ErrorAction SilentlyContinue
+
+        }
+        finally {
+            	Remove-Item -Path $ResultRootDirectory -Force -Recurse -ErrorAction SilentlyContinue
+            }
     }
+    Remove-Item -Path $pwd\CollectedData -Force -Recurse -ErrorAction SilentlyContinue
 }
-
 #endregion
 
 function Write-DiagProgress {
@@ -1789,7 +1815,13 @@ if (-not (Test-IsAdmin) ) {
     Break
     }
 $ResultRootDirectory = [System.IO.Path]::Combine(($env:TEMP), 'CollectedData')
-$CompressedResultFileName = "CollectedData.ZIP"
+# clean up any folders from old runs
+if (Test-Path $ResultRootDirectory) {
+    "Removing $ResultRootDirectory"   | Out-File $env:systemroot\temp\stdout.log -Append -Force
+    $x = Remove-Item -Recurse -Path $ResultRootDirectory -Force
+}
+
+
 $xmlPath =  join-path $pwd "Intune.XML"
 # we assume that the XML and .ps1 are in the same folder
 $scriptDir = Split-Path $script:MyInvocation.MyCommand.Path
