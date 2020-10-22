@@ -109,7 +109,8 @@ catch {
     } 
 }
 </Command>
-      <Command Type="PS" Team="General" OutputFileName="BasicSystemInfo.txt">Function GetAgeDescription($TimeSpan, [switch] $Localized) {
+      <Command Type="PS" Team="General" OutputFileName="BasicSystemInfo.txt"># BasicSystemInfo
+Function GetAgeDescription($TimeSpan, [switch] $Localized) {
  $Age = $TimeSpan
 
  if ($Age.Days -gt 0) 
@@ -412,6 +413,7 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
 
  add-member -inputobject $OS_Summary -membertype noteproperty -name "Username" -value ($Env:USERDOMAIN + "\" + $Env:USERNAME)
  $versions = @{
+ "19042" =   "2010"
  "19041" =   "2004"
  "18363" =   "1909"
  "18362" =   "1903"
@@ -425,6 +427,7 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
  }
 
  $marketingNames = @{
+ "19042" =   "October 2020 Update"
  "19041" =   "May 2020 Update"
  "18363" =   "November 2019 Update"
  "18362" =   "May 2019 Update"
@@ -439,6 +442,7 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
 
 
   $codeNames = @{
+ "19042" =   "20H2"
  "19041" =   "20H1"
  "18363" =   "19H2"
  "18362" =   "19H1"
@@ -516,7 +520,7 @@ $SubscriptionID = $ds -match "SubscriptionID : (.+)"
 # Start reporting
 
 $OS_Summary | fl
-if ($Win10Version.BuildNumber -gt 19041) { "**** WARNING:  Beta version of Windows detected:  Build $($Win10Version.version) *****"}
+if ($Win10Version.BuildNumber -gt 19042) { "**** WARNING:  Beta version of Windows detected:  Build $($Win10Version.version) *****"}
 "Windows build:        $($Win10Version.version)"
 "Windows version:      $($versions[$Win10Version.BuildNumber])"
 "Windows name:         $($marketingNames[$Win10Version.BuildNumber])" 
@@ -3363,26 +3367,7 @@ $nil = Unregister-ScheduledTask -TaskName $taskName -TaskPath "\" -PassThru -Con
      
 
 </Command>
-      <Command Type="PS" Team="Autopilot" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\Autopilot"
-	  <Command Type="PS" Team="General" OutputFileName="NA"># make sure msinfo32 has exited
-$timeoutInSec = 240
-$elapsed = 0
-$stillRunning = $true
-
-while ( ($elapsed -lt $timeoutInSec) -and $stillRunning ) {
-    if (Get-Process -Name msinfo32 -ErrorAction SilentlyContinue) {
-        sleep 2
-        $elapsed += 2
-        Write-DiagProgress "Waiting for msinfo32 to complete... $elapsed / $timeoutInSec seconds"
-    } 
-    else {
-        $stillRunning = $false
-    }
-}
-
-if (Test-Path .\*.evtx) {
-    del .\*.evtx  
-}</Command>
+      <Command Type="PS" Team="Autopilot" OutputFileName="NA">
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 
 copy $env:ProgramData\microsoft\diagnosticlogcsp\collectors\*.etl .
