@@ -22,7 +22,8 @@ RunCommand "whoami"
 RunCommand "whoami /upn"  
 RunCommand "whoami /all"
 RunCommand "whoami /logonid"
-RunCommand "whoami /fqdn"</Command>
+RunCommand "whoami /fqdn"
+RunCommand "net localgroup administrators"</Command>
       <Command Type="PS" Team="General" OutputFileName="NA"># dsregcmd_debug
 # Attempt to run using local tools first
     $ErrorActionPreference = "Stop"
