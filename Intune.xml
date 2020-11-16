@@ -3379,6 +3379,19 @@ foreach ($file in $(dir *.etl)) {
 move *.txt $outputPath -Force
 del .\*DiagnosticLogCSP_Collector*.etl
 </Command>
+      <Command Type="PS" Team="Defender" OutputFileName="DefenderCommands.txt"># AV settings
+function RunCommand {
+   Param ([string]$cmdToRun)
+   
+   echo "`r`n===========================================`r`n`t`t $cmdToRun `r`n===========================================`r`n"
+   try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
+   catch { $error[0].ToString()}
+   
+}
+
+RunCommand Get-MpComputerStatus -Verbose
+RunCommand Get-MpPreference -Verbose 
+RunCommand Get-MpThreatDetection</Command>
     </Commands>
     <EventLogs>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
