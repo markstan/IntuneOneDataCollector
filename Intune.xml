@@ -609,7 +609,7 @@ RunCommand  "netsh advfirewall show global"
 RunCommand  "Get-NetFirewallProfile"
 RunCommand  "Get-NetFirewallRule"
 RunCommand  "Get-NetFirewallSetting"</Command>
-      <Command Type="PS" Team="General" OutputFileName="NA">#Gather Defender files
+      <Command Type="PS" Team="Defender" OutputFileName="NA">#Gather Defender files
 $mpc = "$env:ProgramFiles\Windows Defender\MpCmdRun.exe"
 if (Test-Path -Path $mpc) {
     $output = &amp;$mpc -getfiles
@@ -619,7 +619,7 @@ if (Test-Path -Path $mpc) {
     # Get the full path to the cab
     $cabPath = $cabPath -replace "^.* *(.:.*)", "`$1"
     
-    $outputPath = "$env:temp\CollectedData\Intune\Commands\AV"
+    $outputPath = "$env:temp\CollectedData\Intune\Commands\Defender"
     $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
     copy $cabPath $outPutPath\WindowsDefender-SupportFiles.cab
 
