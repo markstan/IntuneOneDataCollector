@@ -3533,7 +3533,6 @@ RunCommand Get-MpThreatDetection</Command>
       <Registry Team="Registry" OutputFileName="SW_Microsoft_WEPOS_Version">HKEY_LOCAL_MACHINE\Software\Microsoft\WEPOS\Version</Registry>
       <Registry Team="Registry" OutputFileName="SW_Microsoft_WindowsNT_CV_TimeZones">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones</Registry>
       <Registry Team="Registry" OutputFileName="SW_Microsoft_Windows_AssignedAccessConfiguration">HKEY_LOCAL_MACHINE\SOFTWARE\microsoft\windows\assignedaccessconfiguration</Registry>
-      <Registry Team="Registry" OutputFileName="SW_Microsoft_Windows_Assignedaccessconfiguration">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\windows\assignedaccessconfiguration</Registry>
       <Registry Team="Registry" OutputFileName="SW_Microsoft_Windows_Assignedaccesscsp">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\windows\assignedaccesscsp</Registry>
       <Registry Team="Registry" OutputFileName="SW_Microsoft_Windows_Autopilot">HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\Autopilot</Registry>
       <Registry Team="Registry" OutputFileName="SW_Microsoft_Windows_CV_Installer">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18</Registry>
@@ -3554,6 +3553,10 @@ RunCommand Get-MpThreatDetection</Command>
       <Registry Team="Registry" OutputFileName="SW_Microsoft_EDPCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\EDPCSP</Registry>
       <Registry Team="Registry" OutputFileName="SW_Microsoft_EnterpriseResourceManager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\EnterpriseResourceManager</Registry>
       <Registry Team="Registry" OutputFileName="SW_Microsoft_Windows_Advanced_Threat_Protection">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Advanced Threat Protection</Registry>
+      <Registry Team="Registry" OutputFileName="SW_Microsoft_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate</Registry>
+      <Registry Team="Registry" OutputFileName="SW_Wow6432Node_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies</Registry>
+      <Registry Team="Registry" OutputFileName="CCS_Control_BitLocker">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\BitLocker</Registry>
+      <Registry Team="Registry" OutputFileName="CCS_Control_DmaSecurity">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DmaSecurity</Registry>
     </Registries>
   </Package>
 </DataPoints>
