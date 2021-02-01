@@ -3486,6 +3486,7 @@ RunCommand Get-MpThreatDetection</Command>
       <File Team="Windows Update">%windir%\windowsupdate*.log</File>
       <File Team="MeasuredBootLogs">%windir%\logs\measuredboot\*</File>
       <File Team="Panther">C:\$Windows.~BT\Sources\Panther\*</File>
+      <File Team="Windows Update">%windir%\system32\appraiser\appraiser.sdb</File>
     </Files>
     <Registries>
       <Registry Team="Registry" OutputFileName="CCS_Services_TPM">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\TPM</Registry>
