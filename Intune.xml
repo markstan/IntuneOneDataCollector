@@ -3392,6 +3392,7 @@ function RunCommand {
 RunCommand Get-MpComputerStatus -Verbose
 RunCommand Get-MpPreference -Verbose 
 RunCommand Get-MpThreatDetection</Command>
+      <Command Type="PS" Team="Windows Update" OutputFileName="FeatureUpdateHolds">reg query HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Appraiser\GWX</Command>
     </Commands>
     <EventLogs>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
@@ -3559,6 +3560,7 @@ RunCommand Get-MpThreatDetection</Command>
       <Registry Team="Registry" OutputFileName="SW_Wow6432Node_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies</Registry>
       <Registry Team="Registry" OutputFileName="CCS_Control_BitLocker">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\BitLocker</Registry>
       <Registry Team="Registry" OutputFileName="CCS_Control_DmaSecurity">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DmaSecurity</Registry>
+      <Registry Team="Registry" OutputFileName="SW_Microsoft_WindowsNT_CurrentVersion_Appraiser">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Appraiser</Registry>
     </Registries>
   </Package>
 </DataPoints>
