@@ -3392,7 +3392,7 @@ function RunCommand {
 RunCommand Get-MpComputerStatus -Verbose
 RunCommand Get-MpPreference -Verbose 
 RunCommand Get-MpThreatDetection</Command>
-      <Command Type="PS" Team="Windows Update" OutputFileName="FeatureUpdateHolds">reg query HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Appraiser\GWX</Command>
+      <Command Type="PS" Team="Windows Update" OutputFileName="FeatureUpdateHolds">reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Appraiser\GWX"</Command>
     </Commands>
     <EventLogs>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
