@@ -3423,6 +3423,7 @@ RunCommand Get-MpThreatDetection</Command>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-WindowsUpdateClient*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-NetworkProfile*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*ncrypt*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*PushNotifications*</EventLog>
     </EventLogs>
     <Files>
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\AgentData\Logs\*</File>
