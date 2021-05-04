@@ -3562,7 +3562,7 @@ RunCommand Get-MpThreatDetection</Command>
       <Registry Team="Registry" OutputFileName="SW_Wow6432Node_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies</Registry>
       <Registry Team="Registry" OutputFileName="CCS_Control_BitLocker">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\BitLocker</Registry>
       <Registry Team="Registry" OutputFileName="CCS_Control_DmaSecurity">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DmaSecurity</Registry>
-      <Registry Team="Registry" OutputFileName="SW_Microsoft_WindowsNT_CurrentVersion_Appraiser">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Appraiser</Registry>
+      <Registry Team="Registry" OutputFileName="SW_Microsoft_Windows_NT_CurrentVersion_AppCompatFlags">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags</Registry>
     </Registries>
   </Package>
 </DataPoints>
