@@ -3394,6 +3394,10 @@ RunCommand Get-MpPreference -Verbose
 RunCommand Get-MpThreatDetection</Command>
       <Command Type="PS" Team="Windows Update" OutputFileName="FeatureUpdateHolds">reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Appraiser\GWX"</Command>
       <Command Type="PS" Team="General" OutputFileName="Get-DeliveryOptimizationLog">Get-DeliveryOptimizationLog</Command>
+      <Command Type="PS" Team="Windows Update" OutputFileName="ServiceManager_services">$ServiceManager = New-Object -ComObject "Microsoft.Update.ServiceManager"
+echo "`$ServiceManager.services| fl *"
+echo $("*" * 60)
+$ServiceManager.services| fl *</Command>
     </Commands>
     <EventLogs>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
@@ -3490,6 +3494,8 @@ RunCommand Get-MpThreatDetection</Command>
       <File Team="MeasuredBootLogs">%windir%\logs\measuredboot\*</File>
       <File Team="Panther">C:\$Windows.~BT\Sources\Panther\*</File>
       <File Team="Windows Update">%windir%\system32\appraiser\appraiser.sdb</File>
+      <File Team="Windows Update">%windir%\appcompat\UA\*</File>
+      <File Team="Windows Update">%windir%\appcompat\appraiser\Appraiser_AlternateData.cab</File>
     </Files>
     <Registries>
       <Registry Team="Registry" OutputFileName="CCS_Services_TPM">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\TPM</Registry>
