@@ -762,6 +762,7 @@ netsh int ipv4 show neighbors
 
 </Command>
       <Command Type="PS" Team="General" OutputFileName="NA">$x = MdmDiagnosticsTool.exe  -out "$pwd\$($env:COMPUTERNAME)_"
+sleep 3
 $outputPath = "$env:temp\CollectedData\Intune\Commands\General"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
  
@@ -3277,7 +3278,7 @@ function WaitOnSchTask {
     try {
         $status = (Get-ScheduledTask -TaskName $taskName).State
             [int]$timer = 0
-    while ( ($status -ne "Ready") -and ($timer -le 60) ) {
+    while ( ($status -ne "Ready") -and ($timer -le 90) ) {
             $status = (Get-ScheduledTask -TaskName $taskName).State
             $timer += 5
             sleep 5
@@ -3362,6 +3363,7 @@ $User= "NT AUTHORITY\SYSTEM"
 $Action= New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File `"$tempFilePath`" -Nologo -OutFile `"$filepath`""  
 $nil = Register-ScheduledTask -TaskName $taskName -Trigger $Trigger -User $User -Action $Action -RunLevel Highest –Force
 $nil = Start-ScheduledTask -TaskName $taskName
+sleep 3
 WaitOnSchTask -taskName $taskName -OutFile $filepath
 #cleanup
 $nil = Unregister-ScheduledTask -TaskName $taskName -TaskPath "\" -PassThru -Confirm:$false
@@ -3496,6 +3498,8 @@ $ServiceManager.services| fl *</Command>
       <File Team="Windows Update">%windir%\system32\appraiser\appraiser.sdb</File>
       <File Team="Windows Update">%windir%\appcompat\UA\*</File>
       <File Team="Windows Update">%windir%\appcompat\appraiser\Appraiser_AlternateData.cab</File>
+      <File Team="Windows Update">c:\$WINDOWS.~BT\Sources\Panther\ActionableReport.html</File>
+      <File Team="Windows Update">c:\$WINDOWS.~BT\Sources\Panther\CompatData*</File>
     </Files>
     <Registries>
       <Registry Team="Registry" OutputFileName="CCS_Services_TPM">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\TPM</Registry>
