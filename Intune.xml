@@ -3578,7 +3578,6 @@ RunCommand "Get-AppxPackage -AllUsers  | Select-Object -ExpandProperty Dependenc
       <Registry Team="Registry" OutputFileName="SW_Microsoft_Windows_CV_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies</Registry>
       <Registry Team="Registry" OutputFileName="SW_Microsoft_Windows_Defender">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender</Registry>
       <Registry Team="Registry" OutputFileName="SW_Microsoft_Windows_Enrollments">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Enrollments</Registry>
-      <Registry Team="Registry" OutputFileName="SW_Microsoft_Windows_Installer">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18</Registry>
       <Registry Team="Registry" OutputFileName="SW_Microsoft_Windows_NT_CurrentVersion_AppCompatFlags">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags</Registry>
       <Registry Team="Registry" OutputFileName="SW_Policies">HKEY_LOCAL_MACHINE\Software\Policies</Registry>
       <Registry Team="Registry" OutputFileName="SW_Policies_Microsoft_Windows_Defender">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender</Registry>
