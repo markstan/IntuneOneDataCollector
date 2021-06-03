@@ -3413,6 +3413,41 @@ RunCommand "Get-AppxPackage -AllUser -Name Microsoft.Companyportal"
 RunCommand "Get-AppxPackage -AllUser -Name Microsoft.Companyportal | Get-AppxPackageManifest | fl *"
 RunCommand "Get-AppxPackage -AllUsers | Select-Object Name | Sort-Object -Property Name"
 RunCommand "Get-AppxPackage -AllUsers  | Select-Object -ExpandProperty Dependencies | Sort-Object -Property Name"</Command>
+      <Command Type="PS" Team="Windows Update" OutputFileName="Microsoft Update Health Tools Check.txt">Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | where {$_.DisplayName -eq "Microsoft Update Health Tools"}
+
+
+# get first 3 chars of major.minor version
+[double]$PSMajorMinorVersion =  $PSVersionTable.PSVersion.ToString().Substring(0,3)
+
+if ( $PSMajorMinorVersion -ge 5.1) {
+     Get-Package -AllVersions -name "Microsoft Update Health Tools"
+
+     Get-Package -AllVersions -name "Microsoft Update Health Tools"    | fl *
+}
+else {
+    Write-Output "PowerShell version $PSMajorMinorVersion is lower than 5.1.  Skipping package check"
+}</Command>
+      <Command Type="PS" Team="General" OutputFileName="InstalledPrograms_Get-Package.txt">function RunCommand {
+   Param ([string]$cmdToRun)
+   $line = "=" * 120 
+   echo "`r`n$line`r`n`t`t $cmdToRun `r`n$line`r`n"
+   try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
+   catch { $error[0].ToString()}
+   
+}
+
+# get first 3 chars of major.minor version
+[double]$PSMajorMinorVersion =  $PSVersionTable.PSVersion.ToString().Substring(0,3)
+
+if ( $PSMajorMinorVersion -ge 5.1) {
+    # TODO - wrap in custom object to sort
+     RunCommand 'Get-Package -AllVersions | Where-Object {$_.Name -notmatch "Security Intelligence Update for Microsoft Defender Antivirus" } | ft -AutoSize'
+
+     RunCommand 'Get-Package -AllVersions    | fl *'
+}
+else {
+    Write-Output "PowerShell version $PSMajorMinorVersion is lower than 5.1.  Skipping package check"
+}</Command>
     </Commands>
     <EventLogs>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*TWinUI*</EventLog>
