@@ -111,6 +111,9 @@ catch {
 }
 </Command>
       <Command Type="PS" Team="General" OutputFileName="BasicSystemInfo.txt"># BasicSystemInfo
+$scriptVersion = "2.1.2021.07.1"
+$currentHighestWindowsBuild = "19043"
+
 Function GetAgeDescription($TimeSpan, [switch] $Localized) {
  $Age = $TimeSpan
 
@@ -267,7 +270,6 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
  $OSProcessorArch = $WMIOS.OSArchitecture
  $OSProcessorArchDisplay = " " + $OSProcessorArch
  }
- #There is no easy way to detect the OS Architecture on pre-Windows Vista Platform
  if ($OSProcessorArch -eq $null)
  {
   if ($MachineName -eq ".") { #Local Computer
@@ -410,12 +412,13 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
  }
  
  add-member -inputobject $OS_Summary -membertype noteproperty -name "UAC" -value $UACDisplay
- 
-
  add-member -inputobject $OS_Summary -membertype noteproperty -name "Username" -value ($Env:USERDOMAIN + "\" + $Env:USERNAME)
+
+ # https://docs.microsoft.com/en-us/windows/release-health/release-information
  $versions = @{
- "19042" =   "2010"
- "19041" =   "2004"
+ "19043" =   "21H1"
+ "19042" =   "20H2"
+ "19041" =   "20H1"
  "18363" =   "1909"
  "18362" =   "1903"
  "17763" =   "1809"
@@ -428,6 +431,7 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
  }
 
  $marketingNames = @{
+ "19043" =   "May 2021 Update"
  "19042" =   "October 2020 Update"
  "19041" =   "May 2020 Update"
  "18363" =   "November 2019 Update"
@@ -443,6 +447,7 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
 
 
   $codeNames = @{
+ "19043" =   "21H1"
  "19042" =   "20H2"
  "19041" =   "20H1"
  "18363" =   "19H2"
@@ -505,6 +510,7 @@ $thumbPrint = $cert.Thumbprint
 if (Test-Path HKLM:\SYSTEM\CurrentControlSet\Control\CloudDomainJoin\JoinInfo\$($thumbPrint)) {
     $userEmail = (Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\CloudDomainJoin\JoinInfo\$($thumbPrint)).UserEmail
     $tenant = $userEmail.Split('@')[1]
+    $tenantID = (Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\CloudDomainJoin\JoinInfo\$($thumbPrint)).TenantId
     }
 
 
@@ -521,11 +527,14 @@ $SubscriptionID = $ds -match "SubscriptionID : (.+)"
 # Start reporting
 
 $OS_Summary | fl
-if ($Win10Version.BuildNumber -gt 19042) { "**** WARNING:  Beta version of Windows detected:  Build $($Win10Version.version) *****"}
+if ($Win10Version.BuildNumber -gt $currentHighestWindowsBuild) { "**** WARNING:  Beta version of Windows detected:  Build $($Win10Version.version) *****"}
 "Windows build:        $($Win10Version.version)"
 "Windows version:      $($versions[$Win10Version.BuildNumber])"
 "Windows name:         $($marketingNames[$Win10Version.BuildNumber])" 
-"Windows code name:    $($codeNames[$Win10Version.BuildNumber])" 
+# these values will be the same for newer builds
+if ($($Win10Version.BuildNumber) -lt 19041) {
+     "Windows code name:    $($codeNames[$Win10Version.BuildNumber])" 
+}
 if ($isRegistered) {
     "Azure AD status:      Registered"
     }
@@ -536,20 +545,20 @@ else {
     "Azure AD status:      Not registered/joined or unknown"
 }
 
-if ($UserID) {         "UserID:               $UserID" }
-if ($MachineID) {      "Intune Device ID:     $MachineID"}
-if ($DeviceName) {     "Device Name:          $DeviceName"}
+if ($UserID)         { "UserID:               $UserID"         }
+if ($MachineID)      { "Intune Device ID:     $MachineID"      }
+if ($tenantID)       { "Intune Tenant ID:     $tenantID"       }
+if ($DeviceName)     { "Device Name:          $DeviceName"     }
 if ($SubscriptionID) { "SubscriptionID:       $SubscriptionID" }
-if ($tenant) {         "Tenant name:          $tenant"}
-if ($userEmail) {     "User UPN:             $userEmail"}
-
-
+if ($tenant)         { "Tenant name:          $tenant"         }
+if ($userEmail)      { "User UPN:             $userEmail"      }
 
 
 $CS_Summary | fl 
 systeminfo.exe
 "BIOS Information"
-Get-WmiObject  -Class Win32_BIOS</Command>
+Get-WmiObject  -Class Win32_BIOS
+"`r`n`r`n**********************`t`t`t`tIntune ODC version $scriptVersion"</Command>
       <Command Type="PS" Team="General" OutputFileName="Installed_Products.txt">echo "`r`n===========================================`r`n`t`t wmic product list brief   `r`n===========================================`r`n"
 wmic product list brief </Command>
       <Command Type="PS" Team="General" OutputFileName="proxy_settings.txt">echo "`r`n===========================================`r`n`t`t netsh winhttp show proxy   `r`n===========================================`r`n"
@@ -3549,6 +3558,7 @@ else {
       <File Team="Windows Update">%windir%\windowsupdate*.log</File>
       <File Team="Windows Update">c:\$WINDOWS.~BT\Sources\Panther\ActionableReport.html</File>
       <File Team="Windows Update">c:\$WINDOWS.~BT\Sources\Panther\CompatData*</File>
+      <File Team="Windows Update">%ProgramFiles%\Microsoft Update Health Tools\logs\*</File>
     </Files>
     <Registries>
       <Registry Team="Registry" OutputFileName="CCS_Control_BitLocker">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\BitLocker</Registry>
@@ -3622,6 +3632,7 @@ else {
       <Registry Team="Registry" OutputFileName="SW_Windows_CV_Uninstall">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
       <Registry Team="Registry" OutputFileName="SW_Wow6432Node_MicrosoftAntimalware">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies\Microsoft\Microsoft Antimalware</Registry>
       <Registry Team="Registry" OutputFileName="SW_Wow6432Node_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies</Registry>
+      <Registry Team="Registry" OutputFileName="SW_Microsoft_CloudManagedUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CloudManagedUpdate</Registry>
     </Registries>
   </Package>
 </DataPoints>
