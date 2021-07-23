@@ -111,7 +111,7 @@ catch {
 }
 </Command>
       <Command Type="PS" Team="General" OutputFileName="BasicSystemInfo.txt"># BasicSystemInfo
-$scriptVersion = "2.1.2021.07.1"
+$scriptVersion = "2.1.2021.07.2"
 $currentHighestWindowsBuild = "19043"
 
 Function GetAgeDescription($TimeSpan, [switch] $Localized) {
@@ -3489,6 +3489,9 @@ else {
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\Security.evtx</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*odj*</EventLog>
+      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-Authentication User Interface%4Operational.evtx</EventLog>
+      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-AssignedAccess*.evtx</EventLog>
+      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-AppLocker*.evtx</EventLog>
     </EventLogs>
     <Files>
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\AgentData\Logs\*</File>
@@ -3551,11 +3554,10 @@ else {
       <File Team="Teams">%LocalAppData%\SquirrelTemp\*</File>
       <File Team="WMI">%windir%\system32\wbem\logs\*.*</File>
       <File Team="WMI">%windir%\system32\wbem\tmf\*.*</File>
-      <File Team="Windows Update">%windir%\INF\*.log</File>
-      <File Team="Windows Update">%windir%\appcompat\UA\*</File>
-      <File Team="Windows Update">%windir%\appcompat\appraiser\Appraiser_AlternateData.cab</File>
-      <File Team="Windows Update">%windir%\system32\appraiser\appraiser.sdb</File>
-      <File Team="Windows Update">%windir%\windowsupdate*.log</File>
+      <File Team="Windows Update">%systemroot%\INF\*.log</File>
+      <File Team="Windows Update">%systemroot%\appcompat\UA\*</File>
+      <File Team="Windows Update">%systemroot%\appcompat\appraiser\Appraiser_AlternateData.cab</File>
+      <File Team="Windows Update">%systemroot%\system32\appraiser\appraiser.sdb</File>
       <File Team="Windows Update">c:\$WINDOWS.~BT\Sources\Panther\ActionableReport.html</File>
       <File Team="Windows Update">c:\$WINDOWS.~BT\Sources\Panther\CompatData*</File>
       <File Team="Windows Update">%ProgramFiles%\Microsoft Update Health Tools\logs\*</File>
