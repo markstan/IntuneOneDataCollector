@@ -3501,6 +3501,10 @@ else {
       <File Team="Antimalware">%ProgramFiles%\Microsoft Antimalware\Support\*.*</File>
       <File Team="Autopilot">%systemroot%\ServiceState\Autopilot\*.json</File>
       <File Team="Autopilot">%windir%\Provisioning\AutoPilot\AutoPilotConfigurationFile.json</File>
+      <File Team="Autopilot">C:\$Windows.~BT\Sources\Panther\*</File>
+      <File Team="Autopilot">C:\$Windows.~BT\Sources\Panther\UnattendGC\*</File>
+      <File Team="Autopilot">C:\$Windows.~BT\Sources\Rollback\*</File>
+      <File Team="Autopilot">%windir%\Panther\*</File>
       <File Team="BitLocker">%SystemRoot%\Logs\MeasuredBoot\*.log</File>
       <File Team="CBS">%systemroot%\Logs\CBS\*.log</File>
       <File Team="Configmgr">%SMS_LOG_PATH%\*.*</File>
@@ -3543,7 +3547,6 @@ else {
       <File Team="NDES">C:\NDESConnectorSetup\*.log</File>
       <File Team="NDES">C:\inetpub\logs\LogFiles\W3SVC1\u_ex*.log </File>
       <File Team="OpsMgr">%windir%\Temp\OpsMgrTrace\*.*</File>
-      <File Team="Panther">C:\$Windows.~BT\Sources\Panther\*</File>
       <File Team="Sidecar">%LocalAppData%\mdm\*.log</File>
       <File Team="Sidecar">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
       <File Team="Sidecar">%systemroot%\TEMP\IntuneWindowsAgent_Proxy*</File>
@@ -3561,6 +3564,7 @@ else {
       <File Team="Windows Update">c:\$WINDOWS.~BT\Sources\Panther\ActionableReport.html</File>
       <File Team="Windows Update">c:\$WINDOWS.~BT\Sources\Panther\CompatData*</File>
       <File Team="Windows Update">%ProgramFiles%\Microsoft Update Health Tools\logs\*</File>
+      <File Team="Windows Update">%windir%\Logs\Mosetup\*</File>
     </Files>
     <Registries>
       <Registry Team="Registry" OutputFileName="CCS_Control_BitLocker">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\BitLocker</Registry>
