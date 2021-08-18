@@ -697,7 +697,8 @@ schtasks.exe /Query</Command>
       <Command Type="PS" Team="Windows Update" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\Windows Update"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 Get-WindowsUpdateLog -Logpath $outputPath\$($env:COMPUTERNAME)_WindowsUpdate.log</Command>
-      <Command Type="CMD" Team="General" OutputFileName="GPResult.txt">gpresult.exe /V</Command>
+      <Command Type="CMD" Team="General" OutputFileName="GPResult.txt">gpresult /SCOPE USER /v
+gpresult /SCOPE COMPUTER /v</Command>
       <Command Type="PS" Team="General" OutputFileName="InstalledWindowsFeatures">echo "`r`n===========================================`r`n`t`t Get-WindowsOptionalFeature -Online | where {$_.State -eq `"Enabled`"} `r`n===========================================`r`n"
 Get-WindowsOptionalFeature -Online | where {$_.State -eq "Enabled"}</Command>
       <Command Type="PS" Team="Networking" OutputFileName="NetSH_Commands">echo "======= netsh int show int ======"
