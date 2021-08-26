@@ -3566,6 +3566,7 @@ else {
       <File Team="Windows Update">c:\$WINDOWS.~BT\Sources\Panther\CompatData*</File>
       <File Team="Windows Update">%ProgramFiles%\Microsoft Update Health Tools\logs\*</File>
       <File Team="Windows Update">%windir%\Logs\Mosetup\*</File>
+      <File Team="Windows Update">%programdata%\USOShared\Logs\*</File>
     </Files>
     <Registries>
       <Registry Team="Registry" OutputFileName="CCS_Control_BitLocker">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\BitLocker</Registry>
