@@ -3493,6 +3493,7 @@ else {
       <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-Authentication User Interface%4Operational.evtx</EventLog>
       <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-AssignedAccess*.evtx</EventLog>
       <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-AppLocker*.evtx</EventLog>
+      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-PushNotification-Platform*</EventLog>
     </EventLogs>
     <Files>
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\AgentData\Logs\*</File>
