@@ -594,7 +594,7 @@ RunCommand "Get-Item HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\BitLo
 RunCommand "Get-ChildItem HKLM:\SOFTWARE\Microsoft\PolicyManager\default\Bitlocker"
 RunCommand "Get-Item HKLM:\SOFTWARE\Policies\Microsoft\FVE"
 RunCommand "Get-ChildItem HKLM:\SOFTWARE\Microsoft\PolicyManager\Providers\*\Bitlocker -Recurse" 
-
+  
 
 # Disk config
 RunCommand "Get-Disk | fl *"
