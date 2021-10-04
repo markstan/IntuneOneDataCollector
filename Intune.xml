@@ -3380,7 +3380,7 @@ $nil = Unregister-ScheduledTask -TaskName $taskName -TaskPath "\" -PassThru -Con
      
 
 </Command>
-      <Command Type="PS" Team="Autopilot" OutputFileName="NA">
+      <Command Type="PS" Team="General" OutputFileName="NA">
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 
 copy $env:ProgramData\microsoft\diagnosticlogcsp\collectors\*.etl .
@@ -3458,6 +3458,10 @@ if ( $PSMajorMinorVersion -ge 5.1) {
 else {
     Write-Output "PowerShell version $PSMajorMinorVersion is lower than 5.1.  Skipping package check"
 }</Command>
+      <Command Type="PS" Team="General" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\General"
+$x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
+gpresult /SCOPE USER /H "$outputPath\$($env:COMPUTERNAME)_GPResults_user.html"
+gpresult /SCOPE COMPUTER /H "$outputPath\$($env:COMPUTERNAME)_GPResults_computer.html"</Command>
     </Commands>
     <EventLogs>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*TWinUI*</EventLog>
@@ -3489,11 +3493,12 @@ else {
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*PFX*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\Security.evtx</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*odj*</EventLog>
+      <EventLog Team="Event Log">%windir%\System32\Winevt\Logs\*odj*</EventLog>
       <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-Authentication User Interface%4Operational.evtx</EventLog>
       <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-AssignedAccess*.evtx</EventLog>
       <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-AppLocker*.evtx</EventLog>
       <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-PushNotification-Platform*</EventLog>
+      <EventLog Team="Event Log">%windir%\System32\winevt\Logs\Microsoft-Windows-TaskScheduler*</EventLog>
     </EventLogs>
     <Files>
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\AgentData\Logs\*</File>
@@ -3642,6 +3647,7 @@ else {
       <Registry Team="Registry" OutputFileName="SW_Wow6432Node_MicrosoftAntimalware">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies\Microsoft\Microsoft Antimalware</Registry>
       <Registry Team="Registry" OutputFileName="SW_Wow6432Node_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies</Registry>
       <Registry Team="Registry" OutputFileName="SW_Microsoft_CloudManagedUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CloudManagedUpdate</Registry>
+      <Registry Team="Registry" OutputFileName="CCS_Control_Session-Manager">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager</Registry>
     </Registries>
   </Package>
 </DataPoints>
