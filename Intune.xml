@@ -625,20 +625,30 @@ RunCommand  "Get-NetFirewallProfile"
 RunCommand  "Get-NetFirewallRule"
 RunCommand  "Get-NetFirewallSetting"</Command>
       <Command Type="PS" Team="General" OutputFileName="NA">#Gather Defender files
-$mpc = "$env:ProgramFiles\Windows Defender\MpCmdRun.exe"
-if (Test-Path -Path $mpc) {
-    $output = &amp;$mpc -getfiles
-
-    $cabPath = $output -match "MpSupportFiles.cab"
-    
-    # Get the full path to the cab
-    $cabPath = $cabPath -replace "^.* *(.:.*)", "`$1"
-    
+    $mpc = "$env:ProgramFiles\Windows Defender\MpCmdRun.exe"
+    $mpcExists = Test-Path -Path $mpc
+    $DefenderServiceIsRunning = (Get-Service sense).Status
     $outputPath = "$env:temp\CollectedData\Intune\Commands\AV"
     $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
-    copy $cabPath $outPutPath\WindowsDefender-SupportFiles.cab
 
-}</Command>
+	if  ($mpcExists -and $DefenderServiceIsRunning) {
+		$output = &amp;$mpc -getfiles
+
+		$cabPath = $output -match "MpSupportFiles.cab"
+		
+		# Get the full path to the cab
+		$cabPath = $cabPath -replace "^.* *(.:.*)", "`$1"
+		
+
+		copy $cabPath $outPutPath\WindowsDefender-SupportFiles.cab
+
+	}
+	else {
+		$deflog = join-path $outputPath "DefenderErrors.txt"
+		"Defender service status is $DefenderServiceIsRunning" | out-file $deflog -Force
+		"Defender executable exists at $mpc is $mpcExists" | out-file $deflog -Append -Force
+	}
+</Command>
       <Command Type="PS" Team="Networking" OutputFileName="Networking.txt">function RunCommand {
    Param ([string]$cmdToRun)
    
