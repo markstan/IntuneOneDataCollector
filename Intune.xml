@@ -2,36 +2,6 @@
 <DataPoints xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:Microsoft.One.DataCollector">
   <Package ID="Intune">
     <Commands>
-      <Command Type="PS" Team="General" OutputFileName="NA"># Version check
-try {
-    # current production version.  Update with each new release
-    [double]$Currentversion = (wget https://raw.githubusercontent.com/markstan/IntuneOneDataCollector/master/Utilities/version.txt).content
-    [double]$MyVersion = 1.3
-
-
-    if ( ($Currentversion -ne $MyVersion) -and ( $Currentversion -ne $null) ) {
-    
-        $UserChoice = Pop-Message -Message "Warning:  more recent version of Intune.XML is available.  Download and restart?" -Caption "Newer version detected" -Type 4
-        # 6 = Yes, 7 = No
-        if ($UserChoice -eq 6) {
-            del .\Intune.xml
-            wget https://aka.ms/intunexml -OutFile Intune.xml
-
-
-            $xmlPath =  join-path $pwd "Intune.XML"
-            $package = get-packages -Filename $xmlPath
-            Process-Package -Package $package.ValidPackages[0]
-
-
-        }
-
-    }
-}
-catch {
-    $outputPath = "$env:temp\CollectedData\Intune\Commands\General"
-    $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
-    "Error trying to detect version: $error" | Out-File $outputPath\versionCheck.txt
-}</Command>
       <Command Type="PS" Team="General" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\General"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 msinfo32.exe /NFO    "$outputPath\msinfo32.nfo" 
@@ -441,7 +411,13 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
  
 
  add-member -inputobject $OS_Summary -membertype noteproperty -name "Username" -value ($Env:USERDOMAIN + "\" + $Env:USERNAME)
+ 
+ # https://en.wikipedia.org/wiki/Windows_10_version_history
  $versions = @{
+ "19044" =   "21H2"
+ "19043" =   "21H1"
+ "19042" =   "20H2"
+ "19041" =   "20H1"
  "18363" =   "1909"
  "18362" =   "1903"
  "17763" =   "1809"
@@ -454,6 +430,10 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
  }
 
  $marketingNames = @{
+ "19044" =   "Beta"
+ "19043" =   "May 2021 Update"
+ "19042" =   "October 2020 Update"
+ "19041" =   "May 2020 Update"
  "18363" =   "November 2019 Update"
  "18362" =   "May 2019 Update"
  "17763" =   "October 2018 Update"
@@ -467,6 +447,10 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
 
 
   $codeNames = @{
+ "19044" =   "21H2"
+ "19043" =   "21H1"
+ "19042" =   "20H2"
+ "19041" =   "20H1"
  "18363" =   "19H2"
  "18362" =   "19H1"
  "17763" =   "Redstone 5"
@@ -510,7 +494,7 @@ if (test-path $Policies) {
 
 }
 
-# Regsistered User and Tenant info
+# Registered User and Tenant info
 
 
 # Sort so we always get the most current in case there are orphaned certs
@@ -538,7 +522,7 @@ $SubscriptionID = $ds -match "SubscriptionID : (.+)"
 # Start reporting
 
 $OS_Summary | fl
-if ($Win10Version.BuildNumber -gt 18363) { "**** WARNING:  Beta version of Windows detected:  Build $($Win10Version.version) *****"}
+if ($Win10Version.BuildNumber -gt 19043) { "**** WARNING:  Beta version of Windows detected:  Build $($Win10Version.version) *****"}
 "Windows build:        $($Win10Version.version)"
 "Windows version:      $($versions[$Win10Version.BuildNumber])"
 "Windows name:         $($marketingNames[$Win10Version.BuildNumber])" 
@@ -624,31 +608,38 @@ RunCommand  "netsh advfirewall show global"
 RunCommand  "Get-NetFirewallProfile"
 RunCommand  "Get-NetFirewallRule"
 RunCommand  "Get-NetFirewallSetting"</Command>
-      <Command Type="PS" Team="General" OutputFileName="NA">#Gather Defender files
-    $mpc = "$env:ProgramFiles\Windows Defender\MpCmdRun.exe"
-    $mpcExists = Test-Path -Path $mpc
-    $DefenderServiceIsRunning = (Get-Service sense).Status
-    $outputPath = "$env:temp\CollectedData\Intune\Commands\AV"
-    $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
+	  <Command Type="PS" Team="General" OutputFileName="NA">
+#Gather Defender files
+$mpc = "$env:ProgramFiles\Windows Defender\MpCmdRun.exe"
+$outputPath = "$env:temp\CollectedData\Intune\Commands\AV"
+$x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 
-	if  ($mpcExists -and $DefenderServiceIsRunning) {
-		$output = &amp;$mpc -getfiles
+ 
+      
+$mpcExists = Test-Path -Path $mpc
+$DefenderServiceIsRunning = (Get-Service sense).Status
+      
+ 
+if  ($mpcExists -and $DefenderServiceIsRunning) {
+	$output = &amp;$mpc -getfiles
 
-		$cabPath = $output -match "MpSupportFiles.cab"
-		
-		# Get the full path to the cab
-		$cabPath = $cabPath -replace "^.* *(.:.*)", "`$1"
-		
 
-		copy $cabPath $outPutPath\WindowsDefender-SupportFiles.cab
+    # Get the full path to the cab
+    $cabPath = $output -match "MpSupportFiles.cab"
+    $cabPath = $cabPath -replace "^.* *(.:.*)", "`$1"
 
-	}
-	else {
-		$deflog = join-path $outputPath "DefenderErrors.txt"
-		"Defender service status is $DefenderServiceIsRunning" | out-file $deflog -Force
-		"Defender executable exists at $mpc is $mpcExists" | out-file $deflog -Append -Force
-	}
+
+	copy $cabPath $outPutPath\WindowsDefender-SupportFiles.cab
+
+}
+else {
+	$deflog = join-path $outputPath "DefenderErrors.txt"
+	"Defender service status is $DefenderServiceIsRunning" | out-file $deflog -Force
+	"Defender executable exists at $mpc is $mpcExists" | out-file $deflog -Append -Force
+}
+ 
 </Command>
+
       <Command Type="PS" Team="Networking" OutputFileName="Networking.txt">function RunCommand {
    Param ([string]$cmdToRun)
    
@@ -705,7 +696,7 @@ else {
 </Command>
       <Command Type="PS" Team="General" OutputFileName="sym_RunningDrivers.txt">Get-WmiObject Win32_PnPSignedDriver | select DeviceName, DriverVersion | ft -auto</Command>
       <Command Type="CMD" Team="General" OutputFileName="ScheduledTasks">schtasks.exe /Query</Command>
-      <Command Type="PS" Team="General" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\General"
+      <Command Type="PS" Team="General" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\Windows Update"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 Get-WindowsUpdateLog -Logpath $outputPath\$($env:COMPUTERNAME)_WindowsUpdate.log</Command>
       <Command Type="CMD" Team="General" OutputFileName="GPResult.txt">gpresult.exe /V</Command>
@@ -2662,22 +2653,10 @@ while ( ($elapsed -lt $timeoutInSec) -and $stillRunning ) {
         $stillRunning = $false
     }
 }</Command>
-      <Command Type="PS" Team="General" OutputFileName="NA">MdmDiagnosticsTool.exe  -out $pwd/
+      <Command Type="PS" Team="General" OutputFileName="NA">MdmDiagnosticsTool.exe  -out $pwd
 $outputPath = "$env:temp\CollectedData\Intune\Commands\General"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 move .\MDMDiagReport.* $outputPath</Command>
-      <Command Type="PS" Team="General" OutputFileName="Eventlog_metadata">function RunCommand {
-   Param ([string]$cmdToRun)
-   
-   echo "`r`n===========================================`r`n`t`t $cmdToRun `r`n===========================================`r`n"
-   try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
-   catch { $error[0].ToString()}
-   
-}
-
-RunCommand -cmdToRun "Get-WinEvent -ErrorAction SilentlyContinue -ListLog * | Select-Object LogName, LogFilePath, FileSize, LastWriteTime, IsEnabled | Sort IsEnabled, LogName" 
-
-RunCommand -cmdToRun "dir $env:windir\system32\winevt\logs | select FullName, Length, LastWriteTime"</Command>
       <Command Type="PS" Team="General" OutputFileName="Windows_AV_(WATP)_info.txt">function RunCommand {
    Param ([string]$cmdToRun)
    $line = "=" * 120
@@ -2709,32 +2688,783 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
 }
 
 </Command>
-    </Commands>
+     <Command Type="PS" Team="General" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\General"
+$x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
+gpresult /SCOPE USER /H "$outputPath\$($env:COMPUTERNAME)_GPResults_user.html"
+gpresult /SCOPE COMPUTER /H "$outputPath\$($env:COMPUTERNAME)_GPResults_computer.html"</Command>
+	<Command Type="PS" Team="AutoPilot" OutputFileName="NA">$apscript = @'
+
+# From https://oofhours.com/2020/02/17/what-happened-during-windows-autopilot-esp-decode-it/
+
+[CmdletBinding()]
+param(
+ [Parameter(Mandatory=$False)] [String] $CABFile = $null,
+ [Parameter(Mandatory=$False)] [Switch] $Online = $false,
+ [Parameter(Mandatory=$False)] [Switch] $AllSessions = $false
+)
+
+Begin
+{
+    # If using a CAB file, load up the registry information
+    if ($CABFile) {
+
+        # Extract the .reg file
+        if (-not (Test-Path "$($env:TEMP)\ESPStatus.tmp"))
+        {
+            New-Item -Path "$($env:TEMP)\ESPStatus.tmp" -ItemType "directory" | Out-Null
+        }
+        $null = &amp; expand.exe "$CABFile" -F:MdmDiagReport_RegistryDump.reg "$($env:TEMP)\ESPStatus.tmp\" 
+        if (-not (Test-Path "$($env:TEMP)\ESPStatus.tmp\MdmDiagReport_RegistryDump.reg"))
+        {
+            Write-Error "Unable to extract registrion information from $CABFile"
+        }
+
+        # Edit the path in the .reg file
+        $content = Get-Content -Path "$($env:TEMP)\ESPStatus.tmp\MdmDiagReport_RegistryDump.reg"
+        $content = $content -replace "\[HKEY_CURRENT_USER\\", "[HKEY_CURRENT_USER\ESPStatus.tmp\USER\"
+        $content = $content -replace "\[HKEY_LOCAL_MACHINE\\", "[HKEY_CURRENT_USER\ESPStatus.tmp\MACHINE\"
+        $content = $content -replace '^    "','"'
+        $content = $content -replace '^    @','@'
+        $content = $content -replace 'DWORD:','dword:'
+        "Windows Registry Editor Version 5.00`n" | Set-Content -Path "$($env:TEMP)\ESPStatus.tmp\MdmDiagReport_Edited.reg"
+        $content | Add-Content -Path "$($env:TEMP)\ESPStatus.tmp\MdmDiagReport_Edited.reg"
+
+        # Remove the registry info if it exists
+        if (Test-Path "HKCU:\ESPStatus.tmp")
+        {
+            Remove-Item -Path "HKCU:\ESPStatus.tmp" -Recurse -Force
+        }
+
+        # Import the .reg file
+        $null = &amp; reg.exe IMPORT "$($env:TEMP)\ESPStatus.tmp\MdmDiagReport_Edited.reg" 2&gt;&amp;1
+
+        # Configure the (not live) constants
+        $script:autopilotDiagPath = "HKCU:\ESPStatus.tmp\MACHINE\software\microsoft\provisioning\Diagnostics\Autopilot"
+        $script:omadmPath = "HKCU:\ESPStatus.tmp\MACHINE\software\microsoft\provisioning\OMADM"
+        $script:path = "HKCU:\ESPStatus.tmp\MACHINE\Software\Microsoft\Windows\Autopilot\EnrollmentStatusTracking\ESPTrackingInfo\Diagnostics"
+        $script:msiPath = "HKCU:\ESPStatus.tmp\MACHINE\Software\Microsoft\EnterpriseDesktopAppManagement"
+        $script:officePath = "HKCU:\ESPStatus.tmp\MACHINE\Software\Microsoft\OfficeCSP"
+        $script:sidecarPath = "HKCU:\ESPStatus.tmp\MACHINE\Software\Microsoft\IntuneManagementExtension\Win32Apps"
+    }
+    else {
+        # Configure live constants
+        $script:autopilotDiagPath = "HKLM:\software\microsoft\provisioning\Diagnostics\Autopilot"
+        $script:omadmPath = "HKLM:\software\microsoft\provisioning\OMADM"
+        $script:path = "HKLM:\Software\Microsoft\Windows\Autopilot\EnrollmentStatusTracking\ESPTrackingInfo\Diagnostics"
+        $script:msiPath = "HKLM:\Software\Microsoft\EnterpriseDesktopAppManagement"
+        $script:officePath = "HKLM:\Software\Microsoft\OfficeCSP"
+        $script:sidecarPath = "HKLM:\Software\Microsoft\IntuneManagementExtension\Win32Apps"
+    }
+
+    # Configure other constants
+    $script:statusCodes = @{"10" = "Initialized"; "20" = "Download In Progress"; "25" = "Pending Download Retry";
+        "30" = "Download Failed"; "40" = "Download Completed"; "48" = "Pending User Session"; "50" = "Enforcement In Progress"; 
+        "55" = "Pending Enforcement Retry"; "60" = "Enforcement Failed"; 70 = "Success / Enforcement Completed"}
+    $script:espStatus = @{"1" = "Not Installed"; "2" = "Downloading / Installing"; "3" = "Success / Installed"; "4" = "Error / Failed"}
+    $script:policyStatus = @{"0" = "Not Processed"; "1" = "Processed"}
+    $script:sidecarMSI = @("093ea47b-ef2c-4f46-a022-6f57a50e39a2","be41a3fa-539c-47dc-88ca-74e65b7a7ec5")
+}
+
+Process
+{
+    #------------------------
+    # Functions
+    #------------------------
+
+    Function ProcessApps() {
+    param
+    (
+        [Parameter(Mandatory=$true,ValueFromPipeline=$True)] [Microsoft.Win32.RegistryKey] $currentKey,
+        [Parameter(Mandatory=$true)] $currentUser
+    )
+
+    Begin {
+        Write-Output "Apps:"
+    }
+
+    Process {
+        Write-Output "  $($currentKey.PSChildName)"
+        $currentKey.Property | % {
+            if ($_.StartsWith("./Device/Vendor/MSFT/EnterpriseDesktopAppManagement/MSI/")) {
+                $msiKey = [URI]::UnescapeDataString(($_.Split("/"))[6])
+                $fullPath = "$msiPath\$currentUser\MSI\$msiKey"
+                if (Test-Path $fullPath) {
+                    $status = Get-ItemPropertyValue -Path $fullPath -Name Status
+                }
+                else
+                {
+                    $status = "Not found"
+                } 
+                if ($sidecarMSI -contains $msiKey)
+                {
+                    $msiKey = "Intune Management Extensions ($($msiKey))"
+                }
+                elseif ($Online) {
+                    $found = $apps | ? {$_.ProductCode -contains $msiKey}
+                    $msiKey = "$($found.DisplayName) ($($msiKey))"
+                }
+                if ($status -eq 70) {
+                    Write-Output "    MSI $msiKey : $status ($($statusCodes[$status]))" 
+                }
+                else {
+                    Write-Output "    MSI $msiKey : $status ($($statusCodes[$status]))" 
+                }
+            }
+            elseif ($_.StartsWith("./Vendor/MSFT/Office/Installation/")) {
+                $officeKey = [URI]::UnescapeDataString(($_.Split("/"))[5])
+                $fullPath = "$officepath\$officeKey"
+                if (Test-Path $fullPath) {
+                    $status = Get-ItemPropertyValue -Path $fullPath -Name FinalStatus -ErrorAction Ignore
+                    if ($status -eq $null)
+                    {
+                        $status = Get-ItemPropertyValue -Path $fullPath -Name Status -ErrorAction Ignore
+                        if ($status -eq $null)
+                        {
+                            $status = "None"
+                        }
+                    }
+                }
+                else
+                {
+                    # Office CSP info isn't available, so just get the MSI status, where 1 = done
+                    $status = Get-ItemPropertyValue -Path $currentKey.PSPath -Name $_
+                    if ($status -eq 1) { $status = 70 }
+                }
+                if ($status -eq 70) {
+                    Write-Output "    Office $officeKey : $status ($($statusCodes[$status]))" 
+                }
+                else {
+                    Write-Output "    Office $officeKey : $status ($($statusCodes[$status]))" 
+                }
+            }
+            else
+            {
+                Write-Output "    $_ : Unknown app"
+            }
+        }
+    }
+
+    }
+
+    Function ProcessModernApps() {
+    param
+    (
+        [Parameter(Mandatory=$true,ValueFromPipeline=$True)] [Microsoft.Win32.RegistryKey] $currentKey,
+        [Parameter(Mandatory=$true)] $currentUser
+    )
+
+    Begin {
+        Write-Output "Modern Apps:"
+    }
+
+    Process {
+        Write-Output "  $($currentKey.PSChildName)"
+        $currentKey.Property | % {
+            $status = (Get-ItemPropertyValue -path $currentKey.PSPath -Name $_).ToString()
+            if ($_.StartsWith("./User/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement/")) {
+                $appID = [URI]::UnescapeDataString(($_.Split("/"))[7])
+                $type = "User UWP"
+            }
+            elseif ($_.StartsWith("./Device/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement/")) {
+                $appID = [URI]::UnescapeDataString(($_.Split("/"))[7])
+                $type = "Device UWP"
+            }
+            else
+            {
+                $appID = $_
+                $type = "Unknown UWP"
+            }
+            if ($status -eq "1") {
+                Write-Output "    $type $appID : $status ($($policyStatus[$status]))" 
+            }
+            else {
+                Write-Output "    $type $appID : $status ($($policyStatus[$status]))" 
+            }
+        }
+    }
+
+    }
+
+    Function ProcessSidecar() {
+    param
+    (
+        [Parameter(Mandatory=$true,ValueFromPipeline=$True)] [Microsoft.Win32.RegistryKey] $currentKey,
+        [Parameter(Mandatory=$true)] $currentUser
+    )
+
+    Begin {
+        Write-Output "Sidecar apps:"
+    }
+
+    Process {
+        Write-Output "  $($currentKey.PSChildName)"
+        $currentKey.Property | % {
+            $win32Key = [URI]::UnescapeDataString(($_.Split("/"))[9])
+            $status = Get-ItemPropertyValue -path $currentKey.PSPath -Name $_
+            if ($Online) {
+                $found = $apps | ? {$win32Key -match $_.Id }
+                $win32Key = "$($found.DisplayName) ($($win32Key))"
+            }
+            $appGuid = $win32Key.Substring(9)
+            $sidecarApp = "$sidecarPath\$currentUser\$appGuid"
+            $exitCode = ""
+            if (Test-Path $sidecarApp)
+            {
+                $exitCode = Get-ItemPropertyValue -Path $sidecarApp -Name ExitCode -ErrorAction Ignore
+            }
+            if ($status -eq "3") {
+                if ($exitCode -ne "") {
+                    Write-Output "    Win32 $win32Key : $status ($($espStatus[$status.ToString()]), rc = $exitCode)" 
+                }
+                else {
+                    Write-Output "    Win32 $win32Key : $status ($($espStatus[$status.ToString()]))" 
+                }
+            }
+            else {
+                if ($exitCode -ne "")
+                {
+                    Write-Output "    Win32 $win32Key : $status ($($espStatus[$status.ToString()]), rc = $exitCode)" 
+                }
+                else {
+                    Write-Output "    Win32 $win32Key : $status ($($espStatus[$status.ToString()]))" 
+                }
+            }
+        }
+    }
+
+    }
+
+    Function ProcessPolicies() {
+    param
+    (
+        [Parameter(Mandatory=$true,ValueFromPipeline=$True)] [Microsoft.Win32.RegistryKey] $currentKey
+    )
+
+    Begin {
+        Write-Output "Policies:"
+    }
+
+    Process {
+        Write-Output "  $($currentKey.PSChildName)"
+        $currentKey.Property | % {
+            $status = Get-ItemPropertyValue -path $currentKey.PSPath -Name $_
+            Write-Output "    Policy $_ : $status ($($policyStatus[$status.ToString()]))"
+        }
+    }
+
+    }
+
+
+    Function ProcessCerts() {
+    param
+    (
+        [Parameter(Mandatory=$true,ValueFromPipeline=$True)] [Microsoft.Win32.RegistryKey] $currentKey
+    )
+
+    Begin {
+        Write-Output "Certificates:"
+    }
+
+    Process {
+        Write-Output "  $($currentKey.PSChildName)"
+        $currentKey.Property | % {
+            $certKey = [URI]::UnescapeDataString(($_.Split("/"))[6])
+            $status = Get-ItemPropertyValue -path $currentKey.PSPath -Name $_
+            if ($Online) {
+                $found = $policies | ? { $certKey.Replace("_","-") -match $_.Id }
+                $certKey = "$($found.DisplayName) ($($certKey))"
+            }
+            if ($status -eq "1") {
+                Write-Output "    Cert $certKey : $status ($($policyStatus[$status.ToString()]))" 
+            }
+            else {
+                Write-Output "    Cert $certKey : $status ($($policyStatus[$status.ToString()]))" 
+            }
+        }
+    }
+
+    }
+
+    Function GetIntuneObjects() {
+        param
+        (
+            [Parameter(Mandatory=$true)] [String] $uri
+        )
+
+        Process {
+
+            Write-Verbose "GET $uri"
+            try {
+                $response = Invoke-MSGraphRequest -Url $uri -HttpMethod Get
+
+                $objects = $response.value
+                $objectsNextLink = $response."@odata.nextLink"
+    
+                while ($objectsNextLink -ne $null){
+                    $response = (Invoke-MSGraphRequest -Url $devicesNextLink -HttpMethod Get)
+                    $objectsNextLink = $response."@odata.nextLink"
+                    $objects += $response.value
+                }
+
+                return $objects
+            }
+            catch {
+                Write-Error $_.Exception
+                return $null
+                break
+            }
+
+        }
+    }
+
+    #------------------------
+    # Main code
+    #------------------------
+
+    # Make sure the tracking path exists
+    if (-not (Test-Path $path)) {
+        Write-Output "ESP diagnostics info does not (yet) exist."
+        exit 0
+    }
+
+    # If online, make sure we are able to authenticate
+    if ($Online) {
+
+        # Make sure we can connect
+        $module = Import-Module Microsoft.Graph.Intune -PassThru -ErrorAction Ignore
+        if (-not $module) {
+            Write-Output "Installing module Microsoft.Graph.Intune"
+            Install-Module Microsoft.Graph.Intune -Force
+        }
+        Import-Module Microsoft.Graph.Intune
+        $graph = Connect-MSGraph
+        Write-Output "Connected to tenant $($graph.TenantId)"
+
+        # Get a list of apps
+        Write-Output "Getting list of apps"
+        $script:apps = GetIntuneObjects("https://graph.microsoft.com/beta/deviceAppManagement/mobileApps")
+
+        # Get a list of policies (for certs)
+        Write-Output "Getting list of policies"
+        $script:policies = GetIntuneObjects("https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations")
+    }
+
+    # Display Autopilot diag details
+    if (Test-Path $autopilotDiagPath)
+    {
+     Write-Output ""
+     Write-Output "AUTOPILOT DIAGNOSTICS"
+     Write-Output ""
+
+        $values = Get-ItemProperty "$autopilotDiagPath"
+        Write-Output "TenantDomain:   $($values.CloudAssignedTenantDomain)"
+        Write-Output "TenantID:       $($values.CloudAssignedTenantId)"
+        Write-Output "OobeConfig:     $($values.CloudAssignedOobeConfig)"
+        $values = Get-ItemProperty "$autopilotDiagPath\EstablishedCorrelations"
+        Write-Output "EntDMID:        $($values.EntDMID)"
+        if (Test-Path "$omadmPath\SyncML\ODJApplied")
+        {
+            Write-Output "ODJ applied:    YES"
+        }
+    }
+        
+    # Process device ESP sessions
+    Write-Output " "
+    Write-Output "DEVICE ESP:"
+    Write-Output " "
+
+    if (Test-Path "$path\ExpectedMSIAppPackages") {
+        $items = Get-ChildItem "$path\ExpectedMSIAppPackages"
+        if ($AllSessions) {
+            $items | ProcessApps -currentUser "S-0-0-00-0000000000-0000000000-000000000-000"
+        }
+        elseif ($items.Count -gt 0) {
+            $items[$items.Count - 1] | ProcessApps -currentUser "S-0-0-00-0000000000-0000000000-000000000-000"
+        }
+    }
+    if (Test-Path "$path\ExpectedModernAppPackages") {
+        $items = Get-ChildItem "$path\ExpectedModernAppPackages"
+        if ($AllSessions) {
+            $items | ProcessModernApps -currentUser "S-0-0-00-0000000000-0000000000-000000000-000"
+        }
+        elseif ($items.Count -gt 0) {
+            $items[$items.Count - 1] | ProcessModernApps -currentUser "S-0-0-00-0000000000-0000000000-000000000-000"
+        }
+    }
+    if (Test-Path "$path\Sidecar") {
+        $items = Get-ChildItem "$path\Sidecar"
+        if ($AllSessions) {
+            $items | ProcessSidecar -currentUser "00000000-0000-0000-0000-000000000000"
+        }
+        elseif ($items.Count -gt 0) {
+            $items[$items.Count - 1] | ProcessSidecar -currentUser "00000000-0000-0000-0000-000000000000"
+        }
+    }
+    if (Test-Path "$path\ExpectedPolicies") {
+        $items = Get-ChildItem "$path\ExpectedPolicies" 
+        if ($AllSessions) {
+            $items | ProcessPolicies
+        }
+        elseif ($items.Count -gt 0) {
+            $items[$items.Count - 1] | ProcessPolicies
+        }
+    }
+    if (Test-Path "$path\ExpectedSCEPCerts") {
+        $items = Get-ChildItem "$path\ExpectedSCEPCerts"
+        if ($AllSessions) {
+            $items | ProcessCerts
+        }
+        elseif ($items.Count -gt 0) {
+            $items[$items.Count - 1] | ProcessCerts
+        }
+    }
+
+    # Process user ESP sessions
+    Get-ChildItem "$path" | ? { $_.PSChildName.StartsWith("S-") } | % {
+        $userPath = $_.PSPath
+        $userSid = $_.PSChildName
+        Write-Output " "
+        Write-Output "USER ESP for $($userSid):"
+        Write-Output " "
+        if (Test-Path "$userPath\ExpectedMSIAppPackages") {
+            $items = Get-ChildItem "$userPath\ExpectedMSIAppPackages" 
+            if ($AllSessions) {
+                $items | ProcessApps -currentUser $userSid
+            }
+            elseif ($items.Count -gt 0) {
+                $items[$items.Count - 1] | ProcessApps -currentUser $userSid
+            }
+        }
+        if (Test-Path "$userPath\ExpectedModernAppPackages") {
+            $items = Get-ChildItem "$userPath\ExpectedModernAppPackages"
+            if ($AllSessions) {
+                $items | ProcessModernApps -currentUser $userSid
+            }
+            elseif ($items.Count -gt 0) {
+                $items[$items.Count - 1] | ProcessModernApps -currentUser $userSid
+            }
+        }
+        if (Test-Path "$userPath\Sidecar") {
+            $items = Get-ChildItem "$userPath\Sidecar"
+            if ($AllSessions) {
+                $items | ProcessSidecar -currentUser $userSid
+            }
+            elseif ($items.Count -gt 0) {
+                $items[$items.Count - 1] | ProcessSidecar -currentUser $userSid
+            }
+        }
+        if (Test-Path "$userPath\ExpectedPolicies") {
+            $items = Get-ChildItem "$userPath\ExpectedPolicies"
+            if ($AllSessions) {
+                $items | ProcessPolicies
+            }
+            elseif ($items.Count -gt 0) {
+                $items[$items.Count - 1] | ProcessPolicies
+            }
+        }
+        if (Test-Path "$userPath\ExpectedSCEPCerts") {
+            $items = Get-ChildItem "$userPath\ExpectedSCEPCerts"
+            if ($AllSessions) {
+                $items | ProcessCerts
+            }
+            elseif ($items.Count -gt 0) {
+                $items[$items.Count - 1] | ProcessCerts
+            }
+        }
+    }
+
+    Write-Output ""
+}
+
+End {
+
+    # Remove the registry info if it exists
+    if (Test-Path "HKCU:\ESPStatus.tmp")
+    {
+        Remove-Item -Path "HKCU:\ESPStatus.tmp" -Recurse -Force
+    }
+}
+
+'@
+
+$outputPath = "$env:temp\CollectedData\Intune\Commands\Autopilot"
+$x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
+$logfile = Join-Path $outputPath Get-AutopilotESPStatus.txt
+$important =   Join-Path $outputPath "!_Important.txt"
+# workaround for process() script block limitation
+$apscript | out-file apinfo.ps1
+ 
+. .\apinfo.ps1 | Out-File $logfile -Force
+del .\apinfo.ps1
+
+echo "Please see internal KB 4570137 for more information regarding decoding Autopilot ETL logs." | Out-File $important -Force</Command>
+      <Command Type="PS" Team="Windows Update" OutputFileName="Update_History"># https://gallery.technet.microsoft.com/scriptcenter/Show-Windows-Update-c7ee69bd
+
+$objSession = new-object -com "Microsoft.Update.Session" 
+$objSearcher = $objSession.CreateupdateSearcher() 
+$intCount = $objSearcher.GetTotalHistoryCount() 
+$colHistory = $objSearcher.QueryHistory(0, $intCount) 
+foreach ($objHistory in $colHistory) 
+{  
+  $title = ($objHistory.Date).ToString("yyyy/MM/dd hh:mm UTC") + " " + $objHistory.Title +  "`t"
+  if ($objHistory.HResult -eq 0) { 
+    Write-Output  "$title - Successfully installed" 
+  } elseif ($objHistory.HResult -eq -2145116140) { 
+    Write-Output "$title - Pending Reboot" 
+  } else { 
+    # Report errors for the past month 
+    if (($objHistory.Date).AddMonths(1) -gt (Get-Date)) { 
+      $hexErr = "0x$($objHistory.HResult.ToString("X8"))"
+      Write-Output "$title - Failed to install. `tError: $hexErr"  
+    } 
+  } 
+}
+Write-Output "=======================================================================================`r`n`r`n"
+Write-Output "=============                     Verbose Output                        ===============`r`n`r`n"
+Write-Output "=======================================================================================`r`n`r`n"
+
+# Verbose output
+foreach ($objHistory in $colHistory) 
+{ 
+  $o = New-Object PSObject 
+  $o | Add-Member -MemberType NoteProperty -Name Update $(Select-Object * -InputObject $objHistory -ExcludeProperty UninstallationSteps,Categories,UpdateIdentity | Out-String )
+  $o | Add-Member -MemberType NoteProperty -Name UpdateID -Value $($objHistory.UpdateIdentity | Out-String )   
+  $o | Add-Member -MemberType NoteProperty -Name Categories -Value $($objHistory.Categories | Out-String )
+  
+
+
+  "================================================================"
+  "$($objHistory.Title | Out-String)"
+  "================================================================"
+  $o  | fl *
+   
+}</Command>
+      <Command Type="PS" Team="Windows Update" OutputFileName="NA"># Windows update debug
+# Attempt to run using local tools first
+$ErrorActionPreference = "Stop"
+$Error.Clear()
+$line = "`*" * 120
+
+function WaitOnSchTask {
+    param([string]$taskName, [string]$OutFile = "c:\temp\winupdate_debug.txt" )
+
+    
+
+    try {
+        $status = (Get-ScheduledTask -TaskName $taskName).State
+            [int]$timer = 0
+    while ( ($status -ne "Ready") -and ($timer -le 90) ) {
+            $status = (Get-ScheduledTask -TaskName $taskName).State
+            $timer += 5
+            sleep 5
+        }
+    }
+    catch [Microsoft.PowerShell.Cmdletization.Cim.CimJobException] {
+        "Something went wrong.  Scheduled task not found" | Out-file $OutFile  -Force -Append -Encoding ascii
+
+    }
+    catch {
+        "Something went wrong." | Out-file $OutFile  -Force -Append -Encoding ascii
+        $Error[0]  | Out-file $OutFile  -Force -Append -Encoding ascii
+        $Error[0].Exception.GetType().fullname | Out-file $OutFile  -Force -Append -Encoding ascii
+
+    }
+ 
+
+
+}
+
+
+# write temp file
+$tempFilePath = Join-Path $env:temp  "winupdatetemp.ps1" 
+$tempfileContents = @'
+param( [string]$OutFile = "c:\temp\winupdate_debug.txt")
+[string]$computer = $env:COMPUTERNAME
+[string]$namespace = "ROOT\CIMV2\mdm\dmmap"
+
+[string[]]$classnames = @("MDM_DeviceUpdateCenter_Enrollment01", "MDM_Policy_Config01_Update02", "MDM_Policy_Result01_Update02", "MDM_Update", "MDM_Update_ApprovedUpdates01_01", "MDM_Update_FailedUpdates01_01"
+,"MDM_Update_InstallableUpdates01_01", "MDM_Update_PendingRebootUpdates01_01", "MDM_Update_Rollback01")
+
+$Error.Clear()
+
+$ErrorActionPreference = "Stop"
+
+    
+foreach ($classname in $classnames) {
+
+        try {
+
+            "====================================="  | Out-file $OutFile  -Force -Append -Encoding ascii
+            "CLASS    : $classname " | Out-file $OutFile  -Force -Append -Encoding ascii
+            "=====================================" | Out-file $OutFile  -Force -Append -Encoding ascii
+ 
+            Get-WmiObject -Class $classname -Namespace $namespace `
+             |Select-Object * -ExcludeProperty PSComputerName, Scope, Path, Options, ClassPath, Properties, SystemProperties, Qualifiers, Site, Container `
+             | Format-List -Property [a-z]* | Out-file $OutFile  -Force -Append -Encoding ascii
+             }
+        catch [System.Management.ManagementException] {
+            # ignore - class not found because it is not populated
+             
+        }
+        catch {
+            $Error[0] 
+            $Error[0].Exception.GetType().fullname | fl * | Out-file $OutFile  -Force -Append -Encoding ascii
+        }
+    }
+
+'@
+$tempfileContents | Out-File $tempFilePath -Force
+
+# Launch process as system via scheduled task
+ 
+$TimeToRun = (Get-Date).AddSeconds(3)
+$taskName = "ODC Windows Update Debug"
+$folderPath = "$env:temp\CollectedData\Intune\Commands\Windows Update"
+$filepath = Join-Path $folderPath  "$($env:COMPUTERNAME)_Windows_Updates_Debug.txt"
+
+# Create folder if it does not exist for uploader
+if ( -not ( Test-Path $folderPath -ErrorAction SilentlyContinue) ) {
+    $nil = mkdir $folderPath -Force
+}
+
+$line | Out-File $filepath -Force -Encoding ascii
+"Starting update query using Scheduled Task as SYSTEM`r`n" | Out-File $filepath -Append -Force -Encoding ascii
+$line | Out-File $filepath -Force -Append -Encoding ascii
+
+
+
+$Trigger= New-ScheduledTaskTrigger -At $TimeToRun -Once
+$User= "NT AUTHORITY\SYSTEM"
+$Action= New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File `"$tempFilePath`" -Nologo -OutFile `"$filepath`""  
+$nil = Register-ScheduledTask -TaskName $taskName -Trigger $Trigger -User $User -Action $Action -RunLevel Highest –Force
+$nil = Start-ScheduledTask -TaskName $taskName
+sleep 3
+WaitOnSchTask -taskName $taskName -OutFile $filepath
+#cleanup
+$nil = Unregister-ScheduledTask -TaskName $taskName -TaskPath "\" -PassThru -Confirm:$false
+     
+
+</Command>
+      <Command Type="PS" Team="Autopilot" OutputFileName="NA">
+$x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
+
+copy $env:ProgramData\microsoft\diagnosticlogcsp\collectors\*.etl .
+foreach ($file in $(dir *.etl)) {
+    netsh trace convert $file
+}
+
+move *.txt $outputPath -Force
+del .\*DiagnosticLogCSP_Collector*.etl
+</Command>
+
+<Command Type="PS" Team="Defender" OutputFileName="DefenderCommands.txt"># AV settings
+function RunCommand {
+   Param ([string]$cmdToRun)
+   
+   echo "`r`n===========================================`r`n`t`t $cmdToRun `r`n===========================================`r`n"
+   try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
+   catch { $error[0].ToString()}
+   
+}
+
+RunCommand Get-MpComputerStatus -Verbose
+RunCommand Get-MpPreference -Verbose 
+RunCommand Get-MpThreatDetection</Command>
+      <Command Type="PS" Team="Windows Update" OutputFileName="FeatureUpdateHolds">reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Appraiser\GWX"</Command>
+      <Command Type="PS" Team="General" OutputFileName="Get-DeliveryOptimizationLog">Get-DeliveryOptimizationLog</Command>
+      <Command Type="PS" Team="Windows Update" OutputFileName="ServiceManager_services">$ServiceManager = New-Object -ComObject "Microsoft.Update.ServiceManager"
+echo "`$ServiceManager.services| fl *"
+echo $("*" * 60)
+$ServiceManager.services| fl *</Command>
+      <Command Type="PS" Team="General" OutputFileName="AppX_and_CompanyPortal_info.txt">function RunCommand {
+   Param ([string]$cmdToRun)
+   $line = "=" * 120 
+   echo "`r`n$line`r`n`t`t $cmdToRun `r`n$line`r`n"
+   try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
+   catch { $error[0].ToString()}
+   
+}
+
+RunCommand "Get-AppxPackage -AllUser -Name Microsoft.Companyportal"
+RunCommand "Get-AppxPackage -AllUser -Name Microsoft.Companyportal | Get-AppxPackageManifest | fl *"
+RunCommand "Get-AppxPackage -AllUsers | Select-Object Name | Sort-Object -Property Name"
+RunCommand "Get-AppxPackage -AllUsers  | Select-Object -ExpandProperty Dependencies | Sort-Object -Property Name"</Command>
+      <Command Type="PS" Team="Windows Update" OutputFileName="Microsoft Update Health Tools Check.txt">Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | where {$_.DisplayName -eq "Microsoft Update Health Tools"}
+
+
+# get first 3 chars of major.minor version
+[double]$PSMajorMinorVersion =  $PSVersionTable.PSVersion.ToString().Substring(0,3)
+
+if ( $PSMajorMinorVersion -ge 5.1) {
+     Get-Package -AllVersions -name "Microsoft Update Health Tools"
+
+     Get-Package -AllVersions -name "Microsoft Update Health Tools"    | fl *
+}
+else {
+    Write-Output "PowerShell version $PSMajorMinorVersion is lower than 5.1.  Skipping package check"
+}</Command>
+      <Command Type="PS" Team="General" OutputFileName="InstalledPrograms_Get-Package.txt">function RunCommand {
+   Param ([string]$cmdToRun)
+   $line = "=" * 120 
+   echo "`r`n$line`r`n`t`t $cmdToRun `r`n$line`r`n"
+   try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
+   catch { $error[0].ToString()}
+   
+}
+
+# get first 3 chars of major.minor version
+[double]$PSMajorMinorVersion =  $PSVersionTable.PSVersion.ToString().Substring(0,3)
+
+if ( $PSMajorMinorVersion -ge 5.1) {
+    # TODO - wrap in custom object to sort
+     RunCommand 'Get-Package -AllVersions | Where-Object {$_.Name -notmatch "Security Intelligence Update for Microsoft Defender Antivirus" } | ft -AutoSize'
+
+     RunCommand 'Get-Package -AllVersions    | fl *'
+}
+else {
+    Write-Output "PowerShell version $PSMajorMinorVersion is lower than 5.1.  Skipping package check"
+}</Command>
+ </Commands>	 
     <EventLogs>
+	
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Application.evtx</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\Security.evtx</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*devicemanagement*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*powershell*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\PFX*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-WindowsUpdateClient*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-Provisioning-*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-NetworkProfile*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-ModernDeployment-*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Application.evtx</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*workplace*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*user*device*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*powershell*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*operations*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*odj*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*ncrypt*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*momlog*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*AAD*.evtx</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-Provisioning-*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-DeviceSetupManager*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*appx*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-Shell-Core%4Operational.evtx</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*intune*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*firewall*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*devicemanagement*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*defender*</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\*bitlocker*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*appx*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*WMI*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*PushNotifications*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*PFX*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*AAD*.evtx</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*-bits-*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-Shell-Core%4Operational.evtx</EventLog>
       <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-SENSE%4Operational.evtx</EventLog>
       <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-HelloForBusiness%4Operational.evtx</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\odj*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*-bits-*</EventLog>
-      <EventLog Team="Event Log">Microsoft-Windows-ModernDeployment-*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*firewall*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*defender*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\PFX*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-DeviceSetupManager*</EventLog>
+      <EventLog Team="Event Log">%windir%\System32\winevt\Logs\Microsoft-Windows-TaskScheduler*</EventLog>
+      <EventLog Team="Event Log">%windir%\System32\Winevt\Logs\*odj*</EventLog>
+      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-PushNotification-Platform*</EventLog>
+      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-Authentication User Interface%4Operational.evtx</EventLog>
+      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-AssignedAccess*.evtx</EventLog>
+      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-AppLocker*.evtx</EventLog>
+	  <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-TaskScheduler*</EventLog>
+	  <EventLog Team="Event Log">%windir%\system32\winevt\logs\*TWinUI*</EventLog>
     </EventLogs>
     <Files>
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\AgentData\Logs\*</File>
@@ -2795,66 +3525,68 @@ RunCommand -cmdToRun "Get-CimInstance -ClassName AntimalwareDetectionStatus  -Na
       <File Team="BitLocker">%SystemRoot%\Logs\MeasuredBoot\*.log</File>
       <File Team="Sidecar">%LocalAppData%\mdm\*.log</File>
     </Files>
-    <Registries>
-      <Registry Team="Registry" OutputFileName="REG_SW_Policies_MSFT_MicrosoftAntimalware">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Microsoft Antimalware</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Wow6432Node_MicrosoftAntimalware">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies\Microsoft\Microsoft Antimalware</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Installer">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_IntuneManagementExtension">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\IntuneManagementExtension</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_SystemCenterAdvisor">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCenterAdvisor</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Updates_SW_Microsoft_Updates">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Updates</Registry>
-      <Registry Team="Registry" OutputFileName="REG_WOW64_Policies_Microsoft_Windows_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\WindowsUpdate</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_OnlineManagement_PolicyAgent">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OnlineManagement\PolicyAgent</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_PolicyPlatform">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyPlatform</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_WOW64_Policies_Microsoft_OnlineManagement_PolicyAgent">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies\Microsoft\OnlineManagement\PolicyAgent</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_SystemCertificates_SystemCenterOnlineClient">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCertificates\System Center Online Client</Registry>
-      <Registry Team="Registry" OutputFileName="REG_CCS_Control_TimeZone">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\TimeZoneInformation</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_WindowsNT_CV_TimeZones">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones</Registry>
+	
+<Registries>
+	  <Registry Team="Registry" OutputFileName="REG_CCS_Control_Session-Manager">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager</Registry>   
+      <Registry Team="Registry" OutputFileName="REG_CCS_Control_CloudDomainJoin">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\CloudDomainJoin</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_Control_ProductOptions_ProductSuite">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\ProductOptions\ProductSuite</Registry>
+      <Registry Team="Registry" OutputFileName="REG_CCS_Control_TimeZone">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\TimeZoneInformation</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_Control_Windows_CSDVersion">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Windows\CSDVersion</Registry>
-      <Registry Team="Registry" OutputFileName="REG_CCS_WindowsEmbedded_ProductVersion">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WindowsEmbedded\ProductVersion</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_WEPOS_Version">HKEY_LOCAL_MACHINE\Software\Microsoft\WEPOS\Version</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_POSReady">HKEY_LOCAL_MACHINE\Software\Microsoft\POSReady</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_OnlineManagement">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OnlineManagement</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Microsoft_Operations_Manager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft Operations Manager</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_Installer">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Windows_CV_Uninstall">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Enrollments">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Enrollments</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Enrollments">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Enrollments</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_MicrosoftIntune">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MicrosoftIntune</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_EnterpriseDesktopAppManagement">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\EnterpriseDesktopAppManagement</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Policies">HKEY_LOCAL_MACHINE\Software\Policies</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Provisioning_NodeCache_CSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\NodeCache\CSP</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_EnterpriseModernAppManagement">HKEY_LOCAL_MACHINE\SOFTWARE\microsoft\enterprisemodernappmanagement</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_AssignedAccessConfiguration">HKEY_LOCAL_MACHINE\SOFTWARE\microsoft\windows\assignedaccessconfiguration</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Provisioning">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\provisioning</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Multivariant">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\multivariant</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_MSFT_Windows_Assignedaccessconfiguration">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\windows\assignedaccessconfiguration</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Assignedaccesscsp">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\windows\assignedaccesscsp</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_Services_Crypt32">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\crypt32</Registry>
-      <Registry Team="Registry" OutputFileName="REG_CCS_services_CryptSvc">HKEY_LOCAL_MACHINE\SYSTEM\SYSTEM\CurrentControlSet\services\CryptSvc</Registry>
-      <Registry Team="Registry" OutputFileName="REG_CCS_services_CertPropSvc">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\CertPropSvc</Registry>
-      <Registry Team="Registry" OutputFileName="REG_CCS_services_SCardSvr">HKEY_LOCAL_MACHINE\HKLM\SYSTEM\CurrentControlSet\services\SCardSvr</Registry>
-      <Registry Team="Registry" OutputFileName="REG_CCS_Services_SCPolicySvc">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\SCPolicySvc</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Provisioning_Diagnostics_Autopilot">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\Diagnostics\AutoPilot</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_DotNetFW_v4">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\.NETFramework\v4.0.30319</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_OfficeCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OfficeCSP</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Cryptography_MSCEP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\MSCEP</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_Services_HTTP_Parameters">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\HTTP\Parameters</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Policies_Microsoft_Windows_Defender">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_MDM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\MDM</Registry>
+      <Registry Team="Registry" OutputFileName="REG_CCS_Services_SCPolicySvc">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\SCPolicySvc</Registry>
+      <Registry Team="Registry" OutputFileName="REG_CCS_Services_SharedAccess_Parameters_FirewallPolicy">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy</Registry>
+      <Registry Team="Registry" OutputFileName="REG_CCS_WindowsEmbedded_ProductVersion">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WindowsEmbedded\ProductVersion</Registry>
+      <Registry Team="Registry" OutputFileName="REG_CCS_services_CertPropSvc">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\CertPropSvc</Registry>
+      <Registry Team="Registry" OutputFileName="REG_CCS_services_CryptSvc">HKEY_LOCAL_MACHINE\SYSTEM\SYSTEM\CurrentControlSet\services\CryptSvc</Registry>
+      <Registry Team="Registry" OutputFileName="REG_CCS_services_SCardSvr">HKEY_LOCAL_MACHINE\HKLM\SYSTEM\CurrentControlSet\services\SCardSvr</Registry>
       <Registry Team="Registry" OutputFileName="REG_HKCU_Software_Microsoft_SCEP">HKEY_CURRENT_USER\Software\Microsoft\SCEP</Registry>
+      <Registry Team="Registry" OutputFileName="REG_HKCU_Software_Microsoft_Windows_CurrentVersion_Uninstall">HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_MSFT_PolicyManager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_MSFT_Windows_Assignedaccessconfiguration">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\windows\assignedaccessconfiguration</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_BitLockerCsp">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\BitLockerCsp</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_CCM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CCM</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Cryptography_MSCEP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\MSCEP</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_DeviceManageabilityCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DeviceManageabilityCSP</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_DiagnosticLogCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DiagnosticLogCSP</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_DotNetFW_v4">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\.NETFramework\v4.0.30319</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Enrollments">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Enrollments</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_EnterpriseDesktopAppManagement">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\EnterpriseDesktopAppManagement</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_EnterpriseModernAppManagement">HKEY_LOCAL_MACHINE\SOFTWARE\microsoft\enterprisemodernappmanagement</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_HVSICSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\HVSICSP</Registry>
-      <Registry Team="Registry" OutputFileName="REG_HKCU_Software_Microsoft_Windows_CurrentVersion_Uninstall">HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_IntuneManagementExtension">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\IntuneManagementExtension</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_MicrosoftIntune">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MicrosoftIntune</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_MicrosoftIntune">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MicrosoftIntune</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Microsoft_Operations_Manager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft Operations Manager</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Multivariant">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\multivariant</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_OfficeCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OfficeCSP</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_OnlineManagement">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OnlineManagement</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_OnlineManagement_PolicyAgent">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OnlineManagement\PolicyAgent</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_POSReady">HKEY_LOCAL_MACHINE\Software\Microsoft\POSReady</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_PolicyPlatform">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyPlatform</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Provisioning">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\provisioning</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Provisioning_Diagnostics_Autopilot">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\Diagnostics\AutoPilot</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Provisioning_NodeCache_CSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\NodeCache\CSP</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_SystemCenterAdvisor">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCenterAdvisor</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_SystemCertificates">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCertificates\MY\Certificates</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_SystemCertificates_SystemCenterOnlineClient">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCertificates\System Center Online Client</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_WEPOS_Version">HKEY_LOCAL_MACHINE\Software\Microsoft\WEPOS\Version</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_WindowsNT_CV_TimeZones">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_AssignedAccessConfiguration">HKEY_LOCAL_MACHINE\SOFTWARE\microsoft\windows\assignedaccessconfiguration</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Assignedaccesscsp">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\windows\assignedaccesscsp</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_Installer">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_MDM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\MDM</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Defender">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender</Registry>
-      <Registry Team="Registry" OutputFileName="REG_CCS_Control_CloudDomainJoin">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\CloudDomainJoin</Registry>
-      <Registry Team="Registry" OutputFileName="REG_CCS_Services_SharedAccess_Parameters_FirewallPolicy">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_MSFT_PolicyManager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_CCM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CCM</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Enrollments">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Enrollments</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Installer">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Policies">HKEY_LOCAL_MACHINE\Software\Policies</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Policies_MSFT_MicrosoftAntimalware">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Microsoft Antimalware</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Policies_Microsoft_Windows_Defender">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Updates_SW_Microsoft_Updates">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Updates</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_WOW64_Policies_Microsoft_OnlineManagement_PolicyAgent">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies\Microsoft\OnlineManagement\PolicyAgent</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Windows_CV_Uninstall">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Wow6432Node_MicrosoftAntimalware">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies\Microsoft\Microsoft Antimalware</Registry>
+      <Registry Team="Registry" OutputFileName="REG_WOW64_Policies_Microsoft_Windows_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\WindowsUpdate</Registry>
     </Registries>
   </Package>
 </DataPoints>
