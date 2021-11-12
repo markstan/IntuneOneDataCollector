@@ -36,7 +36,7 @@
 $Global:ResultRootDirectory = [System.IO.Path]::Combine(($env:TEMP), 'CollectedData')
 $CompressedResultFileName = "$($env:COMPUTERNAME)_CollectedData.ZIP"
 [System.Nullable[bool]] $newZipperAvailable = $null # Stores flag whether [System.IO.Compression.ZipFile] can be used.
-$ODCversion = "2021.10.4" 
+$ODCversion = "2021.11.1" 
 
 #endregion
 
@@ -1672,6 +1672,7 @@ Process-Package -Package $package.ValidPackages[0]
 Compress-CollectedDataAndReport
 if (Test-Path .\collecteddata.zip) {
     Remove-Item -Path .\CollectedData -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path .\*.evtx -Force -ErrorAction SilentlyContinue
 }
 Start-Process .
 

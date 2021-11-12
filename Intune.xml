@@ -414,6 +414,7 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
  
  # https://en.wikipedia.org/wiki/Windows_10_version_history
  $versions = @{
+ "22000" =   "Win11RTM"
  "19044" =   "21H2"
  "19043" =   "21H1"
  "19042" =   "20H2"
@@ -430,6 +431,7 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
  }
 
  $marketingNames = @{
+ "22000" =   "Win11RTM"
  "19044" =   "Beta"
  "19043" =   "May 2021 Update"
  "19042" =   "October 2020 Update"
@@ -447,6 +449,7 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
 
 
   $codeNames = @{
+ "22000" =   "Win11RTM"
  "19044" =   "21H2"
  "19043" =   "21H1"
  "19042" =   "20H2"
@@ -520,9 +523,10 @@ if ($MachineIDContainer){
 $SubscriptionID = $ds -match "SubscriptionID : (.+)"
 
 # Start reporting
+$highestWinBuildNumber = "22000"
 
 $OS_Summary | fl
-if ($Win10Version.BuildNumber -gt 19043) { "**** WARNING:  Beta version of Windows detected:  Build $($Win10Version.version) *****"}
+if ($Win10Version.BuildNumber -gt $highestWinBuildNumber) { "**** WARNING:  Beta version of Windows detected:  Build $($Win10Version.version) *****"}
 "Windows build:        $($Win10Version.version)"
 "Windows version:      $($versions[$Win10Version.BuildNumber])"
 "Windows name:         $($marketingNames[$Win10Version.BuildNumber])" 
@@ -572,7 +576,7 @@ RunCommand "Get-TpmEndorsementKeyInfo"
 RunCommand "Get-TpmSupportedFeature -Verbose"
 RunCommand "Get-CimInstance -ClassName Win32_Tpm -Namespace 'root\CIMV2\Security\MicrosoftTpm' "
 RunCommand "Get-CimInstance -ClassName  Win32_baseboard -Namespace 'root\CIMV2' "
-RunCommand "reagentc /info 2&gt;NULL"
+RunCommand "reagentc /info 2&gt;"
 RunCommand "bcdedit /enum all"
 RunCommand "gwmi win32_bios | fl *"
 RunCommand "Get-Service tpm |fl *"
@@ -3546,8 +3550,6 @@ else {
       <Registry Team="Registry" OutputFileName="REG_CCS_services_SCardSvr">HKEY_LOCAL_MACHINE\HKLM\SYSTEM\CurrentControlSet\services\SCardSvr</Registry>
       <Registry Team="Registry" OutputFileName="REG_HKCU_Software_Microsoft_SCEP">HKEY_CURRENT_USER\Software\Microsoft\SCEP</Registry>
       <Registry Team="Registry" OutputFileName="REG_HKCU_Software_Microsoft_Windows_CurrentVersion_Uninstall">HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_PolicyManager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Assignedaccessconfiguration">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\windows\assignedaccessconfiguration</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_BitLockerCsp">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\BitLockerCsp</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_CCM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CCM</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Cryptography_MSCEP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\MSCEP</Registry>
@@ -3566,6 +3568,7 @@ else {
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_OnlineManagement">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OnlineManagement</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_OnlineManagement_PolicyAgent">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OnlineManagement\PolicyAgent</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_POSReady">HKEY_LOCAL_MACHINE\Software\Microsoft\POSReady</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_PolicyManager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_PolicyPlatform">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyPlatform</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Provisioning">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\provisioning</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Provisioning_Diagnostics_Autopilot">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\Diagnostics\AutoPilot</Registry>
@@ -3573,18 +3576,19 @@ else {
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_SystemCenterAdvisor">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCenterAdvisor</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_SystemCertificates">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCertificates\MY\Certificates</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_SystemCertificates_SystemCenterOnlineClient">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCertificates\System Center Online Client</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Updates">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Updates</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_WEPOS_Version">HKEY_LOCAL_MACHINE\Software\Microsoft\WEPOS\Version</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_WindowsNT_CV_TimeZones">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_AssignedAccessConfiguration">HKEY_LOCAL_MACHINE\SOFTWARE\microsoft\windows\assignedaccessconfiguration</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Assignedaccessconfiguration">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\windows\assignedaccessconfiguration</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Assignedaccesscsp">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\windows\assignedaccesscsp</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_Installer">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_MDM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\MDM</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_Uninstall">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Defender">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Enrollments">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Enrollments</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Installer">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Policies">HKEY_LOCAL_MACHINE\Software\Policies</Registry> 
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Updates">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Updates</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_SW_Microsoft_Windows_CV_Uninstall">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Wow6432Node_MicrosoftAntimalware">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies</Registry> 
     </Registries>
   </Package>
