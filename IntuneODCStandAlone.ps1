@@ -1670,7 +1670,7 @@ $package = get-packages -Filename $xmlPath
 Write-DiagProgress "Loading $($package.ValidPackages[0].ID)"
 Process-Package -Package $package.ValidPackages[0]
 Compress-CollectedDataAndReport
-if (Test-Path .\collecteddata.zip) {
+if (Test-Path -Path . -Filter ".*CollectedData.zip") {
     Remove-Item -Path .\CollectedData -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item -Path .\*.evtx -Force -ErrorAction SilentlyContinue
 }
