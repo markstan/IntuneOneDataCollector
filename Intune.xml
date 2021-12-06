@@ -566,7 +566,7 @@ Get-WmiObject  -Class Win32_BIOS</Command>
    
 }
 
-
+RunCommand "tpmtool getdeviceinformation"
 RunCommand "manage-bde -status"
 RunCommand "Get-BitLockerVolume |fl * -Force"
 RunCommand "Get-Tpm"
@@ -576,12 +576,16 @@ RunCommand "Get-TpmEndorsementKeyInfo"
 RunCommand "Get-TpmSupportedFeature -Verbose"
 RunCommand "Get-CimInstance -ClassName Win32_Tpm -Namespace 'root\CIMV2\Security\MicrosoftTpm' "
 RunCommand "Get-CimInstance -ClassName  Win32_baseboard -Namespace 'root\CIMV2' "
-RunCommand "reagentc /info 2&gt;"
+RunCommand "reagentc /info 2&gt;NUL"
 RunCommand "bcdedit /enum all"
 RunCommand "gwmi win32_bios | fl *"
 RunCommand "Get-Service tpm |fl *"
 RunCommand "powercfg /a"
 
+# put TPM logs output in files\bitlocker
+$outputPath = "$env:temp\CollectedData\Intune\Files\Bitlocker"
+$x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
+$x = &amp;tpmtool gatherlogs "$outputPath"
 
 # Registry keys
 RunCommand "Get-Item HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\BitLocker"
@@ -3552,6 +3556,7 @@ else {
       <Registry Team="Registry" OutputFileName="REG_HKCU_Software_Microsoft_Windows_CurrentVersion_Uninstall">HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_BitLockerCsp">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\BitLockerCsp</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_CCM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CCM</Registry>
+	  <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_CloudManagedUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CloudManagedUpdate</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Cryptography_MSCEP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\MSCEP</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_DeviceManageabilityCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DeviceManageabilityCSP</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_DiagnosticLogCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DiagnosticLogCSP</Registry>
