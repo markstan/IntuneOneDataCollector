@@ -510,12 +510,10 @@ if (Test-Path HKLM:\SYSTEM\CurrentControlSet\Control\CloudDomainJoin\JoinInfo\$(
     $userEmail = (Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\CloudDomainJoin\JoinInfo\$($thumbPrint)).UserEmail
     $tenant = $userEmail.Split('@')[1]
     }
-
-
-
+     
 $MachineID = "Unknown"
 $DeviceName = "Unknown"
-$MachineIDContainer = dir hklm:SOFTWARE\Microsoft\Enrollments -Recurse | Where {$_.Name -match 'MS DM Server'} 
+$MachineIDContainer = dir HKLM:SOFTWARE\Microsoft\Enrollments -Recurse | Where {$_.Name -match 'MS DM Server'} 
 if ($MachineIDContainer){
         $MachineID = $MachineIDContainer| Get-ItemPropertyValue  -Name EntDMID
         $DeviceName = $MachineIDContainer| Get-ItemPropertyValue -Name EntDeviceName
@@ -525,12 +523,14 @@ $SubscriptionID = $ds -match "SubscriptionID : (.+)"
 # Start reporting
 $highestWinBuildNumber = "22000"
 
-$OS_Summary | fl
+$OS_Summary | Format-List
+
 if ($Win10Version.BuildNumber -gt $highestWinBuildNumber) { "**** WARNING:  Beta version of Windows detected:  Build $($Win10Version.version) *****"}
 "Windows build:        $($Win10Version.version)"
 "Windows version:      $($versions[$Win10Version.BuildNumber])"
 "Windows name:         $($marketingNames[$Win10Version.BuildNumber])" 
 "Windows code name:    $($codeNames[$Win10Version.BuildNumber])" 
+
 if ($isRegistered) {
     "Azure AD status:      Registered"
     }
@@ -541,20 +541,31 @@ else {
     "Azure AD status:      Not registered/joined or unknown"
 }
 
-if ($UserID) {         "UserID:               $UserID" }
+$accountID =    (Get-ItemProperty  -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\MDM).AccountId
+$enrollmentID = (Get-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Provisioning\OMADM\Logger).CurrentEnrollmentId
+
+if (Test-Path  HKLM:SOFTWARE\Microsoft\Enrollments\$enrollmentID) {
+    $enrollmentKey = Get-ItemProperty "HKLM:SOFTWARE\Microsoft\Enrollments\$enrollmentID"
+    $AADTenantID = $enrollmentKey.AADTenantID
+    $contextID =    ($enrollmentKey.CorrelationID) -replace "[\{\}]", ""
+    }
+
+if ($UserID) {         "Intune UserID:        $UserID" }
 if ($MachineID) {      "Intune Device ID:     $MachineID"}
-if ($DeviceName) {     "Device Name:          $DeviceName"}
+if ($accountID) {      "Intune Account ID:    $accountID"}
+if ($DeviceName) {     "Intune Device Name:   $DeviceName"}
 if ($SubscriptionID) { "SubscriptionID:       $SubscriptionID" }
 if ($tenant) {         "Tenant name:          $tenant"}
-if ($userEmail) {     "User UPN:             $userEmail"}
+if ($userEmail) {      "User UPN:             $userEmail"}
+if ($AADTenantID) {    "AAD Tenant ID:        $AADTenantID"}
+if ($contextID) {      "Context ID:           $contextID"}
 
 
 
-
-$CS_Summary | fl 
+$CS_Summary | Format-List 
 systeminfo.exe
 "BIOS Information"
-Get-WmiObject  -Class Win32_BIOS</Command>
+Get-WmiObject  -Class Win32_BIOS </Command>
       <Command Type="CMD" Team="General" OutputFileName="Installed_Products.txt">wmic product list brief </Command>
       <Command Type="CMD" Team="General" OutputFileName="proxy_settings.txt">netsh winhttp show proxy</Command>
       <Command Type="PS" Team="General" OutputFileName="Bitlocker_and_TPM">function RunCommand {
@@ -3375,9 +3386,14 @@ function RunCommand {
    
 }
 
-RunCommand Get-MpComputerStatus -Verbose
-RunCommand Get-MpPreference -Verbose 
-RunCommand Get-MpThreatDetection</Command>
+if ($DefenderStatus -eq "Stopped") {
+    Write-Output "Warning:  Defender Service (WinDefend) is not running.  Startup type is $DefenderStartupType. This is expected if 3rd party AV is installed.  Skipping Defender data collection."
+    }
+else {
+    RunCommand Get-MpComputerStatus -Verbose
+    RunCommand Get-MpPreference -Verbose 
+    RunCommand Get-MpThreatDetection 
+    }</Command>
       <Command Type="PS" Team="Windows Update" OutputFileName="FeatureUpdateHolds">reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Appraiser\GWX"</Command>
       <Command Type="PS" Team="General" OutputFileName="Get-DeliveryOptimizationLog">Get-DeliveryOptimizationLog</Command>
       <Command Type="PS" Team="Windows Update" OutputFileName="ServiceManager_services">$ServiceManager = New-Object -ComObject "Microsoft.Update.ServiceManager"
@@ -3589,6 +3605,7 @@ else {
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Assignedaccesscsp">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\windows\assignedaccesscsp</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_Installer">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_MDM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\MDM</Registry>
+	  <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_Uninstall">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Defender">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Enrollments">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Enrollments</Registry>
