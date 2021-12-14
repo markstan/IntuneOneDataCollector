@@ -526,6 +526,9 @@ $highestWinBuildNumber = "22000"
 $OS_Summary | Format-List
 
 if ($Win10Version.BuildNumber -gt $highestWinBuildNumber) { "**** WARNING:  Beta version of Windows detected:  Build $($Win10Version.version) *****"}
+if ( (Get-CimInstance -ClassName Win32_OperatingSystem).OperatingSystemSKU -eq 125) {
+    "**** WARNING:  Windows 10 OS is on the  long-term servicing branch (LTSB) for updates.  See https://aka.ms/IntuneLTSB for more information.  *****"
+}
 "Windows build:        $($Win10Version.version)"
 "Windows version:      $($versions[$Win10Version.BuildNumber])"
 "Windows name:         $($marketingNames[$Win10Version.BuildNumber])" 
@@ -3400,7 +3403,7 @@ else {
 echo "`$ServiceManager.services| fl *"
 echo $("*" * 60)
 $ServiceManager.services| fl *</Command>
-      <Command Type="PS" Team="General" OutputFileName="AppX_and_CompanyPortal_info.txt">function RunCommand {
+      <Command Type="PS" Team="General" OutputFileName="CompanyPortal_and_APPX_info.txt">function RunCommand {
    Param ([string]$cmdToRun)
    $line = "=" * 120 
    echo "`r`n$line`r`n`t`t $cmdToRun `r`n$line`r`n"
@@ -3449,8 +3452,7 @@ else {
     Write-Output "PowerShell version $PSMajorMinorVersion is lower than 5.1.  Skipping package check"
 }</Command>
  </Commands>	 
-    <EventLogs>
-	
+    <EventLogs>	
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\Security.evtx</EventLog>
       <EventLog Team="Event Log">%windir%\system32\winevt\logs\PFX*</EventLog>
@@ -3503,7 +3505,7 @@ else {
       <File Team="CBS">%systemroot%\Logs\CBS\*.log</File>
       <File Team="CompanyPortalLogs">%localappdata%\Packages\Microsoft.CompanyPortal_8wekyb3d8bbwe\LocalState\*.*</File>
       <File Team="Configmgr">%SMS_LOG_PATH%\*.*</File>
-      <File Team="Configmgr">%systemroot%\ccmsetup\Logs\*</File>
+      <File Team="Configmgr\CCMSetup_logs">%systemroot%\ccmsetup\Logs\*</File>
       <File Team="DirSync">%ProgramFiles%\Microsoft Online Directory Sync\*.log</File>
       <File Team="Exchange Connector">%ProgramData%\Microsoft\Windows Intune Exchange Connector\*.*</File>
       <File Team="Exchange Connector">%ProgramData%\Microsoft\Windows Intune Exchange Connector\Logs\*.*</File>
@@ -3549,9 +3551,11 @@ else {
       <File Team="Teams">%LocalAppData%\SquirrelTemp\*</File>
       <File Team="WMI">%windir%\system32\wbem\logs\*.*</File>
       <File Team="WMI">%windir%\system32\wbem\tmf\*.*</File>
-      <File Team="Windows Update">%windir%\windowsupdate*.log</File>
-	  <File Team="Windows Update">%ProgramFiles%\Microsoft Update Health Tools\Logs\*</File>
- 
+	  <File Team="Windows Update">%ProgramFiles%\Microsoft Update Health Tools\Logs</File>
+      <File Team="Windows Update\System">%ProgramData%\USOShared\Logs\System</File> 
+      <File Team="Windows Update\User">%ProgramData%\USOShared\Logs\User</File>  
+	  <File Team="Windows Update\DownloadedSettings">%ProgramData%\Microsoft\Diagnosis\DownloadedSettings</File>  
+	 
     </Files>
 	
 <Registries>
