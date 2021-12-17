@@ -4170,6 +4170,7 @@ $resultBlob | Format-List </Command>
       <File Team="NDES">C:\NDESConnectorSetup\*.log</File>
       <File Team="NDES">C:\inetpub\logs\LogFiles\W3SVC1\u_ex*.log </File>
       <File Team="OpsMgr">%windir%\Temp\OpsMgrTrace\*.*</File>
+	  <File Team="Panther">%windir%\Panther</File>
       <File Team="Sidecar">%LocalAppData%\mdm\*.log</File>
       <File Team="Sidecar">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
       <File Team="Sidecar">%systemroot%\system32\config\systemprofile\AppData\Local\mdm\*.log</File>
