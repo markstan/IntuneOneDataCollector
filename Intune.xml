@@ -2628,7 +2628,7 @@ try {
     Get-Service IntuneManagementExtension |fl *
     }
 catch {
-    "IntuneManagementExtension service not installed.  Verify that device is compliant and marked as corporate ownership."
+    "IntuneManagementExtension (IME) service not installed.  Verify that the device is Azure AD registered or AAD joined, has internnet connectivity, has WNS enabled, and has at least one PowerShell script or Win32 app assigned to it.  See https://docs.microsoft.com/en-us/mem/intune/apps/intune-management-extension#issue-intune-management-extension-doesnt-download for more details."
     $Error
 }
 
