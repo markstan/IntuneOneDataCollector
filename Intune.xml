@@ -8,17 +8,7 @@ msinfo32.exe /NFO    "$outputPath\msinfo32.nfo"
 msinfo32.exe /report "$outputPath\msinfo32.txt"
 </Command>
       <Command Type="PS" Team="General" OutputFileName="dsreg_status">dsregcmd /status</Command>
-      <Command Type="PS" Team="General" OutputFileName="whoami">function RunCommand {
-   Param ([string]$cmdToRun)
-   
-   echo "`r`n===========================================`r`n`t`t $cmdToRun `r`n===========================================`r`n"
-   try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
-   catch { $error[0].ToString()}
-   
-}
-
-
-RunCommand "whoami"
+      <Command Type="PS" Team="General" OutputFileName="whoami">RunCommand "whoami"
 RunCommand "whoami /upn"  
 RunCommand "whoami /all"
 RunCommand "whoami /logonid"
@@ -571,26 +561,17 @@ systeminfo.exe
 Get-WmiObject  -Class Win32_BIOS </Command>
       <Command Type="CMD" Team="General" OutputFileName="Installed_Products.txt">wmic product list brief </Command>
       <Command Type="CMD" Team="General" OutputFileName="proxy_settings.txt">netsh winhttp show proxy</Command>
-      <Command Type="PS" Team="General" OutputFileName="Bitlocker_and_TPM">function RunCommand {
-   Param ([string]$cmdToRun)
-   $line = "`r`n================================================================================================"
-   echo "`r`n$line`r`n`t`t $cmdToRun $line`r`n"
-   try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
-   catch { $error[0].ToString()}
-   
-}
-
-RunCommand "tpmtool getdeviceinformation"
+      <Command Type="PS" Team="General" OutputFileName="Bitlocker_and_TPM">RunCommand "tpmtool getdeviceinformation"
 RunCommand "manage-bde -status"
 RunCommand "Get-BitLockerVolume |fl * -Force"
 RunCommand "Get-Tpm"
 RunCommand "Manage-bde -protectors -get $env:systemdrive"
-RunCommand "'SelfTest:' $(Get-Tpm | Select-Object -ExpandProperty SelfTest)"
+RunCommand "Get-Tpm | Select-Object -ExpandProperty SelfTest"
 RunCommand "Get-TpmEndorsementKeyInfo"
 RunCommand "Get-TpmSupportedFeature -Verbose"
 RunCommand "Get-CimInstance -ClassName Win32_Tpm -Namespace 'root\CIMV2\Security\MicrosoftTpm' "
 RunCommand "Get-CimInstance -ClassName  Win32_baseboard -Namespace 'root\CIMV2' "
-RunCommand "reagentc /info 2&gt;NUL"
+RunCommand "reagentc /info"
 RunCommand "bcdedit /enum all"
 RunCommand "gwmi win32_bios | fl *"
 RunCommand "Get-Service tpm |fl *"
@@ -602,76 +583,53 @@ $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 $x = &amp;tpmtool gatherlogs "$outputPath"
 
 # Registry keys
-RunCommand "Get-Item HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\BitLocker"
-RunCommand "Get-ChildItem HKLM:\SOFTWARE\Microsoft\PolicyManager\default\Bitlocker"
-RunCommand "Get-Item HKLM:\SOFTWARE\Policies\Microsoft\FVE"
-RunCommand "Get-ChildItem HKLM:\SOFTWARE\Microsoft\PolicyManager\Providers\*\Bitlocker -Recurse" 
 
+Get-PrintableRegKeyValues "HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\BitLocker"   
+Get-PrintableRegKeyValues "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\Bitlocker"
+Get-PrintableRegKeyValues "HKLM:\SOFTWARE\Policies\Microsoft\FVE"
+Get-ChildItem HKLM:\SOFTWARE\Microsoft\PolicyManager\Providers\*\Bitlocker -Recurse
 
 # Disk config
 RunCommand "Get-Disk | fl *"
 RunCommand "gwmi Win32_DiskPartition"
 RunCommand "gwmi -class win32_logicaldisk"
 RunCommand "gwmi -class win32_volume"</Command>
-      <Command Type="PS" Team="General" OutputFileName="Firewall_Settings">function RunCommand {
-   Param ([string]$cmdToRun)
-   
-   echo "`r`n===========================================`r`n`t`t $cmdToRun `r`n===========================================`r`n"
-   try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
-   catch { $error[0].ToString()}
-   
-}
-
-
-
-RunCommand "netsh advfirewall show allprofiles"
+      <Command Type="PS" Team="General" OutputFileName="Firewall_Settings">RunCommand "netsh advfirewall show allprofiles"
 RunCommand "netsh advfirewall show allprofiles"
 RunCommand  "netsh advfirewall show global"
 RunCommand  "Get-NetFirewallProfile"
 RunCommand  "Get-NetFirewallRule"
 RunCommand  "Get-NetFirewallSetting"</Command>
-	  <Command Type="PS" Team="General" OutputFileName="NA">
-#Gather Defender files
+	  <Command Type="PS" Team="General" OutputFileName="NA">#Gather Defender files
 $mpc = "$env:ProgramFiles\Windows Defender\MpCmdRun.exe"
 $outputPath = "$env:temp\CollectedData\Intune\Commands\AV"
-$x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
-
- 
+$x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force} 
       
 $mpcExists = Test-Path -Path $mpc
-$DefenderServiceIsRunning = (Get-Service sense).Status
-      
+$DefenderServiceIsRunning = (Get-Service sense).Status 
+$WinDefendServiceIsRunning = (Get-Service windefend).Status 
+
+if  ($mpcExists -and ($DefenderServiceIsRunning -eq "Running" )) {
  
-if  ($mpcExists -and $DefenderServiceIsRunning) {
+    RunCommand Get-MpComputerStatus -Verbose
+    RunCommand Get-MpPreference -Verbose 
+    RunCommand Get-MpThreatDetection  
 	$output = &amp;$mpc -getfiles
-
-
+ 
     # Get the full path to the cab
     $cabPath = $output -match "MpSupportFiles.cab"
-    $cabPath = $cabPath -replace "^.* *(.:.*)", "`$1"
-
-
-	copy $cabPath $outPutPath\WindowsDefender-SupportFiles.cab
-
+    $cabPath = $cabPath -replace "^.* *(.:.*)", "`$1" 
+	copy $cabPath $outPutPath\WindowsDefender-SupportFiles.cab  
 }
 else {
 	$deflog = join-path $outputPath "DefenderErrors.txt"
-	"Defender service status is $DefenderServiceIsRunning" | out-file $deflog -Force
-	"Defender executable exists at $mpc is $mpcExists" | out-file $deflog -Append -Force
+    "Warning:  Defender Service (sense) is not running.  Startup type is $DefenderStartupType. This is expected if 3rd party AV is installed.  Skipping Defender data collection." |  Out-File $deflog -Force
+	"Defender service (sense) status is $DefenderServiceIsRunning" | Out-File $deflog -Append -Force
+    "Defender service (windefend) status is $WinDefendServiceIsRunning" | Out-File $deflog -Append -Force
+	"Defender executable exists at $mpc is $mpcExists" | Out-File $deflog -Append -Force
 }
- 
 </Command>
-
-      <Command Type="PS" Team="Networking" OutputFileName="Networking.txt">function RunCommand {
-   Param ([string]$cmdToRun)
-   
-   echo "`r`n===========================================`r`n`t`t $cmdToRun `r`n===========================================`r`n"
-   try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
-   catch { $error[0].ToString()}
-   
-}
-
-RunCommand -cmdToRun "hostname" 
+      <Command Type="PS" Team="Networking" OutputFileName="Networking.txt">RunCommand -cmdToRun "hostname" 
 RunCommand -cmdToRun "ipconfig /all" 
 RunCommand -cmdToRun "arp -a" 
 RunCommand -cmdToRun "nbtstat -n" 
@@ -691,9 +649,6 @@ else
 {
  RunCommand -cmdToRun "netstat -ano -p tcp"
 }
-
-
-
  RunCommand -cmdToRun "net config workstation" 
 
 if ((Get-Service "lanmanserver").Status -eq 'Running')
@@ -706,7 +661,7 @@ if ((Get-Service "lanmanserver").Status -eq 'Running')
 RunCommand -cmdToRun "net sessions" 
 RunCommand -cmdToRun "net use" 
 RunCommand -cmdToRun "net accounts" 
-RunCommand -cmdToRun "net statistics workstation"   </Command>
+RunCommand -cmdToRun "net statistics workstation"</Command>
       <Command Type="PS" Team="General" OutputFileName="sym_Process.txt">Get-Process | select Name, FileVersion, Path, ProductVersion | ft -auto -wrap</Command>
       <Command Type="PS" Team="General" OutputFileName="sym_drivers.txt">Get-WmiObject Win32_PnPSignedDriver| select DeviceName, DriverVersion | ft -auto -wrap</Command>
       <Command Type="PS" Team="General" OutputFileName="sym_SysWOW64_sys_Drivers.txt">if (Test-Path $env:windir\syswow64\drivers) {
@@ -856,26 +811,7 @@ if (Test-Path HKLM:\SOFTWARE\Microsoft\MicrosoftIntune\NDESConnector) {
 </Command>
       <Command Type="PS" Team="NDES" OutputFileName="certificate_authority.txt">certutil.exe</Command>
       <Command Type="PS" Team="Configmgr" OutputFileName="NA">#ConfigMgr
-function Get-FilesOlderThan
-    {
-    Param ([int]$days = 2,
-           [string]$path = $pwd
-           )
-
-    $DaysAgo = (Get-Date).AddDays(-($days))
-    $files = @()
-    $files = Get-ChildItem $path | where { $_.CreationTime -gt $DaysAgo }
  
-    # get latest file if none meet our criteria
-    if ((Test-Path $path) -and (-not $files) ) {
-       $newestFile = Get-ChildItem $path |Sort-Object LastAccessTime -Descending | Select-Object -First 1
-       $files += $newestFile
-    }
-
-    $files
-    }
-
-
 if (Test-Path HKLM:\SOFTWARE\Microsoft\CCM\Logging\@Global) {
     $ccmFolder = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\CCM\Logging\@Global).LogDirectory
     $copyPath = "$env:temp\CollectedData\Intune\Files\ConfigMgr"
@@ -883,7 +819,7 @@ if (Test-Path HKLM:\SOFTWARE\Microsoft\CCM\Logging\@Global) {
     if ($ccmFolder) {
 
         if (-not(test-path $copyPath) ) { $x = mkdir $copyPath -Force }
-        $filesToCollect = Get-FilesOlderThan -path $ccmFolder -days 3
+        $filesToCollect = Get-ChildItem -Path $ccmFolder
         foreach ($fileToCollect in $filesToCollect) { copy $fileToCollect.PSPath $copyPath}
   
     }
@@ -891,18 +827,7 @@ if (Test-Path HKLM:\SOFTWARE\Microsoft\CCM\Logging\@Global) {
 else {
     "CCM folder not found.  Exiting."
 }</Command>
-      <Command Type="PS" Team="NDES" OutputFileName="Certificate_templates.txt">function RunCommand {
-   Param ([string]$cmdToRun)
-   
-   echo "`r`n===========================================`r`n`t`t $cmdToRun `r`n===========================================`r`n"
-   try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
-   catch { $error[0].ToString()}
-   
-}
-
-
-
-RunCommand -cmdToRun "certutil -v -template"
+      <Command Type="PS" Team="NDES" OutputFileName="Certificate_templates.txt">RunCommand -cmdToRun "certutil -v -template"
 
 if (Test-Path HKLM:\SOFTWARE\Microsoft\Cryptography\MSCEP\CAInfo) {
     $config = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Cryptography\MSCEP\CAInfo).Configuration
@@ -2679,17 +2604,7 @@ while ( ($elapsed -lt $timeoutInSec) -and $stillRunning ) {
 $outputPath = "$env:temp\CollectedData\Intune\Commands\General"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 move .\MDMDiagReport.* $outputPath</Command>
-      <Command Type="PS" Team="General" OutputFileName="Windows_AV_(WATP)_info.txt">function RunCommand {
-   Param ([string]$cmdToRun)
-   $line = "=" * 120
-   echo "`r`n$line`r`n`t`t $cmdToRun `r`n$line`r`n"
-   try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
-   catch { $error[0].ToString()}
-   
-}
-
-
-RunCommand -cmdToRun "Get-CimInstance -ClassName AntiVirusProduct            -Namespace  ROOT\SecurityCenter2"
+      <Command Type="PS" Team="General" OutputFileName="Windows_AV_(WATP)_info.txt">RunCommand -cmdToRun "Get-CimInstance -ClassName AntiVirusProduct            -Namespace  ROOT\SecurityCenter2"
 RunCommand -cmdToRun "Get-CimInstance -ClassName AntiSpywareProduct          -Namespace  ROOT\SecurityCenter2"
 RunCommand -cmdToRun "Get-CimInstance -ClassName FirewallProduct             -Namespace  ROOT\SecurityCenter2"
 RunCommand -cmdToRun "Get-CimInstance -ClassName MSFT_MpComputerStatus       -Namespace  ROOT\Microsoft\ProtectionManagement"
@@ -3261,111 +3176,154 @@ foreach ($objHistory in $colHistory)
   $o  | fl *
    
 }</Command>
-      <Command Type="PS" Team="Windows Update" OutputFileName="NA"># Windows update debug
-# Attempt to run using local tools first
-$ErrorActionPreference = "Stop"
+      <Command Type="PS" Team="Windows Update" OutputFileName="NA">$ErrorActionPreference = "Stop"
 $Error.Clear()
 $line = "`*" * 120
 
-function WaitOnSchTask {
-    param([string]$taskName, [string]$OutFile = "c:\temp\winupdate_debug.txt" )
 
-    
+function WaitOnSchTask {
+    param([string]$taskName, [string]$OutFile = "$env:SystemRoot\temp\winupdate_debug.txt" )
+     
+    [int]$timer = 0
 
     try {
         $status = (Get-ScheduledTask -TaskName $taskName).State
-            [int]$timer = 0
-    while ( ($status -ne "Ready") -and ($timer -le 90) ) {
-            $status = (Get-ScheduledTask -TaskName $taskName).State
-            $timer += 5
-            sleep 5
-        }
+
+        while ( ($status -ne "Ready") -and ($timer -le 150) ) {
+                $status = (Get-ScheduledTask -TaskName $taskName).State
+                $timer += 5
+                Start-Sleep 5
+            }
     }
     catch [Microsoft.PowerShell.Cmdletization.Cim.CimJobException] {
         "Something went wrong.  Scheduled task not found" | Out-file $OutFile  -Force -Append -Encoding ascii
 
     }
     catch {
-        "Something went wrong." | Out-file $OutFile  -Force -Append -Encoding ascii
-        $Error[0]  | Out-file $OutFile  -Force -Append -Encoding ascii
+        "Something went wrong."                | Out-file $OutFile  -Force -Append -Encoding ascii
+        $Error[0]                              | Out-file $OutFile  -Force -Append -Encoding ascii
         $Error[0].Exception.GetType().fullname | Out-file $OutFile  -Force -Append -Encoding ascii
 
-    }
- 
-
+    } 
 
 }
 
+function Write-PS1File {
+    # write temp file
+    $tempFilePath = Join-Path "$env:SystemRoot\temp"  "winupdatetemp.ps1" 
+    $tempfileContents = @' 
+    param( [string]$OutFile = "$env:SystemRoot\temp\winupdate_debug.txt")
+    [string]$computer =  $env:COMPUTERNAME
+    [string]$namespace = "ROOT\CIMV2\mdm\dmmap"
 
-# write temp file
-$tempFilePath = Join-Path $env:temp  "winupdatetemp.ps1" 
-$tempfileContents = @'
-param( [string]$OutFile = "c:\temp\winupdate_debug.txt")
-[string]$computer = $env:COMPUTERNAME
-[string]$namespace = "ROOT\CIMV2\mdm\dmmap"
+    [string[]]$classnames = @("MDM_DeviceUpdateCenter_Enrollment01", "MDM_Policy_Config01_Update02", "MDM_Policy_Result01_Update02", "MDM_Update", "MDM_Update_ApprovedUpdates01_01", "MDM_Update_FailedUpdates01_01"
+    ,"MDM_Update_InstallableUpdates01_01", "MDM_Update_PendingRebootUpdates01_01", "MDM_Update_Rollback01","MDM_Win32CompatibilityAppraiser_UtcConfigurationDiagnosis02","MDM_Win32CompatibilityAppraiser_UniversalTelemetryClient01")
 
-[string[]]$classnames = @("MDM_DeviceUpdateCenter_Enrollment01", "MDM_Policy_Config01_Update02", "MDM_Policy_Result01_Update02", "MDM_Update", "MDM_Update_ApprovedUpdates01_01", "MDM_Update_FailedUpdates01_01"
-,"MDM_Update_InstallableUpdates01_01", "MDM_Update_PendingRebootUpdates01_01", "MDM_Update_Rollback01")
+    $ErrorActionPreference = "Stop"
+    $Error.Clear()
+    $line = "=" * 120 
 
-$Error.Clear()
-
-$ErrorActionPreference = "Stop"
-
+    # write header
+    $line                                                                                                        | Out-file $OutFile  -Force -Encoding ascii
+    "Policy results from ROOT\CIMV2\mdm\dmmap"                                                                   | Out-file $OutFile  -Force -Append -Encoding ascii
+    "Start time:     $([datetime]::Now) `t`t(Offset: $([System.TimeZoneInfo]::Local.BaseUtcOffset.Hours) hours)" | Out-file $OutFile  -Force -Append -Encoding ascii
+    "Start time UTC: $([datetime]::UtcNow)`r`n"                                                                  | Out-file $OutFile  -Force -Append -Encoding ascii
+    $line                                                                                                        | Out-file $OutFile  -Force -Append -Encoding ascii
     
-foreach ($classname in $classnames) {
+    
+    foreach ($classname in $classnames) {
 
-        try {
+            try {
 
-            "====================================="  | Out-file $OutFile  -Force -Append -Encoding ascii
-            "CLASS    : $classname " | Out-file $OutFile  -Force -Append -Encoding ascii
-            "=====================================" | Out-file $OutFile  -Force -Append -Encoding ascii
+                $line                    | Out-file $OutFile  -Force -Append -Encoding ascii
+                "CLASS    : $classname " | Out-file $OutFile  -Force -Append -Encoding ascii
+                $line                    | Out-file $OutFile  -Force -Append -Encoding ascii
  
-            Get-WmiObject -Class $classname -Namespace $namespace `
-             |Select-Object * -ExcludeProperty PSComputerName, Scope, Path, Options, ClassPath, Properties, SystemProperties, Qualifiers, Site, Container `
-             | Format-List -Property [a-z]* | Out-file $OutFile  -Force -Append -Encoding ascii
-             }
-        catch [System.Management.ManagementException] {
-            # ignore - class not found because it is not populated
-             
-        }
-        catch {
-            $Error[0] 
-            $Error[0].Exception.GetType().fullname | fl * | Out-file $OutFile  -Force -Append -Encoding ascii
-        }
-    }
+                Get-WmiObject -Class $classname -Namespace $namespace `
+                 |Select-Object * -ExcludeProperty PSComputerName, Scope, Path, Options, ClassPath, Properties, SystemProperties, Qualifiers, Site, Container `
+                 | Format-List -Property [a-z]* | Out-file $OutFile  -Force -Append -Encoding ascii
 
+                 # convert time for telem
+                 if ($classname -eq 'MDM_Win32CompatibilityAppraiser_UniversalTelemetryClient01') {
+                    
+                    $timeStamps =  ([xml](Get-WmiObject -Class $classname -Namespace $namespace).UtcConnectionReport).ConnectionReport.ConnectionSummary
+
+            
+                    $startTime =   [datetime]::FromFileTimeUtc($timeStamps.ConnectionSummaryStartingTimestamp)
+                    $endTime =     [datetime]::FromFileTimeUtc($timeStamps.ConnectionSummaryEndingTimestamp)
+                    $lastSuccess = [datetime]::FromFileTimeUtc($timeStamps.TimestampOfLastSuccessfulUpload)
+
+                    "dateConnectionSummaryStartingTimestamp = $startTime"   | Out-file $OutFile  -Force -Append -Encoding ascii
+                    "ConnectionSummaryEndingTimestamp       = $endtime"     | Out-file $OutFile  -Force -Append -Encoding ascii
+                    "TimestampOfLastSuccessfulUpload        = $lastSuccess" | Out-file $OutFile  -Force -Append -Encoding ascii
+                    "`r`n$line"                                             | Out-file $OutFile  -Force -Append -Encoding ascii
+                    }
+                      
+                 }
+            catch [System.Management.ManagementException] {
+                # ignore - class not found because it is not populated
+             
+            }
+            catch {
+                $Error[0] 
+                $Error[0].Exception.GetType().fullname | fl * | Out-file $OutFile  -Force -Append -Encoding ascii
+            }
+    }
 '@
-$tempfileContents | Out-File $tempFilePath -Force
+    $tempfileContents | Out-File $tempFilePath -Force
+}
+
 
 # Launch process as system via scheduled task
  
-$TimeToRun = (Get-Date).AddSeconds(3)
-$taskName = "ODC Windows Update Debug"
-$folderPath = "$env:temp\CollectedData\Intune\Commands\Windows Update"
-$filepath = Join-Path $folderPath  "$($env:COMPUTERNAME)_Windows_Updates_Debug.txt"
+$TimeToRun    = (Get-Date).AddSeconds(5)
+$timeStamp    = (Get-Date).ToString("ddMMyyyyhhmmss")
+$taskName     = "ODC Windows Update Debug - $timeStamp"
+$folderPath   = "$env:temp\CollectedData\Intune\Commands\Windows Update"
+$filepath     = Join-Path $folderPath  "$($env:COMPUTERNAME)_Windows_Updates_Debug.txt"
+$tempFilePath = Join-Path "$env:SystemRoot\temp" "winupdatetemp.ps1"  
+$Trigger      = New-ScheduledTaskTrigger -At $TimeToRun -Once
+$User         = "NT AUTHORITY\SYSTEM"
+$desc         = "Scheduled task created by Intune One Data Collector."
 
 # Create folder if it does not exist for uploader
 if ( -not ( Test-Path $folderPath -ErrorAction SilentlyContinue) ) {
     $nil = mkdir $folderPath -Force
 }
 
+# start log
 $line | Out-File $filepath -Force -Encoding ascii
 "Starting update query using Scheduled Task as SYSTEM`r`n" | Out-File $filepath -Append -Force -Encoding ascii
 $line | Out-File $filepath -Force -Append -Encoding ascii
 
+# create PS1 for system to run
+Write-PS1File
 
+# Register task and execute
+try {
+    $Action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File `"$tempFilePath`" -Nologo -OutFile `"$filepath`"" 
+    $null   = Register-ScheduledTask -TaskName $taskName -Trigger $Trigger -User $User -Action $Action -RunLevel Highest -Description $desc –Force
+    $null   = Start-ScheduledTask -TaskName $taskName
+    }
+catch {
+        "Something went wrong."                | Out-file $filepath  -Force -Append -Encoding ascii
+        $Error[0]                              | Out-file $filepath  -Force -Append -Encoding ascii
+        $Error[0].Exception.GetType().fullname | Out-file $filepath  -Force -Append -Encoding ascii 
+}
 
-$Trigger= New-ScheduledTaskTrigger -At $TimeToRun -Once
-$User= "NT AUTHORITY\SYSTEM"
-$Action= New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File `"$tempFilePath`" -Nologo -OutFile `"$filepath`""  
-$nil = Register-ScheduledTask -TaskName $taskName -Trigger $Trigger -User $User -Action $Action -RunLevel Highest –Force
-$nil = Start-ScheduledTask -TaskName $taskName
-sleep 3
+# wait for task to complete
+sleep 10
 WaitOnSchTask -taskName $taskName -OutFile $filepath
-#cleanup
-$nil = Unregister-ScheduledTask -TaskName $taskName -TaskPath "\" -PassThru -Confirm:$false
-     
 
+#cleanup
+try {
+    $nil = Unregister-ScheduledTask -TaskName $taskName -TaskPath "\" -PassThru -Confirm:$false
+    }
+catch {
+    "***Warning:  Unable to remove scheduled task $taskName.  Please delete this entry from Task Scheduler" | Out-file $filepath  -Force -Append -Encoding ascii
+    $Error[0]                                                                                               | Out-file $filepath  -Force -Append -Encoding ascii
+    $Error[0].Exception.GetType().fullname                                                                  | Out-file $filepath  -Force -Append -Encoding ascii 
+}
 </Command>
       <Command Type="PS" Team="Autopilot" OutputFileName="NA">
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
@@ -3378,66 +3336,36 @@ foreach ($file in $(dir *.etl)) {
 move *.txt $outputPath -Force
 del .\*DiagnosticLogCSP_Collector*.etl
 </Command>
-
-<Command Type="PS" Team="Defender" OutputFileName="DefenderCommands.txt"># AV settings
-function RunCommand {
-   Param ([string]$cmdToRun)
-   
-   echo "`r`n===========================================`r`n`t`t $cmdToRun `r`n===========================================`r`n"
-   try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
-   catch { $error[0].ToString()}
-   
-}
-
-if ($DefenderStatus -eq "Stopped") {
-    Write-Output "Warning:  Defender Service (WinDefend) is not running.  Startup type is $DefenderStartupType. This is expected if 3rd party AV is installed.  Skipping Defender data collection."
-    }
-else {
-    RunCommand Get-MpComputerStatus -Verbose
-    RunCommand Get-MpPreference -Verbose 
-    RunCommand Get-MpThreatDetection 
-    }</Command>
       <Command Type="PS" Team="Windows Update" OutputFileName="FeatureUpdateHolds">reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Appraiser\GWX"</Command>
       <Command Type="PS" Team="General" OutputFileName="Get-DeliveryOptimizationLog">Get-DeliveryOptimizationLog</Command>
       <Command Type="PS" Team="Windows Update" OutputFileName="ServiceManager_services">$ServiceManager = New-Object -ComObject "Microsoft.Update.ServiceManager"
 echo "`$ServiceManager.services| fl *"
 echo $("*" * 60)
 $ServiceManager.services| fl *</Command>
-      <Command Type="PS" Team="General" OutputFileName="CompanyPortal_and_APPX_info.txt">function RunCommand {
-   Param ([string]$cmdToRun)
-   $line = "=" * 120 
-   echo "`r`n$line`r`n`t`t $cmdToRun `r`n$line`r`n"
-   try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
-   catch { $error[0].ToString()}
-   
-}
-
-RunCommand "Get-AppxPackage -AllUser -Name Microsoft.Companyportal"
+      <Command Type="PS" Team="General" OutputFileName="CompanyPortal_and_APPX_info.txt">RunCommand "Get-AppxPackage -AllUser -Name Microsoft.Companyportal"
 RunCommand "Get-AppxPackage -AllUser -Name Microsoft.Companyportal | Get-AppxPackageManifest | fl *"
 RunCommand "Get-AppxPackage -AllUsers | Select-Object Name | Sort-Object -Property Name"
 RunCommand "Get-AppxPackage -AllUsers  | Select-Object -ExpandProperty Dependencies | Sort-Object -Property Name"</Command>
-      <Command Type="PS" Team="Windows Update" OutputFileName="Microsoft Update Health Tools Check.txt">Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | where {$_.DisplayName -eq "Microsoft Update Health Tools"}
+      <Command Type="PS" Team="Windows Update" OutputFileName="Microsoft Update Health Tools Check.txt">$uhs = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | where {$_.DisplayName -eq "Microsoft Update Health Tools"}
 
-
-# get first 3 chars of major.minor version
-[double]$PSMajorMinorVersion =  $PSVersionTable.PSVersion.ToString().Substring(0,3)
-
-if ( $PSMajorMinorVersion -ge 5.1) {
-     Get-Package -AllVersions -name "Microsoft Update Health Tools"
-
-     Get-Package -AllVersions -name "Microsoft Update Health Tools"    | fl *
+if ($null -eq $uhs) {
+	Write-Output "Microsoft Update Health Tools not installed."
 }
 else {
-    Write-Output "PowerShell version $PSMajorMinorVersion is lower than 5.1.  Skipping package check"
+	$uhs
+	# get first 3 chars of major.minor version
+	[double]$PSMajorMinorVersion =  $PSVersionTable.PSVersion.ToString().Substring(0,3)
+
+	if ( $PSMajorMinorVersion -ge 5.1) {
+		 Get-Package -AllVersions -name "Microsoft Update Health Tools"
+
+		 Get-Package -AllVersions -name "Microsoft Update Health Tools"    | fl *
+	}
+	else {
+		Write-Output "PowerShell version $PSMajorMinorVersion is lower than 5.1.  Skipping package check"
+	}
 }</Command>
-      <Command Type="PS" Team="General" OutputFileName="InstalledPrograms_Get-Package.txt">function RunCommand {
-   Param ([string]$cmdToRun)
-   $line = "=" * 120 
-   echo "`r`n$line`r`n`t`t $cmdToRun `r`n$line`r`n"
-   try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
-   catch { $error[0].ToString()}
-   
-}
+  <Command Type="PS" Team="General" OutputFileName="InstalledPrograms_Get-Package.txt">
 
 # get first 3 chars of major.minor version
 [double]$PSMajorMinorVersion =  $PSVersionTable.PSVersion.ToString().Substring(0,3)
@@ -4141,7 +4069,6 @@ $resultBlob | Format-List </Command>
       <File Team="General">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
       <File Team="General">%ProgramData%\microsoft\diagnosticlogcsp\collectors\*</File>
       <File Team="General">%ProgramFiles%\Microsoft Intune\ODJConnector\ODJConnectorUI\*.log</File>
-      <File Team="General">%ProgramFiles%\Microsoft\OnlineManagement\PolicyAgent\ReportCache\3DA21691-E39D-4DA6-8A4B-B43877BCB1B7\*.xml</File>
       <File Team="General">%systemroot%\temp\stdout.log</File>
       <File Team="General">%temp%\supportconsole*.*</File>
       <File Team="General">%windir%\PolicyClient*.log</File>
@@ -4235,7 +4162,6 @@ $resultBlob | Format-List </Command>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_WEPOS_Version">HKEY_LOCAL_MACHINE\Software\Microsoft\WEPOS\Version</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_WindowsNT_CV_TimeZones">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_AssignedAccessConfiguration">HKEY_LOCAL_MACHINE\SOFTWARE\microsoft\windows\assignedaccessconfiguration</Registry>
-      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Assignedaccessconfiguration">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\windows\assignedaccessconfiguration</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Assignedaccesscsp">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\windows\assignedaccesscsp</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_Installer">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_MDM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\MDM</Registry>

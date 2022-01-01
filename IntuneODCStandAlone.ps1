@@ -45,6 +45,75 @@ $ODCversion = "2021.12.4"
 #==================================================================================
 
 #region Functions
+function RunCommand {
+   Param ([string]$cmdToRun)
+   $line = "`r`n" + "=" * 80
+   
+   # [\$\(]*        ignore leading $() syntax
+   # (.+?)          first word in the command. Check to see it exists
+   # ([\s+$].*|$)   cmd line arguments or (for|$) single word command
+   $regsearches = $cmdToRun -match "[\$\(]*(.+?)([\s+$].*|$)"  # to populate $matches
+   if  (Get-Command $matches[1] -ErrorAction SilentlyContinue ) {
+	   Write-Output "`r`n$line`r`n`t`t $cmdToRun $line`r`n"
+	   try   { Invoke-Expression($cmdToRun) -ErrorAction Stop }
+	   catch { $error[0].ToString()}
+   }
+   else {
+        $matches
+		Write-Output "Command $cmdToRun not found"
+   }
+}
+ 
+# get human-readable reg binary ascii output given hex input
+function Convert-RegBinaryToString {
+    param([char[]]$binaryArray = @())
+    $characters = $binaryArray | ForEach-Object { [char][byte]($_)}
+    $characters -join ""
+}
+
+
+# Print registry keys in human-readable format, including binary info
+function Get-PrintableRegKeyValues {
+    param($regKey)
+    $line = "=" * 80
+
+    # support regkey formats other thank HKLM: HKCU: syntax
+    if ($regKey -match "^(HK.+?[^:])\\.+" ) { 
+        # replace HKEY_LOCAL_MACHINE with HKLM:
+        if ($Matches[1] -in $(Get-PSDrive).Root) {
+            $regKey = $regKey -replace $Matches[1], ( $(Get-PSDrive | Where-Object {$_.Root -eq $Matches[1]} ).Name + ":")
+        }
+        # replace HKLM with HKLM:
+        else {
+            $regKey = $regKey -replace $Matches[1], "$($Matches[1]):"     
+            }
+    }
+  
+    $regKeys = @()
+    $regKeys += $(Get-Item $regKey)
+    $regKeys += Get-ChildItem $regKey
+    # add current key to the list
+    
+     
+
+    foreach ($regKey in $regKeys) {
+         Write-Output "$($regKey.Name)`r`n$line`r`n"
+         foreach ($value in $regKey.GetValueNames() ) {
+            $RegValueAndData = "$value = " 
+            if ($regKey.GetValueKind($value) -eq "Binary"){
+                $RegValueAndData += Convert-RegBinaryToString $regKey.GetValue($value)
+            }
+            else {
+                $RegValueAndData +=  $regKey.GetValue($value)
+            }
+            $RegValueAndData
+         } 
+         Write-Output "`r`n"
+    }
+}
+
+
+
  
 function Pop-Message
 {
