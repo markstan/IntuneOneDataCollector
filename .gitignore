@@ -1,3 +1,7 @@
 
 foo.xml
 odc_debug.log
+
+# local dev only
+ComponentScripts/
+nppBackup/

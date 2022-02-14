@@ -36,7 +36,7 @@
 $Global:ResultRootDirectory = [System.IO.Path]::Combine(($env:TEMP), 'CollectedData')
 $CompressedResultFileName = "$($env:COMPUTERNAME)_CollectedData.ZIP"
 [System.Nullable[bool]] $newZipperAvailable = $null # Stores flag whether [System.IO.Compression.ZipFile] can be used.
-$ODCversion = "2021.12.4" 
+$ODCversion = "2022.2.13" 
 
 #endregion
 
@@ -337,34 +337,7 @@ function Update-Progress
     {
         Write-DiagProgress -Activity ("{0}: {1}" -f $PackageID, ($Utils_OneDataCollector_Strings.ProgressActivity_DataCollectionGenericMessage)) -Status ("{0}: {1}" -f $Activity, ([System.IO.Path]::GetFileName($Filename)))
         
-        <#
-        switch($Activity.ToUpperInvariant())
-        {
-            'FILES'
-            {
-                Write-DiagProgress -Activity ($Utils_OneDataCollector_Strings.ProgressActivity_FilesCollection) -Status ("{0} ({1}): {2}" -f $PackageID, $Activity, ([System.IO.Path]::GetFileName($Filename)))
-                break
-            }
-                
-            'REGISTRYKEYS'
-            {
-                Write-DiagProgress -Activity ($Utils_OneDataCollector_Strings.ProgressActivity_RegistryKeysCollection) -Status ("{0} ({1}): {2}" -f $PackageID, $Activity, ([System.IO.Path]::GetFileName($Filename)))
-                break
-            }
-
-            'EVENTLOGS'
-            {
-                Write-DiagProgress -Activity ($Utils_OneDataCollector_Strings.ProgressActivity_EventLogsCollection) -Status ("{0} ({1}): {2}" -f $PackageID, $Activity, ([System.IO.Path]::GetFileName($Filename)))
-                break
-            }
-
-            'COMMANDS'
-            {
-                Write-DiagProgress -Activity ($Utils_OneDataCollector_Strings.ProgressActivity_CommandsCollection) -Status ("{0} ({1}): {2}" -f $PackageID, $Activity, ([System.IO.Path]::GetFileName($Filename)))
-                break
-            }
-        }
-        #>
+        
     }
 }
 

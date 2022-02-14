@@ -3880,13 +3880,43 @@ function Test-AllowWUfBCloudProcessing  {
     # https://docs.microsoft.com/en-us/windows/deployment/update/deployment-service-overview
     # HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\System\AllowWUfBCloudProcessing
 
+
+    
+
 }
 
 function Test-InternetLocationsValue {
-    #HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate]
-    #"DoNotConnectToWindowsUpdateInternetLocations"=dword:00000000
+    # check to see that DoNotConnectToWindowsUpdateInternetLocations is not set to 1
+    #
+    # If DoNotConnectToWindowsUpdateInternetLocations is set to 1, the device will not connect to any Windows Update Internet locations 
+    #
+    # Even when Windows Update is configured to receive updates from an intranet update service, it will periodically retrieve information from the public 
+    # Windows Update service to enable future connections to Windows Update, and other services like Microsoft Update or the Windows Store.
+    #Enabling this policy will disable that functionality, and may cause connection to public services such as the Windows Store to stop working.
+    # Note: This policy applies only when this PC is configured to connect to an intranet update service using the "Specify intranet Microsoft update service location" policy.
+ 
+    $ruleId = "DoNotConnectToWindowsUpdateInternetLocations"
+    $ruleDescription = "If DoNotConnectToWindowsUpdateInternetLocations is set to '1', the device will not search Windows Update."    
+    $result = "Failed"
+  
+ 
+    $DoNotConnectToWindowsUpdateInternetLocations_Policy =         (Get-ItemProperty "Registry::$WU_Policy_Key" -ErrorAction SilentlyContinue).DoNotConnectToWindowsUpdateInternetLocations
+    $DoNotConnectToWindowsUpdateInternetLocations_PolicyManager =  (Get-ItemProperty "Registry::$WU_PolicyManager_Key" -ErrorAction SilentlyContinue).DoNotConnectToWindowsUpdateInternetLocations
+    $DoNotConnectToWindowsUpdateInternetLocations_Windows =        (Get-ItemProperty "Registry::$WU_Windows_Key" -ErrorAction SilentlyContinue).DoNotConnectToWindowsUpdateInternetLocations
+ 
     
-
+    if ( ($DoNotConnectToWindowsUpdateInternetLocations_Policy -eq 1) -or ($DoNotConnectToWindowsUpdateInternetLocations_PolicyManager -eq 1) -or ($DoNotConnectToWindowsUpdateInternetLocations_Windows -eq 1) ) {
+         $result = "Failed"
+         $resultMessage = "DoNotConnectToWindowsUpdateInternetLocations is set to 1. This will cause the device to not search Windows Update. 
+         $WU_Policy_Key =  $DoNotConnectToWindowsUpdateInternetLocations_Policy
+         $WU_PolicyManager_Key = $DoNotConnectToWindowsUpdateInternetLocations_PolicyManager
+         $WU_Windows_Key = $DoNotConnectToWindowsUpdateInternetLocations_Windows"
+    }
+    else {
+         $result = "Passed"
+         $resultMessage = "No DoNotConnectToWindowsUpdateInternetLocations Registry entries found.  Device will use Windows Update."
+    }
+ 
     return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
 }
 
@@ -4121,9 +4151,10 @@ $resultBlob | Format-List </Command>
       <Registry Team="Registry" OutputFileName="REG_CCS_Control_TimeZone">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\TimeZoneInformation</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_Control_Windows_CSDVersion">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Windows\CSDVersion</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_Services_Crypt32">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\crypt32</Registry>
-      <Registry Team="Registry" OutputFileName="REG_CCS_Services_HTTP_Parameters">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\HTTP\Parameters</Registry>
+	  <Registry Team="Registry" OutputFileName="REG_CCS_Services_TPM">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\TPM</Registry>
+      <Registry Team="Registry" OutputFileName="REG_CCS_Services_HTTP">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\HTTP</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_Services_SCPolicySvc">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\SCPolicySvc</Registry>
-      <Registry Team="Registry" OutputFileName="REG_CCS_Services_SharedAccess_Parameters_FirewallPolicy">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy</Registry>
+      <Registry Team="Registry" OutputFileName="REG_CCS_Services_SharedAccess_Parameters_FirewallPolicy">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_WindowsEmbedded_ProductVersion">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WindowsEmbedded\ProductVersion</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_services_CertPropSvc">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\CertPropSvc</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_services_CryptSvc">HKEY_LOCAL_MACHINE\SYSTEM\SYSTEM\CurrentControlSet\services\CryptSvc</Registry>
@@ -4166,6 +4197,7 @@ $resultBlob | Format-List </Command>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_Installer">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_MDM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\MDM</Registry>
 	  <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies</Registry>
+	  <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_StorageSense">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\StorageSense</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_Uninstall">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Defender">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Enrollments">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Enrollments</Registry>
