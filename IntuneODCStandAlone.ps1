@@ -36,7 +36,7 @@
 $Global:ResultRootDirectory = [System.IO.Path]::Combine(($env:TEMP), 'CollectedData')
 $CompressedResultFileName = "$($env:COMPUTERNAME)_CollectedData.ZIP"
 [System.Nullable[bool]] $newZipperAvailable = $null # Stores flag whether [System.IO.Compression.ZipFile] can be used.
-$ODCversion = "2022.2.13" 
+$ODCversion = "2022.4.7" 
 
 #endregion
 
