@@ -600,7 +600,10 @@ RunCommand  "netsh advfirewall show global"
 RunCommand  "Get-NetFirewallProfile"
 RunCommand  "Get-NetFirewallRule"
 RunCommand  "Get-NetFirewallSetting"</Command>
-	  <Command Type="PS" Team="General" OutputFileName="NA">#Gather Defender files
+<Command Type="PS" Team="AV" OutputFileName="Get-MpComputerStatus.txt">
+RunCommand "Get-MpComputerStatus"	  
+</Command>
+<Command Type="PS" Team="General" OutputFileName="NA">#Gather Defender files
 $mpc = "$env:ProgramFiles\Windows Defender\MpCmdRun.exe"
 $outputPath = "$env:temp\CollectedData\Intune\Commands\AV"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force} 
@@ -3379,7 +3382,7 @@ if ( $PSMajorMinorVersion -ge 5.1) {
 else {
     Write-Output "PowerShell version $PSMajorMinorVersion is lower than 5.1.  Skipping package check"
 }</Command>
-<Command Type="PS" Team="Windows Update" OutputFileName="UpdateHealthCheck-experimental.txt">
+<Command Type="PS" Team="Windows Update" OutputFileName="UpdateHealthCheck.txt">
 &lt;#
 
 #PSScriptInfo
@@ -3502,7 +3505,7 @@ function Test-deploymentschedulerConnectivity {
 
     $ConnectivityTestResult =  Test-NetConnection -ComputerName "deploymentscheduler.microsoft.com" -Port 443 -InformationLevel Quiet
     
-    if (  $ConnectivityTestResult.TcpTestSucceeded -ne "Passed" ) {
+    if (   $ConnectivityTestResult -ne $true ) {
         $result = "Warning"
         $resultMessage = "Unable to connect to deploymentscheduler.microsoft.com on TCP port 443.  This may cause Feature Update and Expedited Update policies to fail. This may be intermittent and should be tested manually."
     }
@@ -3522,7 +3525,7 @@ function Test-DevicelistenerprodConnectivity {
 
     $ConnectivityTestResult =  Test-NetConnection -ComputerName "Devicelistenerprod.microsoft.com" -Port 443 -InformationLevel Quiet
     
-    if (  $ConnectivityTestResult.TcpTestSucceeded -ne "Passed" ) {
+    if (  $ConnectivityTestResult -ne $true ) {
         $result = "Warning"
         $resultMessage = "Unable to connect to Devicelistenerprod.microsoft.com on TCP port 443.  This will prevent Feature Update and Expedited Update policies to fail. This may be intermittent and should be tested manually."
     }
