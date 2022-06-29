@@ -29,6 +29,7 @@
  Process-Package
  Compress-CollectedDataAndReport
  Get-PackageFromUserAndProcess
+ Write-Log
 #>
  
 #region Fields
@@ -43,6 +44,73 @@ $ODCversion = "2022.4.7"
 #==================================================================================
 # Functions
 #==================================================================================
+
+function Write-Log {
+   
+    <#
+  .SYNOPSIS
+   Script-wide logging function
+  .DESCRIPTION
+   Writes debug logging statements to script log file
+  .EXAMPLE
+      Write-Log "Entering function"
+      Write log entry with information level
+  
+  .EXAMPLE
+      Write-Log -Level Error -WriteStdOut "Error"
+      Write error to log and also show in PowerShell output
+   
+  .NOTES
+  NAME: Write-Log 
+  
+  Set $global:LogName at the beginning of the script
+  #>
+  
+    [CmdletBinding()]
+    param(
+      [Parameter(ValueFromPipeline = $true)]
+      [ValidateNotNullOrEmpty()]
+      [string]$Message = "",
+  
+      [Parameter()]
+      [ValidateNotNullOrEmpty()]
+      [ValidateSet('Information', 'Warning', 'Error', 'Verbose')]
+      [string]$Level = 'Information',
+        
+      [Parameter()]
+      [switch]$WriteStdOut,
+  
+      [Parameter()]
+      # create log in format 
+      [string]$LogName = $global:LogName
+   
+    )
+  
+    BEGIN {
+      if ( ($null -eq $LogName) -or ($LogName -eq "")) { Write-Error "Please set variable `$global`:LogName." }
+    }
+    PROCESS {
+      # only log verbose if flag is set
+      if ( ($Level -eq "Verbose") -and ( -not ($debugMode) ) ) {
+        # don't log events unless flag is set
+      } else {
+           
+        [pscustomobject]@{
+          Time    = (Get-Date -f u)   
+          Line    = "`[$($MyInvocation.ScriptLineNumber)`]"          
+          Level   = $Level
+          Message = $Message
+              
+        } |  Export-Csv -Path $LogName -Append -Force -NoTypeInformation -Encoding Unicode
+  
+        if (  $WriteStdOut -or ( ($Level -eq "Verbose") -and $debugMode)) { Write-Output $Message }
+      }
+    }
+    END {}
+  }
+  
+
+
 
 #region Functions
 function RunCommand {
