@@ -37,7 +37,7 @@
 $Global:ResultRootDirectory = [System.IO.Path]::Combine(($env:TEMP), 'CollectedData')
 $CompressedResultFileName = "$($env:COMPUTERNAME)_CollectedData.ZIP"
 [System.Nullable[bool]] $newZipperAvailable = $null # Stores flag whether [System.IO.Compression.ZipFile] can be used.
-$ODCversion = "2022.4.7" 
+$ODCversion = "2022.7.1" 
 
 #endregion
 
@@ -139,7 +139,6 @@ function Convert-RegBinaryToString {
     $characters -join ""
 }
 
-
 # Print registry keys in human-readable format, including binary info
 function Get-PrintableRegKeyValues {
     param($regKey)
@@ -179,9 +178,6 @@ function Get-PrintableRegKeyValues {
          Write-Output "`r`n"
     }
 }
-
-
-
  
 function Pop-Message
 {

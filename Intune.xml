@@ -750,11 +750,19 @@ netsh int ipv4 show ipnettomedia
 echo "======= netsh int ipv4 show neighbors ======"
 netsh int ipv4 show neighbors
 
-</Command>
-      <Command Type="PS" Team="Networking" OutputFileName="Connectivity_tests">$uniqueURLs = (dsregcmd /status) | ForEach-Object { if ($_ -match ".*https://(\w+.+?)\/") { $matches[1]} } | Get-Unique
-$uniqueURLs  | ForEach-Object  { Test-NetConnection -Port 443 $_ -ErrorAction SilentlyContinue}
+	</Command>
+	<Command Type="PS" Team="Networking" OutputFileName="Connectivity_tests">$uniqueURLs = (dsregcmd /status) | ForEach-Object { if ($_ -match ".*https://(\w+.+?)\/") { $matches[1]} } | Get-Unique
+	$uniqueURLs  | ForEach-Object  { Test-NetConnection -Port 443 $_ -ErrorAction SilentlyContinue}
 
-</Command>
+	</Command>
+
+	<Command Type="PS" Team="Networking" OutputFileName="DNS_Tests.txt"> 
+	$DNSCommands = @("Get-DnsClient", "Get-DnsClientCache", "Get-DnsClientDohServerAddress", "Get-DnsClientGlobalSetting", "Get-DnsClientNrptGlobal", "Get-DnsClientNrptPolicy", "Get-DnsClientNrptRule", "Get-DnsClientServerAddress" )
+
+	foreach ($DNSCommand in $DNSCommands) {
+		RunCommand $DNSCommand
+	}
+	</Command>
       <Command Type="PS" Team="General" OutputFileName="TimeZoneSettings">w32tm /tz</Command>
       <Command Type="PS" Team="NDES" OutputFileName="NA">#NDES
 function Get-FilesOlderThan
@@ -4042,45 +4050,47 @@ $resultBlob += Test-IsDualScanEnabled
 $resultBlob | Format-List </Command>
  </Commands>	 
     <EventLogs>	
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Security.evtx</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\PFX*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-WindowsUpdateClient*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-Provisioning-*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-NetworkProfile*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-ModernDeployment-*</EventLog>
-	  <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-RemoteHelp*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Application.evtx</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*workplace*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*user*device*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*powershell*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*operations*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*odj*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*ncrypt*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*momlog*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*intune*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*firewall*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*devicemanagement*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*defender*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*bitlocker*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*appx*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*WMI*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*PushNotifications*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*PFX*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*AAD*.evtx</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*-bits-*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-Shell-Core%4Operational.evtx</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-SENSE%4Operational.evtx</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-HelloForBusiness*</EventLog>
-      <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-DeviceSetupManager*</EventLog>
-      <EventLog Team="Event Log">%windir%\System32\winevt\Logs\Microsoft-Windows-TaskScheduler*</EventLog>
-      <EventLog Team="Event Log">%windir%\System32\Winevt\Logs\*odj*</EventLog>
-      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-PushNotification-Platform*</EventLog>
-      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-Authentication User Interface%4Operational.evtx</EventLog>
-      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-AssignedAccess*.evtx</EventLog>
-      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-AppLocker*.evtx</EventLog>
-	  <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-TaskScheduler*</EventLog>
 	  <EventLog Team="Event Log">%windir%\system32\winevt\logs\*TWinUI*</EventLog>
+	  <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-Kernel-Boot%4Operational.evtx</EventLog>
+	  <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-RemoteHelp*</EventLog>
+	  <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-TaskScheduler*</EventLog>
+      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-AppLocker*.evtx</EventLog>
+      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-AssignedAccess*.evtx</EventLog>
+      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-Authentication User Interface%4Operational.evtx</EventLog>
+      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-PushNotification-Platform*</EventLog>
+      <EventLog Team="Event Log">%windir%\System32\Winevt\Logs\*odj*</EventLog>
+      <EventLog Team="Event Log">%windir%\System32\winevt\Logs\Microsoft-Windows-TaskScheduler*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-DeviceSetupManager*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-HelloForBusiness*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-SENSE%4Operational.evtx</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\Winevt\Logs\Microsoft-Windows-Shell-Core%4Operational.evtx</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*-bits-*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*AAD*.evtx</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*PFX*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*PushNotifications*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*WMI*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*appx*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*bitlocker*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*defender*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*devicemanagement*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*firewall*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*intune*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*momlog*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*ncrypt*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*odj*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*operations*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*powershell*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*user*device*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\*workplace*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Application.evtx</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-ModernDeployment-*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-NetworkProfile*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-Provisioning-*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Microsoft-Windows-WindowsUpdateClient*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\PFX*</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\Security.evtx</EventLog>
+      <EventLog Team="Event Log">%windir%\system32\winevt\logs\System.evtx</EventLog>
+	  
     </EventLogs>
    <Files>      
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\AgentData\Logs\*</File>
@@ -4148,6 +4158,8 @@ $resultBlob | Format-List </Command>
     </Files>
 	
 <Registries>
+
+
       <Registry Team="Registry" OutputFileName="REG_SW_Wow6432Node_MicrosoftAntimalware">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies</Registry>	  
       <Registry Team="Registry" OutputFileName="REG_SW_Policies">HKEY_LOCAL_MACHINE\Software\Policies</Registry> 
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Installer">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18</Registry>
@@ -4188,10 +4200,10 @@ $resultBlob | Format-List </Command>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_BitLockerCsp">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\BitLockerCsp</Registry>
       <Registry Team="Registry" OutputFileName="REG_HKCU_Software_Microsoft_Windows_CurrentVersion_Uninstall">HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
       <Registry Team="Registry" OutputFileName="REG_HKCU_Software_Microsoft_SCEP">HKEY_CURRENT_USER\Software\Microsoft\SCEP</Registry>
-      <Registry Team="Registry" OutputFileName="REG_CCS_services_SCardSvr">HKEY_LOCAL_MACHINE\HKLM\SYSTEM\CurrentControlSet\services\SCardSvr</Registry>
-      <Registry Team="Registry" OutputFileName="REG_CCS_services_CryptSvc">HKEY_LOCAL_MACHINE\SYSTEM\SYSTEM\CurrentControlSet\services\CryptSvc</Registry>
-      <Registry Team="Registry" OutputFileName="REG_CCS_services_CertPropSvc">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\CertPropSvc</Registry>
-      <Registry Team="Registry" OutputFileName="REG_CCS_WindowsEmbedded_ProductVersion">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WindowsEmbedded\ProductVersion</Registry>
+      <Registry Team="Registry" OutputFileName="REG_CCS_Services_SCardSvr">HKEY_LOCAL_MACHINE\HKLM\SYSTEM\CurrentControlSet\services\SCardSvr</Registry>
+      <Registry Team="Registry" OutputFileName="REG_CCS_Services_CryptSvc">HKEY_LOCAL_MACHINE\SYSTEM\SYSTEM\CurrentControlSet\services\CryptSvc</Registry>
+      <Registry Team="Registry" OutputFileName="REG_CCS_Services_CertPropSvc">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\CertPropSvc</Registry>
+      <Registry Team="Registry" OutputFileName="REG_CCS_WindowsEmbedded_ProductVersion">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WindowsEmbedded\ProductVersion</Registry>	  
       <Registry Team="Registry" OutputFileName="REG_CCS_Services_SharedAccess_Parameters_FirewallPolicy">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_Services_SCPolicySvc">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\SCPolicySvc</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_Services_HTTP">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\HTTP</Registry>
@@ -4200,13 +4212,19 @@ $resultBlob | Format-List </Command>
       <Registry Team="Registry" OutputFileName="REG_CCS_Control_TimeZone">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\TimeZoneInformation</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_Control_ProductOptions_ProductSuite">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\ProductOptions\ProductSuite</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_Control_CloudDomainJoin">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\CloudDomainJoin</Registry>
+	  <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate</Registry>
 	  <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_StorageSense">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\StorageSense</Registry>
 	  <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_CV_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies</Registry>
 	  <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Autopilot">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Autopilot</Registry> 
 	  <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_SQMClient">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SQMClient</Registry>
+	  <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_MDMWins">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MDMWins</Registry>
 	  <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_CloudManagedUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CloudManagedUpdate</Registry>
 	  <Registry Team="Registry" OutputFileName="REG_CCS_Services_TPM">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\TPM</Registry>
-	  <Registry Team="Registry" OutputFileName="REG_CCS_Control_Session-Manager">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager</Registry>   
+	  <Registry Team="Registry" OutputFileName="REG_CCS_Control_Session-Manager">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager</Registry>  
+
+      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Policies_Microsoft_Windows_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate</Registry>	  
+      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_PolicyManager_Current_Device_Update">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\current\device\Update</Registry> <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_CloudManagedUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CloudManagedUpdate</Registry>	  
+	  <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_Windows_CV_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate</Registry>
     </Registries>
   </Package>
 </DataPoints>
