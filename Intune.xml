@@ -3350,7 +3350,7 @@ del .\*DiagnosticLogCSP_Collector*.etl
       <Command Type="PS" Team="Windows Update" OutputFileName="FeatureUpdateHolds">reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Appraiser\GWX"</Command>
       <Command Type="PS" Team="General" OutputFileName="Get-DeliveryOptimizationLog">Get-DeliveryOptimizationLog</Command>
       <Command Type="PS" Team="Windows Update" OutputFileName="ServiceManager_services">$ServiceManager = New-Object -ComObject "Microsoft.Update.ServiceManager"
-echo "`$ServiceManager.services| fl *"
+echo "`$ServiceManager = New-Object -ComObject Microsoft.Update.ServiceManager;`$ServiceManager.services| fl *"
 echo $("*" * 60)
 $ServiceManager.services| fl *</Command>
       <Command Type="PS" Team="General" OutputFileName="CompanyPortal_and_APPX_info.txt">RunCommand "Get-AppxPackage -AllUser -Name Microsoft.Companyportal"
@@ -4202,6 +4202,7 @@ $resultBlob | Format-List </Command>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_BitLockerCsp">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\BitLockerCsp</Registry>
       <Registry Team="Registry" OutputFileName="REG_HKCU_Software_Microsoft_Windows_CurrentVersion_Uninstall">HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
       <Registry Team="Registry" OutputFileName="REG_HKCU_Software_Microsoft_SCEP">HKEY_CURRENT_USER\Software\Microsoft\SCEP</Registry>
+	  <Registry Team="Registry" OutputFileName="REG_HKCU_Volatile_Environment">HKEY_CURRENT_USER\Volatile Environment</Registry>	  
       <Registry Team="Registry" OutputFileName="REG_CCS_Services_SCardSvr">HKEY_LOCAL_MACHINE\HKLM\SYSTEM\CurrentControlSet\services\SCardSvr</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_Services_CryptSvc">HKEY_LOCAL_MACHINE\SYSTEM\SYSTEM\CurrentControlSet\services\CryptSvc</Registry>
       <Registry Team="Registry" OutputFileName="REG_CCS_Services_CertPropSvc">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\CertPropSvc</Registry>

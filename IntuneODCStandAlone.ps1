@@ -35,9 +35,10 @@
 #region Fields
 
 $Global:ResultRootDirectory = [System.IO.Path]::Combine(($env:TEMP), 'CollectedData')
-$CompressedResultFileName = "$($env:COMPUTERNAME)_CollectedData.ZIP"
+$fileTime =   Get-Date ([datetime]::UtcNow) -UFormat "%m_%d_%Y_%H_%m_UTC%Z"
+$CompressedResultFileName = "$($env:COMPUTERNAME)_CollectedData_$fileTime.ZIP"
 [System.Nullable[bool]] $newZipperAvailable = $null # Stores flag whether [System.IO.Compression.ZipFile] can be used.
-$ODCversion = "2022.7.1" 
+$ODCversion = "2022.9.15" 
 
 #endregion
 
@@ -1776,7 +1777,7 @@ $package = get-packages -Filename $xmlPath
 Write-DiagProgress "Loading $($package.ValidPackages[0].ID)"
 Process-Package -Package $package.ValidPackages[0]
 Compress-CollectedDataAndReport
-if (Test-Path -Path . -Filter ".*CollectedData.zip") {
+if (Test-Path -Path . -Filter ".*CollectedData.*.zip") {
     Remove-Item -Path .\CollectedData -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item -Path .\*.evtx -Force -ErrorAction SilentlyContinue
 }
