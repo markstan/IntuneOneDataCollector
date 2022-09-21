@@ -3540,6 +3540,43 @@ $ServiceManager.services| fl *</Command>
 RunCommand "Get-AppxPackage -AllUser -Name Microsoft.Companyportal | Get-AppxPackageManifest | fl *"
 RunCommand "Get-AppxPackage -AllUsers | Select-Object Name | Sort-Object -Property Name"
 RunCommand "Get-AppxPackage -AllUsers  | Select-Object -ExpandProperty Dependencies | Sort-Object -Property Name"</Command>
+
+
+	<Command Type="PS" Team="MSI Logs" OutputFileName="NA">
+	# Look for possible MSIlogs in windows\temp
+	$ErrorActionPreference = "Stop"
+	$copyPath = "$env:temp\CollectedData\Intune\Files\MSI Logs"
+	if (-not(test-path $copyPath) ) { $x = mkdir $copyPath -Force } 
+
+	$possibleMSILogs = @()
+	$possibleMSILogs = Get-ChildItem  -Path   "$env:SystemRoot\temp\*.log"  -Recurse   -ErrorAction SilentlyContinue
+	$possibleMSILogs += Get-ChildItem  -Path  "$env:temp\*.log" -ErrorAction SilentlyContinue
+ 
+	foreach ($possibleMSILog in $possibleMSILogs) {
+
+		if (Get-ChildItem $possibleMSILog | Select-String -Pattern "\.msi" -ErrorAction SilentlyContinue) {
+			try { Copy-Item "$possibleMSILog" $copyPath -Force }
+			catch { "Error copying $possibleMSILog`:" | Write-Log -Level Error
+					$Error | Write-Log -Level Error
+		
+					try {
+						$tempname = "$(Get-Random -Minimum 10000 -Maximum 20000)" + "_" +  "$possibleMSILog"
+						Copy-Item $possibleMSILog "$copyPath\$tempname"  -Force    
+					}
+					catch {
+						"Unable to copy renamed file $possibleMSILog.  Skipping."  | Write-Log -Level Error
+						continue
+					}
+				}
+			}
+ 
+		}
+     
+	
+	</Command>
+
+
+
       <Command Type="PS" Team="Windows Update" OutputFileName="Microsoft Update Health Tools Check.txt">$uhs = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | where {$_.DisplayName -eq "Microsoft Update Health Tools"}
 
 if ($null -eq $uhs) {
@@ -4301,76 +4338,80 @@ $resultBlob | Format-List </Command>
       <EventLog Team="Event Log">%SystemRoot%\system32\winevt\logs\PFX*</EventLog>
       <EventLog Team="Event Log">%SystemRoot%\system32\winevt\logs\Security.evtx</EventLog>
       <EventLog Team="Event Log">%SystemRoot%\system32\winevt\logs\System.evtx</EventLog>
+	  <EventLog Team="Event Log">%SystemRoot%\system32\winevt\logs\Setup.evtx</EventLog>
 	  
     </EventLogs>
    <Files>      
-      <File Team="Advisor">%ProgramFiles%\System Center Advisor\AgentData\Logs\*</File>
+	  <File Team="Windows Update">%ProgramFiles%\Microsoft Update Health Tools\Logs</File>
+	  <File Team="Windows Update">%SystemRoot%\Logs\DISM</File>	  
+      <File Team="Windows Update\System">%ProgramData%\USOShared\Logs\System</File> 
+      <File Team="Windows Update\User">%ProgramData%\USOShared\Logs\User</File>  
+	  <File Team="Windows Update\DownloadedSettings">%ProgramData%\Microsoft\Diagnosis\DownloadedSettings</File>  
+	  <File Team="Windows Update\MoSetup">%SystemRoot%\logs\MoSetup</File>
+	  <File Team="Windows Update\WaaS">%SystemRoot%\logs\WaaS</File>
+	  <File Team="Windows Update\waasmediccapsule">%SystemRoot%\logs\waasmediccapsule</File>
+	  <File Team="Windows Update\waasmedic">%SystemRoot%\logs\waasmedic</File>
+	  <File Team="Advisor">%ProgramFiles%\System Center Advisor\AgentData\Logs\*</File>
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\GatewayData\Logs\*.*</File>
       <File Team="Antimalware">%ALLUSERSPROFILE%\Microsoft\Microsoft Antimalware\Support\*.cab</File>
       <File Team="Antimalware">%ProgramData%\Microsoft\Microsoft Antimalware\Support\*.cab</File>
       <File Team="Antimalware">%ProgramFiles%\Microsoft Antimalware\Support\*.*</File>
+      <File Team="Autopilot">%SystemRoot%\Provisioning\AutoPilot\AutoPilotConfigurationFile.json</File>
       <File Team="Autopilot">%systemroot%\ServiceState\Autopilot\*.json</File>
-      <File Team="Autopilot">%windir%\Provisioning\AutoPilot\AutoPilotConfigurationFile.json</File>
       <File Team="BitLocker">%SystemRoot%\Logs\MeasuredBoot\*.log</File>
       <File Team="CBS">%systemroot%\Logs\CBS\*.log</File>
-      <File Team="CompanyPortalLogs">%localappdata%\Packages\Microsoft.CompanyPortal_8wekyb3d8bbwe\LocalState\*.*</File>
+      <File Team="CompanyPortalLogs">%localappdata%\Packages\Microsoft.CompanyPortal_8wekyb3d8bbwe\LocalState</File>
       <File Team="Configmgr">%SMS_LOG_PATH%\*.*</File>
       <File Team="Configmgr\CCMSetup_logs">%systemroot%\ccmsetup\Logs\*</File>
       <File Team="DirSync">%ProgramFiles%\Microsoft Online Directory Sync\*.log</File>
       <File Team="Exchange Connector">%ProgramData%\Microsoft\Windows Intune Exchange Connector\*.*</File>
       <File Team="Exchange Connector">%ProgramData%\Microsoft\Windows Intune Exchange Connector\Logs\*.*</File>
       <File Team="General">%LOCALAPPDATA%\Temp\*.log</File>
-      <File Team="General">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
       <File Team="General">%ProgramData%\microsoft\diagnosticlogcsp\collectors\*</File>
+      <File Team="General">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
       <File Team="General">%ProgramFiles%\Microsoft Intune\ODJConnector\ODJConnectorUI\*.log</File>
+      <File Team="General">%SystemRoot%\PolicyClient*.log</File>
+      <File Team="General">%SystemRoot%\SoftwareDistribution\ReportingEvents*.log</File>
       <File Team="General">%systemroot%\temp\stdout.log</File>
       <File Team="General">%temp%\supportconsole*.*</File>
-      <File Team="General">%windir%\PolicyClient*.log</File>
-      <File Team="General">%windir%\SoftwareDistribution\ReportingEvents*.log</File>
-      <File Team="Homegroup">%windir%\Logs\HomeGroup\*.*</File>
+      <File Team="Homegroup">%SystemRoot%\Logs\HomeGroup\*.*</File>
       <File Team="Intune">%LOCALAPPDATA%\Microsoft\OnlineManagement\Logs\clientui.log</File>
       <File Team="Intune">%LOCALAPPDATA%\Microsoft\Windows\clientui.log</File>
+      <File Team="Intune">%ProgramFiles%\microsoft policy platform\policyplatformclient*.log</File>
       <File Team="Intune">%ProgramFiles%\Microsoft\OnlineManagement\Logs\*.log</File>
       <File Team="Intune">%ProgramFiles%\Microsoft\OnlineManagement\PolicyAgent\InventoryCache\3DA21691-E39D-4DA6-8A4B-B43877BCB1B7\*.xml</File>
       <File Team="Intune">%ProgramFiles%\Microsoft\OnlineManagement\PolicyAgent\ReportCache\3DA21691-E39D-4DA6-8A4B-B43877BCB1B7\*.xml</File>
-      <File Team="Intune">%ProgramFiles%\microsoft policy platform\policyplatformclient*.log</File>
+      <File Team="Intune">%public%\Documents\MDMDiagnostics\*</File>
+      <File Team="Intune">%SystemRoot%\scoconnector.etl</File>
       <File Team="Intune">%TEMP%\clientui.log</File>
       <File Team="Intune">%Temp%\SoftwarePublishing\*.log</File>
-      <File Team="Intune">%public%\Documents\MDMDiagnostics\*</File>
-      <File Team="Intune">%windir%\scoconnector.etl</File>
       <File Team="LegacyPCClient">%ProgramFiles%\Microsoft\OnlineManagement\Logs\*</File>
       <File Team="LegacyPCClient">%ProgramFiles%\Microsoft\OnlineManagement\Updates\ReportingEvents.log</File>
+      <File Team="MSI Logs">%SystemRoot%\temp\*MSI*.log</File>
       <File Team="MSI Logs">%temp%\*MSI*.log</File>
-      <File Team="MSI Logs">%windir%\temp\*MSI*.log</File>
       <File Team="NDES">%ProgramFiles%\Microsoft Configuration Manager\logs\ndes*</File>
-      <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorSvc\NDESConnector.exe.config</File>
       <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorSvc\logs\logs\*</File>
+      <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorSvc\NDESConnector.exe.config</File>
       <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorUI\Logs\*</File>
       <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorUI\NDESConnectorUI.log</File>
       <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESPolicyModule\Logs\NDESPlugin.log</File>
-      <File Team="NDES">C:\NDESConnectorSetup\*.log</File>
       <File Team="NDES">C:\inetpub\logs\LogFiles\W3SVC1\u_ex*.log </File>
-      <File Team="OpsMgr">%windir%\Temp\OpsMgrTrace\*.*</File>
-	  <File Team="Panther">%windir%\Panther</File>
+      <File Team="NDES">C:\NDESConnectorSetup\*.log</File>
+      <File Team="OpsMgr">%SystemRoot%\Temp\OpsMgrTrace\*.*</File>
+	  <File Team="Panther">%SystemRoot%\Panther</File>
       <File Team="Sidecar">%LocalAppData%\mdm\*.log</File>
       <File Team="Sidecar">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
       <File Team="Sidecar">%systemroot%\system32\config\systemprofile\AppData\Local\mdm\*.log</File>
       <File Team="Teams">%AppData%\Microsoft\Teams\*.txt</File>
-      <File Team="Teams">%LocalAppData%\Microsoft\Teams\SquirrelSetup.log</File>
       <File Team="Teams">%LocalAppData%\Microsoft\Teams\current\SquirrelSetup.log</File>
+      <File Team="Teams">%LocalAppData%\Microsoft\Teams\SquirrelSetup.log</File>
       <File Team="Teams">%LocalAppData%\SquirrelTemp\*</File>
-      <File Team="WMI">%windir%\system32\wbem\logs\*.*</File>
-      <File Team="WMI">%windir%\system32\wbem\tmf\*.*</File>
-	  <File Team="Windows Update">%ProgramFiles%\Microsoft Update Health Tools\Logs</File>
-      <File Team="Windows Update\System">%ProgramData%\USOShared\Logs\System</File> 
-      <File Team="Windows Update\User">%ProgramData%\USOShared\Logs\User</File>  
-	  <File Team="Windows Update\DownloadedSettings">%ProgramData%\Microsoft\Diagnosis\DownloadedSettings</File>  
-	 
+      <File Team="WMI">%SystemRoot%\system32\wbem\logs\*.*</File>
+      <File Team="WMI">%SystemRoot%\system32\wbem\tmf\*.*</File>  
     </Files>
 	
 <Registries>
-
-
+ 
       <Registry Team="Registry" OutputFileName="REG_SW_Wow6432Node_MicrosoftAntimalware">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies</Registry>	  
       <Registry Team="Registry" OutputFileName="REG_SW_Policies">HKEY_LOCAL_MACHINE\Software\Policies</Registry> 
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Windows_Installer">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18</Registry>
