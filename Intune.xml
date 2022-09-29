@@ -13,17 +13,52 @@ RunCommand "whoami /upn"
 RunCommand "whoami /all"
 RunCommand "whoami /logonid"
 RunCommand "whoami /fqdn"</Command>
-      <Command Type="PS" Team="General" OutputFileName="NA"># dsregcmd_debug
-# Attempt to run using local tools first
+      <Command Type="PS" Team="General" OutputFileName="NA">  
+	# dsregcmd_debug.  Must be ran as system
     $ErrorActionPreference = "Stop"
     $Error.Clear()
     $line = "`*" * 120
+ 
+function WaitOnSchTask {
+    param([string]$taskName, [string]$OutFile = "$env:SystemRoot\temp\dsregcmd_debug.txt" )
+     
+    [int]$timer = 0
 
-try {
+    try {
+        "waiting on $taskName to complete"  | Out-file $OutFile  -Force -Append -Encoding ascii
+        $status = (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue).State
+
+        while ( ($status -ne "Ready") -and ($timer -le 150) ) {
+                "status: $status.  waiting on $taskName to complete"  | Out-file $OutFile  -Force -Append -Encoding ascii
+                $status = (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue).State
+                $timer += 5
+                Start-Sleep 5
+            }
+    }
+    catch [Microsoft.PowerShell.Cmdletization.Cim.CimJobException] {
+        "Something went wrong.  Scheduled task not found" | Out-file $OutFile  -Force -Append -Encoding ascii
+
+    }
+    catch {
+        "Something went wrong."                | Out-file $OutFile  -Force -Append -Encoding ascii
+        $Error[0]                              | Out-file $OutFile  -Force -Append -Encoding ascii
+        $Error[0].Exception.GetType().fullname | Out-file $OutFile  -Force -Append -Encoding ascii
+
+    } 
+
+}
+
+
     $TimeToRun = (Get-Date ).AddSeconds(3)
-    $taskName = "dsregcmd debug"
+    
     $folderPath = "$env:temp\CollectedData\Intune\Commands\General"
     $filepath = Join-Path $folderPath  "$($env:COMPUTERNAME)_dsregcmd_debug.txt"
+ 
+    $timeStamp    = (Get-Date).ToString("ddMMyyyyhhmmss")
+    $taskName     = "ODC DsregCmd Debug - $timeStamp"
+    $Trigger      = New-ScheduledTaskTrigger -At $TimeToRun -Once
+    $User         = "NT AUTHORITY\SYSTEM"
+    $desc         = "Scheduled task created by Intune One Data Collector."
 
     # Create folder if it does not exist for uploader
     if ( -not ( Test-Path $folderPath -ErrorAction SilentlyContinue) ) {
@@ -35,71 +70,43 @@ try {
     $line | Out-File $filepath -Force -Append -Encoding ascii
 
 
-
-    $Trigger= New-ScheduledTaskTrigger -At $TimeToRun -Once
-    $User= "NT AUTHORITY\SYSTEM"
+try {     
     $Action= New-ScheduledTaskAction -Execute "cmd.exe" -Argument "/c dsregcmd /debug &gt;&gt; $filepath"
     $nil = Register-ScheduledTask -TaskName $taskName -Trigger $Trigger -User $User -Action $Action -RunLevel Highest –Force
     $nil = Start-ScheduledTask -TaskName $taskName
-    sleep 5
-    #cleanup
-    $nil = Unregister-ScheduledTask -TaskName $taskName -TaskPath "\" -PassThru -Confirm:$false
-    }
-
-# second chance - we'll attempt to download PSExec
-
-catch {
-
-    "$line"                                                       | Out-File $filepath -Append -Force -Encoding ascii
-    "`r`n" * 3                                                    | Out-File $filepath -Append -Force -Encoding ascii
-    "Scheduled Task failed, trying to download PSExec.`r`n$error" | Out-File $filepath -Append -Force -Encoding ascii
-    "`r`n" * 3                                                    | Out-File $filepath -Append -Force -Encoding ascii
-    "$line"                                                       | Out-File $filepath -Append -Force -Encoding ascii
-
-    [string]$downloadLocation = "https://live.sysinternals.com/psexec.exe"
-    [string]$psexec = ""
-    $myproxy = "No proxy (direct connection)"
-    if ( Get-Command psexec.exe -ErrorAction SilentlyContinue ) {
-        $psexec = $(Get-Command psexec.exe).Source
-    }
-    elseif (Get-Item ".\psexec.exe" -ErrorAction SilentlyContinue) {
-       $psexec = Join-Path $pwd psexec.exe  
-    }
-    else {
-        try {
-            if ( [System.Net.WebProxy]::GetDefaultProxy().Address -eq $null ) {
-                Invoke-WebRequest -Uri $downLoadLocation -OutFile .\psexec.exe
-                }
-            else {
     
-                $myproxy = ([System.Net.WebProxy]::GetDefaultProxy().Address.AbsoluteURI)    
-                Invoke-WebRequest -Uri $downLoadLocation -OutFile .\psexec.exe -Proxy $myproxy
-            }
-            $psexec = Join-Path $pwd psexec.exe
-            }
-        catch {
-            "One Data Collector was unable to download psexec.exe from $downLoadLocation (proxy settings: $myproxy.  Please download PSExec manually to run dsregcmd /debug."| Out-File $filepath -Append -Force
-            $err| Out-File $filepath -Append -Force
-        }
+     # wait for task to complete
+    sleep 10
+    WaitOnSchTask -taskName $taskName -OutFile $filepath
+    #cleanup
+    $nil = Unregister-ScheduledTask -TaskName $taskName -TaskPath "\" -PassThru -Confirm:$false -ErrorAction SilentlyContinue
     }
-    try {
-        
-        &amp; "$psexec" -nobanner -accepteula -s -e  dsregcmd /debug | Out-File $filepath -Append -Force -Encoding ascii
-
-        }
-    catch [System.Management.Automation.RemoteException] {
-        # expected, do nothing
-        "." * 120 | Out-File $filepath -Append -Force -Encoding ascii
-    }
-    catch {
-        "`r`n" * 3                                        | Out-File $filepath -Append -Force -Encoding ascii
-        "$line"                                           | Out-File $filepath -Append -Force -Encoding ascii
-        "An error occured running psexec.`r`n $error"     | Out-File $filepath -Append -Force -Encoding ascii
-        "*" * 120                                         | Out-File $filepath -Append -Force -Encoding ascii
-    } 
+catch {
+        "Something went wrong."                | Out-file $filepath  -Force -Append -Encoding ascii
+        $Error[0]                              | Out-file $filepath  -Force -Append -Encoding ascii
+        $Error[0].Exception.GetType().fullname | Out-file $filepath  -Force -Append -Encoding ascii 
 }
+
+
+#cleanup
+try {
+    
+    foreach ($taskName in $(( Get-ScheduledTask  -TaskPath "\" | Where-Object {$_.TaskName -match "ODC Windows Update Debug" }).TaskName) ){
+        "Unregistering $taskName" | Out-file $filepath  -Force -Append -Encoding ascii
+        $nil = Unregister-ScheduledTask -TaskName "$taskName" -TaskPath "\" -PassThru -Confirm:$false
+    }
+    Get-ScheduledTask  -TaskPath "\" | Where-Object {$_.TaskName -match "ODC DsregCmd Debug" } | Out-file $filepath  -Force -Append -Encoding ascii
+
+    }
+catch {
+    "***Warning:  Unable to remove scheduled task $taskName.  Please delete this entry from Task Scheduler" | Out-file $filepath  -Force -Append -Encoding ascii
+    $Error[0]                                                                                               | Out-file $filepath  -Force -Append -Encoding ascii
+    $Error[0].Exception.GetType().fullname                                                                  | Out-file $filepath  -Force -Append -Encoding ascii 
+}
+
 </Command>
-      <Command Type="PS" Team="General" OutputFileName="BasicSystemInfo.txt">Function GetAgeDescription($TimeSpan, [switch] $Localized) {
+      <Command Type="PS" Team="General" OutputFileName="BasicSystemInfo.txt">
+	  Function GetAgeDescription($TimeSpan, [switch] $Localized) {
  $Age = $TimeSpan
 
  if ($Age.Days -gt 0) 
@@ -404,7 +411,10 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
  
  # https://en.wikipedia.org/wiki/Windows_10_version_history
  $versions = @{
- "22000" =   "Win11RTM"
+ "22622" =   "Win11 22H2"
+ "22621" =   "Win11 22H2"
+ "22000" =   "Win11 21H2"
+ "19045" =   "22H2"
  "19044" =   "21H2"
  "19043" =   "21H1"
  "19042" =   "20H2"
@@ -421,8 +431,11 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
  }
 
  $marketingNames = @{
- "22000" =   "Win11RTM"
- "19044" =   "Beta"
+ "22622" =   "Win11 2022 Update"
+ "22621" =   "Win11 2022 Update"
+ "22000" =   "Win11 RTM"
+ "19045" =   "Oct 2022 Update"
+ "19044" =   "Nov 2021 Update"
  "19043" =   "May 2021 Update"
  "19042" =   "October 2020 Update"
  "19041" =   "May 2020 Update"
@@ -439,7 +452,10 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
 
 
   $codeNames = @{
- "22000" =   "Win11RTM"
+ "22622" =   "Win11 22H2"
+ "22621" =   "Win11 22H2"
+ "22000" =   "Win11 21H2"
+ "19045" =   "22H2"
  "19044" =   "21H2"
  "19043" =   "21H1"
  "19042" =   "20H2"
@@ -491,7 +507,10 @@ if (test-path $Policies) {
 
 
 # Sort so we always get the most current in case there are orphaned certs
-$cert = (dir Cert:\LocalMachine\My\ | where { $_.Issuer -match "CN=MS-Organization-Access" } | Sort-Object -Property NotBefore -Descending)[0]
+$cert = (dir Cert:\LocalMachine\My\ | where { $_.Issuer -match "CN=MS-Organization-Access" } )
+if ($cert.count -gt 0) {
+  $cert = ($cert | Sort-Object -Property NotBefore -Descending)[0]
+  }
 
 # use to find registry path
 $thumbPrint = $cert.Thumbprint
@@ -534,8 +553,14 @@ else {
     "Azure AD status:      Not registered/joined or unknown"
 }
 
-$accountID =    (Get-ItemProperty  -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\MDM).AccountId
-$enrollmentID = (Get-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Provisioning\OMADM\Logger).CurrentEnrollmentId
+$accountID = ""
+$enrollmentID = ""
+if (Test-Path  HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\MDM) {
+    $accountID =    (Get-ItemProperty  -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\MDM).AccountId
+    }
+if (Test-Path HKLM:\SOFTWARE\Microsoft\Provisioning\OMADM\Logger ) {
+    $enrollmentID = (Get-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Provisioning\OMADM\Logger).CurrentEnrollmentId
+    }
 
 if (Test-Path  HKLM:SOFTWARE\Microsoft\Enrollments\$enrollmentID) {
     $enrollmentKey = Get-ItemProperty "HKLM:SOFTWARE\Microsoft\Enrollments\$enrollmentID"
@@ -558,8 +583,11 @@ if ($contextID) {      "Context ID:           $contextID"}
 $CS_Summary | Format-List 
 systeminfo.exe
 "BIOS Information"
-Get-WmiObject  -Class Win32_BIOS </Command>
-      <Command Type="CMD" Team="General" OutputFileName="Installed_Products.txt">wmic product list brief </Command>
+Get-WmiObject  -Class Win32_BIOS  
+   
+Get-ComputerInfo
+ </Command>
+	  <Command Type="CMD" Team="General" OutputFileName="Installed_Products.txt">wmic product list brief </Command>
       <Command Type="CMD" Team="General" OutputFileName="proxy_settings.txt">netsh winhttp show proxy</Command>
       <Command Type="PS" Team="General" OutputFileName="Bitlocker_and_TPM">RunCommand "tpmtool getdeviceinformation"
 RunCommand "manage-bde -status"
@@ -657,8 +685,7 @@ else
 if ((Get-Service "lanmanserver").Status -eq 'Running')
 {
  RunCommand -cmdToRun "net config server" 
- RunCommand -cmdToRun "net share" 
- RunCommand -cmdToRun "net statistics server" 
+ RunCommand -cmdToRun "net share"  
 }
 
 RunCommand -cmdToRun "net sessions" 
@@ -2563,14 +2590,15 @@ else {
     "Not on NDES Server.  Exiting"
 }</Command>
       <Command Type="PS" Team="General" OutputFileName="Services.txt">Get-Service | fl *</Command>
-      <Command Type="PS" Team="General" OutputFileName="MDM_Policies">if (Test-Path -Path 'HKLM:\Software\Microsoft\PolicyManager\current\device') {
+      <Command Type="PS" Team="General" OutputFileName="MDM_Policies">
 
-    get-item 'HKLM:\Software\Microsoft\PolicyManager\current\device\*'
-
-}
-else {
-    "Warning - no policies found under HKLM:\Software\Microsoft\PolicyManager\current\device"
-}</Command>
+      if (test-path HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device) {
+		reg query HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\current\device\ /s 
+		}
+		else {
+		"Warning - no policies found under HKLM:\Software\Microsoft\PolicyManager\current\device"
+		}
+		</Command>
       <Command Type="PS" Team="NDES" OutputFileName="localmachine_cert_info">if ( (dir Cert:\LocalMachine\My).Count -gt 0) {
 
     dir Cert:\LocalMachine\My | Select-Object * -ExpandProperty Extensions -ExcludeProperty RawData, PrivateKey 
@@ -2599,9 +2627,10 @@ catch {
 }
 
 "Scheduled task information"
+$ErrorActionPreference = "Stop"
 try {
-    Get-ScheduledTask  -TaskName "Intune Management Extension Health Evaluation"  | Select-Object * -ExpandProperty CimInstanceProperties
-    Get-ScheduledTask  -TaskName "Intune Management Extension Health Evaluation" | Get-ScheduledTaskInfo  | Select-Object * -ExpandProperty CimInstanceProperties
+    Get-ScheduledTask  -TaskName "Intune Management Extension Health Evaluation" -ErrorAction SilentlyContinue | Select-Object * -ExpandProperty CimInstanceProperties
+    Get-ScheduledTask  -TaskName "Intune Management Extension Health Evaluation" -ErrorAction SilentlyContinue | Get-ScheduledTaskInfo  | Select-Object * -ExpandProperty CimInstanceProperties
     }
 catch {
     "Warning:  Unable to find IME scheduled tasks"
@@ -3370,7 +3399,8 @@ foreach ($objHistory in $colHistory)
   $o  | fl *
    
 }</Command>
-      <Command Type="PS" Team="Windows Update" OutputFileName="NA">$ErrorActionPreference = "Stop"
+      <Command Type="PS" Team="Windows Update" OutputFileName="NA">
+	  $ErrorActionPreference = "Stop"
 $Error.Clear()
 $line = "`*" * 120
 
@@ -3381,10 +3411,12 @@ function WaitOnSchTask {
     [int]$timer = 0
 
     try {
-        $status = (Get-ScheduledTask -TaskName $taskName).State
+        "waiting on $taskName to complete"  | Out-file $OutFile  -Force -Append -Encoding ascii
+        $status = (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue).State
 
         while ( ($status -ne "Ready") -and ($timer -le 150) ) {
-                $status = (Get-ScheduledTask -TaskName $taskName).State
+                "status: $status.  waiting on $taskName to complete"  | Out-file $OutFile  -Force -Append -Encoding ascii
+                $status = (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue).State
                 $timer += 5
                 Start-Sleep 5
             }
@@ -3511,13 +3543,20 @@ WaitOnSchTask -taskName $taskName -OutFile $filepath
 
 #cleanup
 try {
-    $nil = Unregister-ScheduledTask -TaskName $taskName -TaskPath "\" -PassThru -Confirm:$false
+    
+    foreach ($taskName in $(( Get-ScheduledTask  -TaskPath "\" | Where-Object {$_.TaskName -match "ODC Windows Update Debug" }).TaskName) ){
+        "Unregistering $taskName" | Out-file $filepath  -Force -Append -Encoding ascii
+        $nil = Unregister-ScheduledTask -TaskName "$taskName" -TaskPath "\" -PassThru -Confirm:$false
+    }
+    Get-ScheduledTask  -TaskPath "\" | Where-Object {$_.TaskName -match "ODC Windows Update Debug" } | Out-file $filepath  -Force -Append -Encoding ascii
+
     }
 catch {
     "***Warning:  Unable to remove scheduled task $taskName.  Please delete this entry from Task Scheduler" | Out-file $filepath  -Force -Append -Encoding ascii
     $Error[0]                                                                                               | Out-file $filepath  -Force -Append -Encoding ascii
     $Error[0].Exception.GetType().fullname                                                                  | Out-file $filepath  -Force -Append -Encoding ascii 
 }
+
 </Command>
       <Command Type="PS" Team="Autopilot" OutputFileName="NA">
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
@@ -3610,6 +3649,957 @@ if ( $PSMajorMinorVersion -ge 5.1) {
 else {
     Write-Output "PowerShell version $PSMajorMinorVersion is lower than 5.1.  Skipping package check"
 }</Command>
+<Command Type="PS" Team="Windows Update" OutputFileName="UpdateHealthCheck-experimental.txt">
+
+$WU_Policy_Key        =     "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate"
+$WU_Policy_AU_Key        =  "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate\AU"
+$WU_PolicyManager_Key =     "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\current\device\Update"
+$WU_Windows_Key       =     "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate"
+ 
+
+function New-RuleCheckResult
+{
+    [CmdletBinding()]
+    param(
+        [string] [Parameter(Mandatory=$true)] $ruleId, 
+        [string]$ruleDescription,
+        [string] [ValidateSet("Passed","Warning", "Failed", "Information")] $result,
+        [string]$resultMessage 
+    )
+
+
+    $RuleResult = [PSCustomObject] [Ordered] @{
+        'RuleId'= $ruleId
+        'RuleDescription'= $ruleDescription
+        'CheckResult'= $result
+        'CheckResultMessage'= $resultMessage 
+    }
+    return $RuleResult
+}
+
+function checkRegValue
+{
+    [CmdletBinding()]
+    param(
+        [string][Parameter(Mandatory=$true)]$path,
+        [string][Parameter(Mandatory=$true)]$name,
+        [int][Parameter(Mandatory=$true)]$valueToCheck
+    )
+
+    $val = Get-ItemProperty -path $path -name $name -ErrorAction SilentlyContinue
+    if($null -eq $val.$name) {
+        return $null
+    }
+
+    if($val.$name -eq $valueToCheck) {
+        return $true
+    } else {
+        return $false
+    }
+}
+
+function getRegValue {
+    [CmdletBinding()]
+    param(
+        [string][Parameter(Mandatory = $true)]$path,
+        [string][Parameter(Mandatory = $true)]$name
+    )
+
+    $val = Get-ItemProperty -path $path -name $name -ErrorAction SilentlyContinue
+    if ($null -eq $val.$name) {
+        return $null
+    }
+    return $val.$name
+}
+function Test-AlwaysAutoRebootEnabled {
+    $ruleId = "AlwaysAutoRebootCheck"
+    $ruleDescription = "Automatic reboot should not be enable as it forces a reboot irrespective of update configuration."
+    $result = $null 
+    $resultMessage = $null
+  
+    $automaticUpdatePath = "HKLM:\\Software\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU"
+    $rebootEnabledBySchedule = checkRegValue ($automaticUpdatePath) "AlwaysAutoRebootAtScheduledTime" 1
+    $rebootEnabledByDuration = getRegValue ($automaticUpdatePath) "AlwaysAutoRebootAtScheduledTimeMinutes"
+
+
+    if (  $rebootEnabledBySchedule -or $rebootEnabledByDuration ) {
+        $result = "PassedWithWarning"
+        $resultMessage = "Windows Update reboot registry keys are set. This can cause unexpected reboots when installing updates."
+    }
+    else {
+        $result = "Passed"
+        $resultMessage = "Windows Update reboot registry keys are not set to automatically reboot."
+
+    }
+ 
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+}
+ 
+
+
+function Test-deploymentschedulerConnectivity {
+    $ruleId = "TestdeploymentschedulerConnectivity"
+    $ruleDescription = "Validates that the device can connect to deploymentscheduler.microsoft.com on TCP port 443."
+    $result = $null
+    $resultMessage = $null 
+
+	$url = "deploymentscheduler.microsoft.com"
+	$ErrorActionPreference = "Stop"
+	$port = 443
+
+	  
+	try {
+		$error.Clear()
+		$connectionTest = $false
+
+		$connection = New-Object System.Net.Sockets.TCPClient
+		$connection.ReceiveTimeout = [int32]500
+		$connection.SendTimeout = [int32]500 
+		$x = ($connection.ConnectAsync( $url, $port)).Wait(5000)
+		$connectionTest = $connection.Connected
+		$result = "Passed"		
+	}
+	catch {
+
+		$resultMessage  = "Error connecting to $uniqueURL`: $error"
+		$result = "Failed"
+	}
+finally {
+	$resultMessage = "{0, -72} : {1,6}" -f  "Able to connect to port $port on $url", $connectionTest 
+}
+ 
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+}
+
+function Test-DevicelistenerprodConnectivity {
+$ruleId = "TestDevicelistenerprodConnectivity"
+    $ruleDescription = "Validates that the device can connect to Devicelistenerprod.microsoft.com on TCP port 443."
+    $result = $null
+    $resultMessage = $null 
+
+	$url = "Devicelistenerprod.microsoft.com"
+	$ErrorActionPreference = "Stop"
+	$port = 443
+
+	  
+	try {
+		$error.Clear()
+		$connectionTest = $false
+
+		$connection = New-Object System.Net.Sockets.TCPClient
+		$connection.ReceiveTimeout = [int32]500
+		$connection.SendTimeout = [int32]500 
+		$x = ($connection.ConnectAsync( $url, $port)).Wait(5000)
+		$connectionTest = $connection.Connected
+		$result = "Passed"		
+	}
+	catch {
+		$resultMessage  = "Error connecting to $uniqueURL`: $error"
+		$result = "Failed"
+	}
+	finally {
+		$resultMessage = "{0, -72} : {1,6}" -f  "Able to connect to port $port on $url", $connectionTest 
+	}
+ 
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+}
+
+
+Function Test-DoWUPoliciesExist { 
+    $WU_Policy_Count = 0
+    if (Test-Path Registry::$WU_Policy_Key) {
+        $WU_Policy_Count = $(Get-Item Registry::$WU_Policy_Key).ValueCount
+    }
+   
+    $ruleId = "DoWUPoliciesExist"
+    $ruleDescription = "Warns if Windows Update policies exist (from GPO or manual Registry edits)."
+    $result = $null
+    $resultMessage = $null  
+    
+    if (  $WU_Policy_Count -ge 1) {
+        $result = "Warning"
+        $resultMessage = ("One or more entries exist in $WU_Policy_Key.  Verify that Windows Update GPOs are not present. 
+            `r`nIf these values were entered manually, please check that they do not conflict with Intune policy.")   -replace "Registry::", ""
+    }
+    else {
+        $result = "Passed"
+        $resultMessage = "No settings found in $WU_Policy_Key."
+    }
+ 
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+}
+
+Function Test-IsWSUSConfigured {
+     # TODO - Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate - check this as well?  Probably rare 
+    $WU_Policy_WSUS_Present = $false
+    $WU_PolicyManager_WSUS_Present = $false
+
+    $WSUS_Policy = $(Get-itemproperty Registry::$WU_Policy_Key -ErrorAction SilentlyContinue).WUServer
+    $WSUS_PolicyManager = $(Get-itemproperty Registry::$WU_PolicyManager_Key -ErrorAction SilentlyContinue).WUServer
+
+    if ( ($WSUS_Policy -notin "", "CorpWSUS") -and ($null -ne $WSUS_Policy) ) {
+        $WU_Policy_WSUS_Present = $true
+    }
+    if ( ($WSUS_PolicyManager -notin "", "CorpWSUS") -and ($null -ne $WSUS_PolicyManager) ) {
+        $WU_PolicyManager_WSUS_Present = $true
+    }
+    
+   
+    $ruleId = "WSUS_Enabled"
+    $ruleDescription = "Warns if WSUS server is configured."
+    $result = $null
+    $resultMessage = $null   
+ 
+    
+    if (  $WU_Policy_WSUS_Present -or $WU_PolicyManager_WSUS_Present) { 
+        $result = "Warning"
+        $resultMessage = ("WSUS server is configured. This scenario is possible to use in Intune, but this is uncommon. This often indicates that a device was migrated from ConfigMgr.
+        `r`nVerify that Windows Update WSUS GPOs are not present. If WSUS is not being used, remove both WUServer and WUReportingServer values.
+        `r`nWUServer values detected in keys:`r`n
+        $WU_Policy_Key =  $WU_Policy_WSUS_Present
+        $WU_PolicyManager_Key = $WU_PolicyManager_WSUS_Present" ) -replace "Registry::", ""
+    }
+    else {
+        $result = "Passed"
+        $resultMessage = ("No settings found in  $WU_Policy_Key or $WU_PolicyManager_Key") -replace "Registry::", ""
+    }
+ 
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+
+
+}
+
+function Test-WUAServStartupType {
+    $ruleId = "TestWindowsUpdateAgent_ServiceStartupType"
+    $ruleDescription = "Verify that Windows Update service (wuaserv) startup type is 'manual'."
+    $result = $null 
+    $resultMessage = $null
+    
+    $WUAStartup = (Get-Service -Name wuauserv).StartType 
+   
+    if ( $WUAStartup -eq "Manual" ) {
+        $result = "Passed"
+        $resultMessage = "Windows Update service is set to default startup type of 'Manual'."
+    }
+    elseif ($WUAStartup -eq "Disabled") {
+        $result = "Failed"
+        $resultMessage = "Windows Update service is disabled."
+    }
+    else {
+        $result = "Warning"
+        $resultMessage = "Windows Update service startup type has been changed from the default value of 'Manual'."
+    }
+ 
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+}
+
+Function Test-HealthServiceStartupType {
+    $ruleId = "TestHealthAgent_ServiceStartupType"
+    $ruleDescription = "Verify that Microsoft Update Health Service (uhssvc) startup type is 'Automatic'."
+    $result = $null 
+    $resultMessage = $null
+    
+    $UHS_Startup = (Get-Service -Name uhssvc).StartType 
+   
+    if ( $UHS_Startup -eq "Automatic" ) {
+        $result = "Passed"
+        $resultMessage = "Microsoft Update Health Service (uhssvc) is set to default startup type of 'Automatic'."
+    }
+    elseif ($UHS_Startup -eq "Disabled") {
+        $result = "Failed"
+        $resultMessage = "Microsoft Update Health Service (uhssvc) is disabled."
+    }
+    else {
+        $result = "Warning"
+        $resultMessage = "Microsoft Update Health Service (uhssvc) startup type has been changed from the default value of 'Automatic'."
+    }
+ 
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+}
+
+function Test-IsHealthServicesRunning {
+    $ruleId = "Test_Is_UHS_Running"
+    $ruleDescription = "Verify that Microsoft Update Health Service (uhssvc) is running."
+    $result = $null 
+    $resultMessage = $null
+    
+    $UHS_Status = (Get-Service -Name uhssvc).Status 
+   
+    if ( $UHS_Status -eq "Running" ) {
+        $result = "Passed"
+        $resultMessage = "Microsoft Update Health Service (uhssvc) is running."
+    }
+    
+    else {
+        $result = "Failed"
+        $resultMessage = "Microsoft Update Health Service (uhssvc) is not running.  Current status is $UHS_Status.  Check the service configuration to verify that its startup type is set to Automatic."
+    }
+ 
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+}
+
+   
+Function Test-IsTelemetryEnabled { 
+        $TelemetryLevel = @{
+            0 = "Disabled"
+            1 = "Basic"
+            2 = "Enhanced"
+            3 = "Full"
+        }
+    
+    
+        $ruleId = "TelemetryEnabled"
+        $ruleDescription = "Telemetry must be enabled for Feature Update and Expedited update policies to work."    
+        $result = "Failed"
+        # 3 different places to check.  If Policymanager is populated, actual value is referenced in PolicyManager\providers
+        $TelemetryKey_Policy =  "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\DataCollection"
+        $TelemetryKey_Windows = "HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\DataCollection"
+        $TelemetryKey_PolicyManager = "HKEY_LOCAL_MACHINE\Software\Microsoft\PolicyManager\current\device\System"
+    
+        $TelemetrySetting_Policy =        (Get-ItemProperty Registry::$TelemetryKey_Policy -ErrorAction SilentlyContinue).AllowTelemetry
+        $TelemetrySetting_Windows =       (Get-ItemProperty Registry::$TelemetryKey_Windows -ErrorAction SilentlyContinue).AllowTelemetry
+        $TelemetrySetting_PolicyManager =  Get-ItemProperty Registry::$TelemetryKey_PolicyManager -ErrorAction SilentlyContinue
+      
+    
+        # default message if all 3 keys are empty
+        $resultMessage = "No telemetry policy found in $TelemetrySetting_Policy, $TelemetrySetting_Windows, $TelemetrySetting_PolicyManager.  Expedited updates and Feature update policies will not apply to this device."
+     
+    
+    
+        if ( $TelemetrySetting_Policy  -ge 1) {
+            $result = "Passed"
+            $resultMessage = "AllowTelemetry set to $TelemetrySetting_Policy ($($TelemetryLevel[$TelemetrySetting_Policy]))in $TelemetryKey_Policy.`r`n"
+        }
+        else {
+            $resultMessage = "AllowTelemetry not set in $TelemetryKey_Policy.`r`n"
+            }
+    
+        if ( $TelemetrySetting_Windows  -ge 1) {    
+            $result = "Passed"
+            $resultMessage += "AllowTelemetry set to $TelemetrySetting_Windows ($($TelemetryLevel[$TelemetrySetting_Windows])) in $TelemetryKey_Windows.`r`n"
+        }
+        else {
+            $resultMessage += "AllowTelemetry not set in $TelemetryKey_Windows.`r`n"
+        }
+    
+        # Construct path for actual value in the \PolicyManager\providers key based on WinningProvider value
+        $ProviderSet = ""
+        $ProviderSet = $TelemetrySetting_PolicyManager.AllowTelemetry_WinningProvider
+        $TelemetryValue_PolicyManager = ""
+        $TelemetryPath = ""
+        
+    
+        if ($ProviderSet){
+            $ProviderSet_Key = "HKEY_LOCAL_MACHINE\Software\Microsoft\PolicyManager\providers\$ProviderSet\default\Device\System"
+            $TelemetryPath = Get-ItemProperty Registry::$ProviderSet_Key -ErrorAction SilentlyContinue
+            $TelemetryValue_PolicyManager = $TelemetryPath.AllowTelemetry
+            if ( $TelemetryValue_PolicyManager -ge 1) {
+                $result = "Passed"
+                $resultMessage += "AllowTelemetry set to $TelemetryValue_PolicyManager ($($TelemetryLevel[$TelemetryValue_PolicyManager])) in $ProviderSet_Key.`r`n"
+            }
+            else {
+                $resultMessage += "AllowTelemetry not set in $ProviderSet_Key.`r`n"
+            }
+                
+        }
+        else {
+            $resultMessage += "AllowTelemetry not set in $TelemetryKey_PolicyManager"
+            }
+    
+     
+        return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage
+    }
+
+Function Test-IsDeviceHealthMonitoringEnabled {
+        # https://docs.microsoft.com/en-us/windows/client-management/mdm/policy-csp-devicehealthmonitoring
+        # https://techcommunity.microsoft.com/t5/microsoft-endpoint-manager-ama/troubleshooting-blank-graphs/m-p/1833070
+ 
+        # CSP-only rule.  No GPO equivalent 
+
+        $AllowDHM_Key_PolicyManager = "HKEY_LOCAL_MACHINE\software\microsoft\policymanager\current\device\DeviceHealthMonitoring"
+        $AllowDHM_Value_PolicyManager = (Get-ItemProperty Registry::$AllowDHM_Key_PolicyManager -ErrorAction SilentlyContinue).AllowDeviceHealthMonitoring
+              
+         $ruleId = "Device_Health_Monitoring_Enabled"
+         $ruleDescription = "Checks that device health monitoring is enabled."
+         $result = $null
+         $resultMessage = $null   
+      
+             
+        if ( $AllowDHM_Value_PolicyManager -eq 1) {
+               $result = "Passed"
+               $resultMessage = "AllowDeviceHealthMonitoring is set to 1 (enabled) in $AllowDHM_Key_PolicyManager.  This is required if Expedited Updates or Feature Update policies are configured." 
+         }
+         else {
+             $result = "Failed"
+             $resultMessage = "AllowDeviceHealthMonitoring is not enabled in $AllowDHM_Key_PolicyManager.  This is required if Expedited Updates or Feature Update policies are configured."
+         }
+      
+       
+         return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+     }
+     
+Function Test-DHMScope {
+        $DHM_Key_PolicyManager = "HKEY_LOCAL_MACHINE\software\microsoft\policymanager\current\device\DeviceHealthMonitoring"
+        $AllowDHM_Value_PolicyManager = (Get-ItemProperty Registry::$DHM_Key_PolicyManager -ErrorAction SilentlyContinue).ConfigDeviceHealthMonitoringScope
+        $helpURL = "https://docs.microsoft.com/en-us/mem/intune/protect/windows-10-expedite-updates#monitoring-and-reporting"
+        $helpURL2 = "https://docs.microsoft.com/en-us/mem/intune/configuration/windows-health-monitoring"
+        
+         $ruleId = "Device_Health_Monitoring_Scope"
+         $ruleDescription = "Checks that device health monitoring scope includes Windows Update."
+         $result = $null
+         $resultMessage = $null   
+      
+             
+        if ( $AllowDHM_Value_PolicyManager -match "WindowsUpdates") {
+               $result = "Passed"
+               $resultMessage = "ConfigDeviceHealthMonitoringScope in $AllowDHM_Key_PolicyManager is set to $AllowDHM_Value_PolicyManager.  This is required if Expedited Updates or Feature Update policies are configured.  See $helpURL for more information." 
+         }
+         else {
+             $result = "Failed"
+             $resultMessage = "`"WindowsUpdates`" is not listed in the scope of $DHM_Key_PolicyManager\ConfigDeviceHealthMonitoringScope.   This is required if Expedited Updates or Feature Update policies are configured. See $helpURL and $helpURL2 for more information."
+         }
+       
+      
+         return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+     
+     }
+     
+Function Test-DHMUploadDestination{
+        # https://techcommunity.microsoft.com/t5/microsoft-endpoint-manager-ama/troubleshooting-blank-graphs/m-p/1833070
+     
+        $DHM_Key_PolicyManager = "HKEY_LOCAL_MACHINE\software\microsoft\policymanager\current\device\DeviceHealthMonitoring"
+        $AllowDHM_Value_PolicyManager = (Get-ItemProperty Registry::$DHM_Key_PolicyManager -ErrorAction SilentlyContinue).ConfigDeviceHealthMonitoringUploadDestination
+      
+         
+        
+         $ruleId = "Device_Health_Monitoring_Upload_Location"
+         $ruleDescription = "Checks that device health monitoring upload location. This is a list of known service endpoints based on location."
+         $result = $null
+         $resultMessage = $null   
+      
+             
+        if ( $AllowDHM_Value_PolicyManager -in "DHM_NORTHAMERICA", "DHM_EUROPE", "DHM_SOUTHEASTASIA", "DHM_AUSTRALIA") {
+               $result = "Passed"
+               $resultMessage = "ConfigDeviceHealthMonitoringScope in $DHM_Key_PolicyManager is set to $AllowDHM_Value_PolicyManager.  This is required if Expedited Updates or Feature Update policies are configured." 
+         }
+         else {
+             $result = "Failed"
+             $resultMessage = "Unexpected or missing vlaue in $DHM_Key_PolicyManager\ConfigDeviceHealthMonitoringUploadDestination - $AllowDHM_Value_PolicyManager. This is required if Expedited Updates or Feature Update policies are configured.
+             `r`nThis is an unexpected scenario and a Windows Update specialist should be consulted to investigate."
+         }
+       
+      
+         return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+     }
+     
+
+Function Test-FeatureUpdateHoldExits {
+    $ruleId = "SafeGuard_Hold_Exists"
+    $ruleDescription = "Checks to see if feature update safeguard holds are present."
+    $result = $null
+    $resultMessage = $null   
+
+    $GWX_Key = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Appraiser\GWX"
+    $SdbEntries = (Get-ItemProperty Registry::$GWX_Key -ErrorAction SilentlyContinue).SdbEntries
+
+    if ( ($SdbEntries -eq "") -or ($null -eq $SdbEntries) ) {
+        $result = "Passed"
+        $resultMessage = "No known Feature Update holds found in $GWX_Key.  This does not mean that no safeguard holds exist, but it is an indication that no known issues have been identified."
+    }
+    else {
+        $result = "Failed"
+        $resultMessage = "SDB entry `"$SdbEntries`" found in $GWX_Key.  This indicates that a known issue is preventing this device from applying a Feature Update.
+        `r`nA Windows Update specialist should be consulted to investigate."
+    }
+
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+}
+
+Function Test-IsDualScanEnabled {
+    # check to see that dualscan is not disabled
+    #
+    # If DisableDualScan is set to 1, the device will not check Windows Update and only work with WSUS.  This is almost always in error after migrating from a WSUS environment.
+ 
+    $ruleId = "Is_DualScan_Enabled"
+    $ruleDescription = "If DisableDualScan is set to '1', the device will not search Windows Update."    
+    $result = "Failed"
+ 
+      
+ 
+    $DisableDualScanValue_Policy =         (Get-ItemProperty Registry::$WU_Policy_Key -ErrorAction SilentlyContinue).DisableDualScan
+    $DisableDualScanValue_PolicyManager =  (Get-ItemProperty Registry::$WU_PolicyManager_Key -ErrorAction SilentlyContinue).DisableDualScan
+    $DisableDualScanValue_Windows =        (Get-ItemProperty Registry::$WU_Windows_Key -ErrorAction SilentlyContinue).DisableDualScan
+ 
+   
+ 
+    if ( ($DisableDualScanValue_Policy -eq 1) -or ($DisableDualScanValue_PolicyManager -eq 1) -or ($DisableDualScanValue_Windows -eq 1) ) {
+         $result = "Failed"
+         $resultMessage = "DisableDualScan is set to 1. This will cause the device to not search Windows Update.  WSUS will be used if available.
+         $WU_Policy_Key =  $DisableDualScanValue_Policy
+         $WU_PolicyManager_Key = $DisableDualScanValue_PolicyManager
+         $WU_Windows_Key = $DisableDualScanValue_Windows"
+    }
+    else {
+         $result = "Passed"
+         $resultMessage = "No DisableDualScan Registry entries found.  Device will use Windows Update."
+    }
+ 
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+ } 
+
+function Test-InternetLocationsValue {
+    # check to see that DoNotConnectToWindowsUpdateInternetLocations is not set to 1
+    #
+    # If DoNotConnectToWindowsUpdateInternetLocations is set to 1, the device will not connect to any Windows Update Internet locations 
+    #
+    # Even when Windows Update is configured to receive updates from an intranet update service, it will periodically retrieve information from the public 
+    # Windows Update service to enable future connections to Windows Update, and other services like Microsoft Update or the Windows Store.
+    #Enabling this policy will disable that functionality, and may cause connection to public services such as the Windows Store to stop working.
+    # Note: This policy applies only when this PC is configured to connect to an intranet update service using the "Specify intranet Microsoft update service location" policy.
+ 
+    $ruleId = "DoNotConnectToWindowsUpdateInternetLocations"
+    $ruleDescription = "If DoNotConnectToWindowsUpdateInternetLocations is set to '1', the device will not search Windows Update."    
+    $result = "Failed"
+  
+ 
+    $DoNotConnectToWindowsUpdateInternetLocations_Policy =         (Get-ItemProperty Registry::$WU_Policy_Key -ErrorAction SilentlyContinue).DoNotConnectToWindowsUpdateInternetLocations
+    $DoNotConnectToWindowsUpdateInternetLocations_PolicyManager =  (Get-ItemProperty Registry::$WU_PolicyManager_Key -ErrorAction SilentlyContinue).DoNotConnectToWindowsUpdateInternetLocations
+    $DoNotConnectToWindowsUpdateInternetLocations_Windows =        (Get-ItemProperty Registry::$WU_Windows_Key -ErrorAction SilentlyContinue).DoNotConnectToWindowsUpdateInternetLocations
+ 
+    
+    if ( ($DoNotConnectToWindowsUpdateInternetLocations_Policy -eq 1) -or ($DoNotConnectToWindowsUpdateInternetLocations_PolicyManager -eq 1) -or ($DoNotConnectToWindowsUpdateInternetLocations_Windows -eq 1) ) {
+         $result = "Failed"
+         $resultMessage = "DoNotConnectToWindowsUpdateInternetLocations is set to 1. This will cause the device to not search Windows Update. 
+         $WU_Policy_Key =  $DoNotConnectToWindowsUpdateInternetLocations_Policy
+         $WU_PolicyManager_Key = $DoNotConnectToWindowsUpdateInternetLocations_PolicyManager
+         $WU_Windows_Key = $DoNotConnectToWindowsUpdateInternetLocations_Windows"
+    }
+    else {
+         $result = "Passed"
+         $resultMessage = "No DoNotConnectToWindowsUpdateInternetLocations Registry entries found.  Device will use Windows Update."
+    }
+ 
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+}
+
+function Get-WinningProvider {
+    # Tests to see if MDMWinsOverGP is set
+    # https://docs.microsoft.com/en-us/windows/client-management/mdm/policy-csp-controlpolicyconflict
+
+    $ruleId = "WinningProvider"
+    $ruleDescription = "Checks to see if MDMWinsOverGP is set.  The presence of this value set to 1 means that Intune will overwrite Group Policy results in the case of a conflict."
+    $result = $null
+    $resultMessage = $null   
+
+    $WinningProvider_Key = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\current\device\ControlPolicyConflict"
+
+    if (Test-Path $WinningProvider_Key) {
+        $WinningProvider_Value = (Get-ItemProperty Registry::$WinningProvider_Key -ErrorAction SilentlyContinue).MDMWinsOverGP
+    }
+
+    
+
+    if ( ($WinningProvider_Value -in "", "0") -or ($null -eq $WinningProvider_Value) ) {
+        $result = "Information"
+        $resultMessage = "MDMWinsOverGP is not present or disabled. Group Policy settings will take precedence over Intune settings in the case of a conflict."
+    }
+    else {
+        $result = "Information"
+        $resultMessage = "MDMWinsOverGP is set to $WinningProvider_Value. In the case of a conflict, Intune will take precedence over conflicting Group Policy settings."
+    }
+
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+
+}
+
+function Test-SQMIsPopulated {
+    # test to see if machineid is present  in HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SQMClient
+
+    $ruleId = "SQM_MachineID_set"
+    $ruleDescription = "Checks to see if the device has a MachineID value in the SQMClient registry key.  The presence of this value indicates that the device has registered with telemetry."
+    $result = $null
+    $resultMessage = $null   
+    $FirstSyncTime = $null
+
+    $SQMClientKey = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SQMClient"
+    $MachineId = (Get-ItemProperty Registry::$SQMClientKey -ErrorAction SilentlyContinue).MachineId
+    $FirstSync = (Get-ItemProperty Registry::$SQMClientKey -ErrorAction SilentlyContinue).WinSqmFirstSessionStartTime
+    
+    if ($FirstSync) {
+        $FirstSyncTime = [datetime]::FromFileTime($FirstSync)
+        }
+    else {$FirstSyncTime = "UNKNOWN" }
+
+    if ( ($MachineId -ne "") -and ($null -ne $MachineId) ) {
+        $result = "Passed"
+        $resultMessage = "MachineID value $MachineId found in $SQMClientKey.  The presence of this value indicates that the device has registered successfully with telemetry.
+                     `r`nFirst sync occurred on $FirstSyncTime"
+    }
+    else {
+        $result = "Warning"
+        $resultMessage = "No MachineID value found in $SQMClientKey.  This indicates that the client is not sending telemetry data."
+    }
+
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+
+
+}
+
+function Test-UseWUServer {
+    # HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate\AU
+    # UseWUServer 1 = WSUS, 0 = WU
+  
+  
+    $ruleId = "Is_UseWUServer_Set"
+    $ruleDescription = "If UseWUServer is set to '1', the device will not search Windows Update.  Reporting to WUfB will be blocked."    
+    $result = "Failed"
+  
+ 
+    if (Test-Path Registry::$WU_Policy_AU_Key){
+        $UseWUServer_Policy =         (Get-ItemProperty Registry::$WU_Policy_AU_Key -ErrorAction SilentlyContinue).UseWUServer
+    }
+    if (Test-Path Registry::$WU_PolicyManager_Key){
+        $UseWUServer_PolicyManager =  (Get-ItemProperty Registry::$WU_PolicyManager_Key -ErrorAction SilentlyContinue).UseWUServer
+    }
+    if (Test-Path Registry::$WU_Windows_Key) {
+        $UseWUServer_Windows =        (Get-ItemProperty Registry::$WU_Windows_Key -ErrorAction SilentlyContinue).UseWUServer
+    }
+     
+ 
+    if ( ($UseWUServer_Policy -eq 1) -or ($UseWUServer_PolicyManager -eq 1) -or ($UseWUServer_Windows -eq 1) ) {
+         $result = "Failed"
+         $resultMessage = "UseWUServer is set to 1. This will cause the device to not search Windows Update.  WSUS will be used if available.  Reporting will not work.
+         $WU_Policy_Key =  $UseWUServer_Policy
+         $WU_PolicyManager_Key = $UseWUServer_PolicyManager
+         $WU_Windows_Key = $UseWUServer_Windows"
+    }
+    else {
+         $result = "Passed"
+         $resultMessage = "No UseWUServer Registry entries found.  Device will use Windows Update."
+    }
+ 
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+  }
+
+
+
+function Test-DisableWindowsUpdateAccess {
+    # HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate
+    # DisableWindowsUpdateAccess 1 = disable 
+    $ruleId = "Is_DisableWindowsUpdateAccess_Set"
+    $ruleDescription = "If DisableWindowsUpdateAccess is set to '1', the device will not search Windows Update."    
+    $result = "Failed"
+  
+ 
+    $DisableWindowsUpdateAccess_Policy =         (Get-ItemProperty Registry::$WU_Policy_Key -ErrorAction SilentlyContinue).DisableWindowsUpdateAccess
+    $DisableWindowsUpdateAccess_PolicyManager =  (Get-ItemProperty Registry::$WU_PolicyManager_Key -ErrorAction SilentlyContinue).DisableWindowsUpdateAccess
+    $DisableWindowsUpdateAccess_Windows =        (Get-ItemProperty Registry::$WU_Windows_Key -ErrorAction SilentlyContinue).DisableWindowsUpdateAccess
+ 
+   
+ 
+    if ( ($DisableWindowsUpdateAccess_Policy -eq 1) -or ($DisableWindowsUpdateAccess_PolicyManager -eq 1) -or ($DisableWindowsUpdateAccess_Windows -eq 1) ) {
+         $result = "Failed"
+         $resultMessage = "DisableWindowsUpdateAccess is set to 1. This will cause the device to not search Windows Update.
+         $WU_Policy_Key =  $DisableWindowsUpdateAccess_Policy
+         $WU_PolicyManager_Key = $DisableWindowsUpdateAccess_PolicyManager
+         $WU_Windows_Key = $DisableWindowsUpdateAccess_Windows"
+    }
+    else {
+         $result = "Passed"
+         $resultMessage = "No DisableWindowsUpdateAccess Registry entries found.  Device will use Windows Update."
+    }
+ 
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+}
+
+ 
+
+function Test-IsQualityUpdateInstalled {
+    # Warn if device has not been updated.  This will casue numerous policies to 404
+    #
+    # Windows build:        10.0.19043  ===== should have minor build number if patched
+    #
+    $ruleId = "Is_QualityUpdateInstalled"
+    $ruleDescription = "Some policies may fail to load with error 404 in the EnterpriseDeviceManagement event log if updates have not been applied."    
+    $result = "Passed"
+
+    $buildInfo = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
+
+    if ( ($null -eq $buildInfo.UBR ) -or ($buildInfo.UBR -eq "")){
+        $result = "Warning"
+        $resultMessage = "It appears that this device has not had a quality update applied yet.  This may cause some policies to fail to load.  It is recommended to update this device.`r`n"
+        $resultMessage += "Current build: " + $buildInfo.ProductName + " build" + $buildInfo.CurrentMajorVersionNumber + "." + $buildInfo.CurrentMinorVersionNumber + "." + $buildInfo.CurrentBuildNumber   
+    }
+    else {
+        $resultMessage = "Device has at least one quality update applied."
+        $resultMessage += "Current build: " + $buildInfo.ProductName + " build" + $buildInfo.CurrentMajorVersionNumber + "." + $buildInfo.CurrentMinorVersionNumber + "." + $buildInfo.CurrentBuildNumber + "." + $buildInfo.UBR
+    }
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+}
+
+
+
+function Test-UpdatePendingReboot {
+    # Adapted from https://devblogs.microsoft.com/scripting/determine-pending-reboot-statuspowershell-style-part-2/
+
+     
+    $ruleId = "Reboot_Pending"
+    $ruleDescription = "If a reboot is pending, some tests may be inaccurate."    
+    $result = "Passed"
+
+    Try {
+        $RebootPending = $false
+  
+ 
+        if (Test-Path "HKLM:SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending") {
+            if (Get-Item "HKLM:SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -ErrorAction SilentlyContinue ) { $RebootPending = $true}
+        }
+        
+        if (Test-Path "HKLM:SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired") {
+            if (Get-Item "HKLM:SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired" -ErrorAction SilentlyContinue ) { $RebootPending = $true}
+        }
+        
+        if (Test-Path "HKLM:SYSTEM\CurrentControlSet\Control\Session Manager") {
+            if (Get-Item ("HKLM:SYSTEM\CurrentControlSet\Control\Session Manager").PendingFileRenameOperations -ErrorAction SilentlyContinue ) { $RebootPending = $true}
+        }
+        
+        
+        if ( (Get-Service -Name CcmExec -ErrorAction SilentlyContinue).Status -eq "Running" ) {
+            if  ((Get-WmiObject -Namespace "ROOT\CCM\ClientSDK" -Class "CCM_ClientUtilities").DetermineIfRebootPending ) { $RebootPending = $true}
+        }
+  
+    }
+ 
+    Catch {
+        $Error | Write-Log -Level Error
+    }
+    if ($RebootPending -eq $true) {
+        $result = "Warning"
+        $resultMessage = "Device is pending a reboot. Some tests may be unreliable. It is recommended to reboot before gathering data or performing other testing."
+    }
+    else {
+        $resultMessage = "No pending reboot detected."
+    }
+
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+ 
+} 
+
+ 
+  function Test-NoAutoUpdate {
+      # NoAutoUpdate 
+ 
+      $ruleId = "Is_NoAutoUpdate_Set"
+      $ruleDescription = "If NoAutoUpdate is set to '1', the device will not search Windows Update.  Reporting to WUfB will be blocked."    
+      $result = "Failed"
+    
+   
+      if (Test-Path Registry::$WU_Policy_AU_Key) {
+        $NoAutoUpdate_Policy =         (Get-ItemProperty Registry::$WU_Policy_AU_Key -ErrorAction SilentlyContinue).NoAutoUpdate
+      }
+      if (Test-Path Registry::$WU_PolicyManager_Key) {
+        $NoAutoUpdate_PolicyManager =  (Get-ItemProperty Registry::$WU_PolicyManager_Key -ErrorAction SilentlyContinue).NoAutoUpdate
+      }
+      if (Test-Path Registry::$WU_Windows_Key ) {
+        $NoAutoUpdate_Windows =        (Get-ItemProperty Registry::$WU_Windows_Key -ErrorAction SilentlyContinue).NoAutoUpdate
+      }
+      
+   
+     
+   
+      if ( ($NoAutoUpdate_Policy -eq 1) -or ($NoAutoUpdate_PolicyManager -eq 1) -or ($NoAutoUpdate_Windows -eq 1) ) {
+           $result = "Failed"
+           $resultMessage = "NoAutoUpdate is set to 1. Updates will only be installed if a user manually initiates a check for updates.
+           $WU_Policy_Key =  $NoAutoUpdate_Policy
+           $WU_PolicyManager_Key = $NoAutoUpdate_PolicyManager
+           $WU_Windows_Key = $NoAutoUpdate_Windows"
+      }
+      else {
+           $result = "Passed"
+           $resultMessage = "No NoAutoUpdate Registry entries found.  Device will check for updates automatically."
+      }
+   
+      return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+  }
+  
+  function Test-AllowWUfBCloudProcessing  {
+      # https://docs.microsoft.com/en-us/windows/deployment/update/deployment-service-overview
+      # HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\System\AllowWUfBCloudProcessing
+      # HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DataCollection\AllowWUfBCloudProcessing
+      
+      $ruleId = "AllowWUfBCloudProcessing"
+      $ruleDescription = "If AllowWUfBCloudProcessing is set to a value other than '8', the device will not search Windows Update.  Reporting to WUfB will be blocked."    
+      $result = "Failed"
+    
+   
+      $AllowWUfBCloudProcessing_Policy =         (Get-ItemProperty Registry::$WU_Policy_Key -ErrorAction SilentlyContinue).AllowWUfBCloudProcessing
+      $AllowWUfBCloudProcessing_PolicyManager =  (Get-ItemProperty Registry::$WU_PolicyManager_Key -ErrorAction SilentlyContinue).AllowWUfBCloudProcessing
+      $AllowWUfBCloudProcessing_Windows =        (Get-ItemProperty Registry::$WU_Windows_Key -ErrorAction SilentlyContinue).AllowWUfBCloudProcessing
+   
+     
+   
+      if ( 
+                ($AllowWUfBCloudProcessing_Policy        -and ($AllowWUfBCloudProcessing_Policy        -ne 8)) `
+            -or ($AllowWUfBCloudProcessing_PolicyManager -and ($AllowWUfBCloudProcessing_PolicyManager -ne 8)) `
+            -or ($AllowWUfBCloudProcessing_Windows       -and ($AllowWUfBCloudProcessing_Windows       -ne 8)) `
+           ) {
+           $result = "Failed"
+           $resultMessage = "AllowWUfBCloudProcessing is set to a value other than '8' (enabled).  DSS policies cannot be used.`r`n"
+           $resultMessage += "AllowWUfBCloudProcessing_Policy        = $AllowWUfBCloudProcessing_Policy `r`n"
+           $resultMessage += "AllowWUfBCloudProcessing_PolicyManager = $AllowWUfBCloudProcessing_PolicyManager `r`n"
+           $resultMessage += "AllowWUfBCloudProcessing_Windows       = $AllowWUfBCloudProcessing_Windows `r`n"
+      }
+      else {
+           $result = "Passed"
+           $resultMessage = "No AllowWUfBCloudProcessing Registry entries found.  Device will check for updates automatically.`r`n"
+           $resultMessage += "AllowWUfBCloudProcessing_Policy        = $AllowWUfBCloudProcessing_Policy `r`n"
+           $resultMessage += "AllowWUfBCloudProcessing_PolicyManager = $AllowWUfBCloudProcessing_PolicyManager `r`n"
+           $resultMessage += "AllowWUfBCloudProcessing_Windows       = $AllowWUfBCloudProcessing_Windows `r`n"
+      }
+   
+      return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+  }
+
+function Test-DefaultService {
+
+    $ruleId = "Test_WU_Is_DefaultService"
+    $ruleDescription = "If WU is not the default service, client most likely uses WSUS.  Feature Updates and Expedited Updates are not supported in this scenario."    
+    $result = "Failed"
+
+    # RegistrationState 3 = default; any other value is incorrect for mu
+    $ServiceManager = New-Object -ComObject Microsoft.Update.ServiceManager 
+    $MuService =   ($ServiceManager.QueryServiceRegistration("7971f918-a847-4430-9279-4a52d1efe18d")).RegistrationState
+    $WSUSService = ($ServiceManager.QueryServiceRegistration("3da21691-e39d-4da6-8a4b-b43877bcb1b7")).RegistrationState
+
+    if ($MuService -eq 3) {
+        $result = "Passed"
+        $resultMessage = "Microsoft Update service (7971f918-a847-4430-9279-4a52d1efe18d) is the default service.  WU client will query Microsoft Update"
+    }
+    else {
+        
+        $resultMessage = "Microsoft Update service (7971f918-a847-4430-9279-4a52d1efe18d) is not the default Windows Update provider.  Most likely WSUS is used instead.`r`n
+          Feature Update and Expedited Update policies are not supported in this scenario."
+          if ($WSUSService -eq 3) { $resultMessage += "`r`nWSUS service (3da21691-e39d-4da6-8a4b-b43877bcb1b7) is the default update provider."}
+    }
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+
+
+}
+
+function Test-PossibleCorruption {
+    # https://support.microsoft.com/en-us/topic/virus-scanning-recommendations-for-enterprise-computers-that-are-running-windows-or-windows-server-kb822158-c067a732-f24a-9079-d240-3733e39b40bc
+     
+    $ruleId = "Test-PossibleCorruption"
+    $ruleDescription = "If reboots have been pending after device has been reset, client cache may need to be reset."    
+    $result = "Passed"
+
+    $objSession = New-Object -ComObject "Microsoft.Update.Session" 
+    $objSearcher = $objSession.CreateupdateSearcher() 
+    $intCount = $objSearcher.GetTotalHistoryCount() 
+    $colHistory = $objSearcher.QueryHistory(0, $intCount) 
+
+    # test driver
+    #$colHistory = Import-Clixml ".\updatehistory.xml"
+    $timeNow = Get-Date
+    $resultMessage = ""
+
+    foreach ($objHistory in $colHistory) 
+    {  
+        $daysSinceEvent = 0
+
+        # Only get MU updates
+        if (($objHistory.ServiceID -eq '7971f918-a847-4430-9279-4a52d1efe18d') -and ($objHistory.Title -notmatch '.*Defender Antivirus.*') `
+                    -and ($objHistory.Title -notmatch   'Malicious Software')) 
+        {  
+            $Title = ($objHistory.Date).ToString("yyyy/MM/dd hh:mm UTC") + " " + $objHistory.Title +  "`r`n" 
+        
+        # -2145116140 = reboot pending
+        if ($objHistory.HResult -eq -2145116140) {  
+            $daysSinceEvent =   [math]::Round(($timenow.Subtract($objHistory.Date)).totaldays, 0)
+            if ($daysSinceEvent -gt 30) { 
+                $resultMessage += $Title
+                $resultMessage +=  "Update `"$($objHistory.Title)`" has been pending reboot for $daysSinceEvent days.`r`nThis is highly suspicious unless the device really has not been rebooted.  If the device "
+                $resultMessage += "has been power-cycled, there is a possibility that the Windows Update client cache is corrupt.`r`nConsider resetting the WU client cache - https://aka.ms/ResetWU "
+                $resultMessage += "(scripted version available at https://aka.ms/ResetWUScript.).  If updates are installing as expected, this message may be ignored.`r`n`r`n"
+
+                $result = "Warning"
+            }
+        } 
+        }
+    
+    }
+
+    if ($resultMessage -eq "") { $resultMessage = "No updates pending reboots found."}
+
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+    
+}
+
+function Test-IsOnMeteredConnection {
+    # check to see if default internet connection is metered
+    # https://support.microsoft.com/en-us/windows/metered-internet-connections-faq-8a8cf4c0-b8b1-1de4-825d-24714e851659
+    
+
+    $ruleId = "IsOnMeteredConnection"
+    $ruleDescription = "If the default network connection is metered, some updates may not be downloaded."    
+    $result = "Passed"
+    $isMetered = $false
+   
+    # https://gist.github.com/nijave/d657fb4cdb518286942f6c2dd933b472
+    [void][Windows.Networking.Connectivity.NetworkInformation, Windows, ContentType = WindowsRuntime]
+    $cost = [Windows.Networking.Connectivity.NetworkInformation]::GetInternetConnectionProfile().GetConnectionCost()
+    $isMetered = $cost.ApproachingDataLimit -or $cost.OverDataLimit -or $cost.Roaming -or $cost.BackgroundDataUsageRestricted -or ($cost.NetworkCostType -ne "Unrestricted")
+    $defaultConnectionName = [Windows.Networking.Connectivity.NetworkInformation]::GetInternetConnectionProfile().ProfileName
+ 
+    if ( $isMetered ) {
+         $result = "Warning"
+         $resultMessage = "The default network connecton ($defaultConnectionName) is metered.  This will cause Windows Update to only download priority updates. Discuss this setting if updates are not being downloaded or updates are delayed."
+ 
+    }
+    else {
+         $result = "Passed"
+         $resultMessage = "Default network connection $defaultConnectionName is not metered."
+    }
+ 
+    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage
+}
+ 
+
+$resultBlob = @()
+
+$resultBlob += Test-AlwaysAutoRebootEnabled
+$resultBlob += Test-deploymentschedulerConnectivity
+$resultBlob += Test-DevicelistenerprodConnectivity
+$resultBlob += Test-DoWUPoliciesExist 
+$resultBlob += Test-IsWSUSConfigured
+$resultBlob += Test-WUAServStartupType
+$resultBlob += Test-HealthServiceStartupType
+$resultBlob += Test-IsTelemetryEnabled
+$resultBlob += Test-IsDeviceHealthMonitoringEnabled  
+$resultBlob += Test-DHMScope 
+$resultBlob += Test-DHMUploadDestination  
+$resultBlob += Test-FeatureUpdateHoldExits 
+$resultBlob += Get-WinningProvider
+$resultBlob += Test-IsHealthServicesRunning
+$resultBlob += Test-SQMIsPopulated
+$resultBlob += Test-IsDualScanEnabled 
+$resultBlob += Test-UseWUServer
+$resultBlob += Test-DisableWindowsUpdateAccess
+$resultBlob += Test-NoAutoUpdate
+$resultBlob += Test-DefaultService
+$resultBlob += Test-AllowWUfBCloudProcessing
+$resultBlob += Test-PossibleCorruption
+$resultBlob += Test-IsOnMeteredConnection
+$resultBlob += Test-IsQualityUpdateInstalled 
+$resultBlob += Test-UpdatePendingReboot
+$resultBlob += Test-InternetLocationsValue
+$resultBlob | Format-List  
+      
+ 
+
+</Command>
+
+
 <Command Type="PS" Team="Windows Update" OutputFileName="UpdateHealthCheck.txt">
 &lt;#
 

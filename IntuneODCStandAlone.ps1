@@ -38,7 +38,9 @@ $Global:ResultRootDirectory = [System.IO.Path]::Combine(($env:TEMP), 'CollectedD
 $fileTime =   Get-Date ([datetime]::UtcNow) -UFormat "%m_%d_%Y_%H_%m_UTC%Z"
 $CompressedResultFileName = "$($env:COMPUTERNAME)_CollectedData_$fileTime.ZIP"
 [System.Nullable[bool]] $newZipperAvailable = $null # Stores flag whether [System.IO.Compression.ZipFile] can be used.
-$ODCversion = "2022.9.15" 
+
+$global:LogName = "$env:systemroot\temp\stdout.log"
+$ODCversion = "2022.9.28" 
 
 #endregion
 
