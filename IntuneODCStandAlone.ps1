@@ -40,7 +40,7 @@ $CompressedResultFileName = "$($env:COMPUTERNAME)_CollectedData_$fileTime.ZIP"
 [System.Nullable[bool]] $newZipperAvailable = $null # Stores flag whether [System.IO.Compression.ZipFile] can be used.
 
 $global:LogName = "$env:systemroot\temp\stdout.log"
-$ODCversion = "2022.9.28" 
+$ODCversion = "2022.10.3" 
 
 #endregion
 
