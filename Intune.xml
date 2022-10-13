@@ -530,7 +530,7 @@ if ($MachineIDContainer){
 $SubscriptionID = $ds -match "SubscriptionID : (.+)"
 
 # Start reporting
-$highestWinBuildNumber = "22000"
+$highestWinBuildNumber = "22622"
 
 $OS_Summary | Format-List
 
@@ -2586,6 +2586,135 @@ catch {
     $Error
 }
     </Command>
+	
+	      <Command Type="PS" Team="General" OutputFileName="NA">  
+&lt;#
+
+Get-IMELogs
+
+
+
+* make temp folder
+* copy IME logs
+* decode to plain text
+
+NOTE:  Do not run from the IntuneManagementExtension\Logs folder
+#&gt;
+
+
+&lt;#
+    Parse policy message to format in more user-friendly output
+#&gt;
+function Format-ImePolicyInfo {
+    param($Message)
+    [string]$JsonPrettyPrint = ""
+
+    # trim anything before opening JSON brace
+    $Message = $Message -replace "^.*?Get policies = \[", "["
+
+    # fixup if closing brace was stripped out
+    if( -not ($Message -match "\]$") ){ $Message += "]"}
+
+    $JsonPrettyPrint = ($Message | ConvertFrom-Json | ConvertTo-Json) 
+    $JsonPrettyPrint
+} 
+
+function ConvertTo-IMEPrettyPrint {
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [string]
+        $IMELog
+    )  
+
+    # Prettify output
+    $sampleLines = Get-Content $IMELog -TotalCount 10
+    foreach ($sampleLine in $sampleLines) {
+        if ($sampleLine -match $regex){
+            $spaces = ($Matches[3]).length + ($Matches[2]).length  +2
+        }
+
+    }
+    $indent = " " * $spaces
+    $regex = [regex]"(?m)^\&lt;\!\[LOG\[(.+?\n*.*?)\]+LOG\]\!\&gt;\&lt;time=`"(.+?)`" date=`"(.+?)`".*file=`"`"\&gt;\r?\n?$"
+    $twoLineRegex = [regex]"(?m)^(.+?\n*.*?)\]LOG\]\!\&gt;\&lt;time=`"(.+?)`" date=`"(.+?)`".*file=`"`"\&gt;\r?\n?$"
+   
+ 
+    $txtFile = $IMELog -replace "\.log", "-PrettyPrint.txt"
+
+    $lines = Get-Content $IMELog
+    $counter = 0
+    foreach($line in $lines) {
+        $counter += 1
+        # show progress
+        if ( $($counter % 1000) -eq 0) { Write-Host "." -NoNewline -ForegroundColor Green }
+
+        # handle large binary blobs
+        if ($line.length -gt 50000) {
+             
+            $line | Out-File -Force -Append $txtFile
+        }
+
+        elseif($line -match $regex){
+            $DateTime = "$($Matches[3]) $($Matches[2])"
+            $Message = $Matches[1]
+
+            # indicate visually that session has ended
+            if($Message  -match '\[datasensor\] whmRegionInCurrentKey is') {
+                Write-Output "$("`r`n" * 8) $('*' * 50)`r`n NEW SESSION`r`n $('*' * 50)`r`n"  | Out-File -Force -Append $txtFile
+            }
+
+            # Pretty print JSON
+            elseif($Message -match "^Get policies = \[") {
+                "$DateTime Get policies =" | Out-File -Force -Append $txtFile
+                Format-ImePolicyInfo($Message) | Out-File -Force -Append $txtFile
+            }
+
+            else {
+                "$DateTime $Message"| Out-File -Force -Append $txtFile
+            }
+
+        }
+        elseif ($line -match $twoLineRegex) {
+            "$($Matches[3]) $($Matches[2]) $($Matches[1])" | Out-File -Force -Append $txtFile
+            
+        }
+
+        # beginning of log message ending in line break.  Message continues on next line
+        elseif ($line -match "^\&lt;\!\[LOG\[(.*)") {
+            "$indent $($Matches[1])" | Out-File -Force -Append $txtFile
+         
+        }
+
+        # print the line without processing if no patterns match
+        else {            
+            $line | Out-File -Force -Append $txtFile
+        }
+    }        
+    
+}
+
+#Region Main
+$workingFolder = Join-Path -Path $env:temp -ChildPath $("IMETemp" + $(Get-Random))
+$null = mkdir $workingFolder -Force
+Copy-Item $env:ProgramData\Microsoft\IntuneManagementExtension\Logs\IntuneManagementExtension.log $workingFolder
+Copy-Item $env:ProgramData\Microsoft\IntuneManagementExtension\Logs\AgentExecutor.log $workingFolder
+
+
+ 
+foreach ($file in $(Get-ChildItem $workingFolder\*.log)) {
+    Write-Output  "`r`nProcessing $file" 
+    ConvertTo-IMEPrettyPrint $file
+}
+$outputPath = "$env:temp\CollectedData\Intune\Files\Sidecar\PrettyPrint"
+$x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force} 
+Move-Item $workingFolder\*.txt $outputPath -Force
+Remove-Item $workingFolder -Recurse -Force
+ 
+#endregion
+
+</Command>
+	
       <Command Type="PS" Team="General" OutputFileName="File collection.log"># workaround
 $ErrorActionPreference = "silentlycontinue"
 
