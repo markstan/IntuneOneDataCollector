@@ -5803,8 +5803,7 @@ $resultBlob | Format-List </Command>
       <File Team="Intune">%SystemRoot%\scoconnector.etl</File>
       <File Team="Intune">%TEMP%\clientui.log</File>
       <File Team="Intune">%Temp%\SoftwarePublishing\*.log</File>
-      <File Team="LegacyPCClient">%ProgramFiles%\Microsoft\OnlineManagement\Logs\*</File>
-      <File Team="LegacyPCClient">%ProgramFiles%\Microsoft\OnlineManagement\Updates\ReportingEvents.log</File>
+	  <File Team="Log Analytics">%ProgramData%\Microsoft\Diagnosis\DownloadedSettings\*</File>	  
       <File Team="MSI Logs">%SystemRoot%\temp\*MSI*.log</File>
       <File Team="MSI Logs">%temp%\*MSI*.log</File>
       <File Team="NDES">%ProgramFiles%\Microsoft Configuration Manager\logs\ndes*</File>
