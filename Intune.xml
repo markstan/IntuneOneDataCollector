@@ -5752,6 +5752,8 @@ $resultBlob | Format-List </Command>
       <EventLog Team="Event Log">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-ModernDeployment-*</EventLog>
       <EventLog Team="Event Log">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-NetworkProfile*</EventLog>
       <EventLog Team="Event Log">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-Provisioning-*</EventLog>
+	  <EventLog Team="Event Log">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-Store*</EventLog>	  
+      <EventLog Team="Event Log">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-UniversalTelemetryClient%4Operational.evtx</EventLog>
       <EventLog Team="Event Log">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-WindowsUpdateClient*</EventLog>
       <EventLog Team="Event Log">%SystemRoot%\system32\winevt\logs\PFX*</EventLog>
       <EventLog Team="Event Log">%SystemRoot%\system32\winevt\logs\Security.evtx</EventLog>
