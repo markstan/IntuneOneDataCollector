@@ -599,16 +599,10 @@ Get-WmiObject  -Class Win32_BIOS
    
 Get-ComputerInfo
  </Command>
-	  <Command Type="CMD" Team="General" OutputFileName="Installed_Products.txt">
-	  $line = ("*" * 120) + "`r`n"
-	  $line
-	  Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher, InstallDate | Sort-Object DisplayName | Format-Table -Wrap -AutoSize
-	  $line
-	  Write-Output "Verbose"
-	  $line
-	  Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | format-list
-	  
-	  </Command>
+<Command Type="PS" Team="General" OutputFileName="Installed_Products.txt"> 
+    RunCommand "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher, InstallDate | Sort-Object DisplayName | Format-Table -Wrap -AutoSize"
+    RunCommand "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | format-list"
+    </Command>
       <Command Type="CMD" Team="General" OutputFileName="proxy_settings.txt">netsh winhttp show proxy</Command>
       <Command Type="PS" Team="General" OutputFileName="Bitlocker_and_TPM">RunCommand "tpmtool getdeviceinformation"
 RunCommand "manage-bde -status"
