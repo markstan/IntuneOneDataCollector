@@ -13,6 +13,18 @@ RunCommand "whoami /upn"
 RunCommand "whoami /all"
 RunCommand "whoami /logonid"
 RunCommand "whoami /fqdn"</Command>
+      <Command Type="PS" Team="General" OutputFileName="NA">
+# query for Company Portal status
+# https://learn.microsoft.com/en-us/windows/package-manager/winget/troubleshooting
+
+$outputPath = "$env:temp\CollectedData\Intune\Commands\General"
+$x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force} 
+
+RunCommand "winget search 9WZDNCRFJ3PZ --verbose --accept-source-agreements --disable-interactivity | Out-File $outputPath\Winget_search.txt -Append -Force"
+RunCommand "winget show 9WZDNCRFJ3PZ --verbose --accept-source-agreements --disable-interactivity| Out-File $outputPath\Winget_show_companyPortal.txt -Append -Force"
+RunCommand "winget list --verbose --accept-source-agreements --disable-interactivity | Out-File $outputPath\Winget_list.txt -Append -Force"
+
+copy $env:LOCALAPPDATA\Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState\DiagOutputDir\* $outPutPath</Command>
       <Command Type="PS" Team="General" OutputFileName="NA">  
 	# dsregcmd_debug.  Must be ran as system
     $ErrorActionPreference = "Stop"
