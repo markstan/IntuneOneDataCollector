@@ -5760,7 +5760,8 @@ $resultBlob | Format-List </Command>
       <EventLog Team="Event Log">%SystemRoot%\system32\winevt\logs\Security.evtx</EventLog>
       <EventLog Team="Event Log">%SystemRoot%\system32\winevt\logs\System.evtx</EventLog>
       <EventLog Team="Event Log">%SystemRoot%\system32\winevt\logs\Setup.evtx</EventLog>
-</EventLogs>
+     <EventLog Team="Event Log">%SystemRoot%\system32\winevt\logs\*remote*help*.evtx</EventLog>
+  </EventLogs>
 	  
    <Files>      
       <File Team="Windows Update">%ProgramFiles%\Microsoft Update Health Tools\Logs</File>
