@@ -5778,6 +5778,7 @@ $resultBlob | Format-List </Command>
       <File Team="Windows Update\waasmedic">%SystemRoot%\logs\waasmedic</File>
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\AgentData\Logs\*</File>
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\GatewayData\Logs\*.*</File>
+      <File Team="Antimalware">%\ProgramData%\Microsoft\Windows Defender Advanced Threat Protection\SenseCM</File>
       <File Team="Antimalware">%ALLUSERSPROFILE%\Microsoft\Microsoft Antimalware\Support\*.cab</File>
       <File Team="Antimalware">%ProgramData%\Microsoft\Microsoft Antimalware\Support\*.cab</File>
       <File Team="Antimalware">%ProgramFiles%\Microsoft Antimalware\Support\*.*</File>
@@ -5881,6 +5882,8 @@ $resultBlob | Format-List </Command>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Provisioning">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\provisioning</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Provisioning_Diagnostics_Autopilot">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\Diagnostics\AutoPilot</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_Provisioning_NodeCache_CSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\NodeCache\CSP</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_SenseCM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SenseCM</Registry>
+      <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_SenseCM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Advanced Threat Protection</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_SystemCenterAdvisor">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCenterAdvisor</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_SystemCertificates">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCertificates\MY\Certificates</Registry>
       <Registry Team="Registry" OutputFileName="REG_SW_Microsoft_SystemCertificates_SystemCenterOnlineClient">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCertificates\System Center Online Client</Registry>
