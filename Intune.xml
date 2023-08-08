@@ -5738,16 +5738,10 @@ $resultBlob | Format-List </Command>
 	  
     </EventLogs>
    <Files>      
-	  <File Team="Windows Update">%ProgramFiles%\Microsoft Update Health Tools\Logs</File>
-	  <File Team="Windows Update">%SystemRoot%\Logs\DISM</File>	  
+      <File Team="Windows Update">%ProgramFiles%\Microsoft Update Health Tools\Logs</File>
+      <File Team="Windows Update">%SystemRoot%\Logs\DISM</File>	  
       <File Team="Windows Update\System">%ProgramData%\USOShared\Logs\System</File> 
-      <File Team="Windows Update\User">%ProgramData%\USOShared\Logs\User</File>  
-	  <File Team="Windows Update\DownloadedSettings">%ProgramData%\Microsoft\Diagnosis\DownloadedSettings</File>  
-	  <File Team="Windows Update\MoSetup">%SystemRoot%\logs\MoSetup</File>
-	  <File Team="Windows Update\WaaS">%SystemRoot%\logs\WaaS</File>
-	  <File Team="Windows Update\waasmediccapsule">%SystemRoot%\logs\waasmediccapsule</File>
-	  <File Team="Windows Update\waasmedic">%SystemRoot%\logs\waasmedic</File>
-	  <File Team="Advisor">%ProgramFiles%\System Center Advisor\AgentData\Logs\*</File>
+      <File Team="Windows Update\User">%ProgramData%\USOShared\Logs\User</File>   
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\GatewayData\Logs\*.*</File>
       <File Team="Antimalware">%ALLUSERSPROFILE%\Microsoft\Microsoft Antimalware\Support\*.cab</File>
       <File Team="Antimalware">%ProgramData%\Microsoft\Microsoft Antimalware\Support\*.cab</File>
@@ -5770,6 +5764,7 @@ $resultBlob | Format-List </Command>
       <File Team="General">%SystemRoot%\SoftwareDistribution\ReportingEvents*.log</File>
       <File Team="General">%systemroot%\temp\stdout.log</File>
       <File Team="General">%temp%\supportconsole*.*</File>
+      <File Team="General">%LocalAppData%\Local\Microsoft\Edge\User Data\MAMLog.txt</File>
       <File Team="Homegroup">%SystemRoot%\Logs\HomeGroup\*.*</File>
       <File Team="Intune">%LOCALAPPDATA%\Microsoft\OnlineManagement\Logs\clientui.log</File>
       <File Team="Intune">%LOCALAPPDATA%\Microsoft\Windows\clientui.log</File>
@@ -5781,7 +5776,7 @@ $resultBlob | Format-List </Command>
       <File Team="Intune">%SystemRoot%\scoconnector.etl</File>
       <File Team="Intune">%TEMP%\clientui.log</File>
       <File Team="Intune">%Temp%\SoftwarePublishing\*.log</File>
-	  <File Team="Log Analytics">%ProgramData%\Microsoft\Diagnosis\DownloadedSettings\*</File>	  
+      <File Team="Log Analytics">%ProgramData%\Microsoft\Diagnosis\DownloadedSettings\*</File>	  
       <File Team="MSI Logs">%SystemRoot%\temp\*MSI*.log</File>
       <File Team="MSI Logs">%temp%\*MSI*.log</File>
       <File Team="NDES">%ProgramFiles%\Microsoft Configuration Manager\logs\ndes*</File>
@@ -5793,7 +5788,7 @@ $resultBlob | Format-List </Command>
       <File Team="NDES">C:\inetpub\logs\LogFiles\W3SVC1\u_ex*.log </File>
       <File Team="NDES">C:\NDESConnectorSetup\*.log</File>
       <File Team="OpsMgr">%SystemRoot%\Temp\OpsMgrTrace\*.*</File>
-	  <File Team="Panther">%SystemRoot%\Panther</File>
+      <File Team="Panther">%SystemRoot%\Panther</File>
       <File Team="Sidecar">%LocalAppData%\mdm\*.log</File>
       <File Team="Sidecar">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
       <File Team="Sidecar">%systemroot%\system32\config\systemprofile\AppData\Local\mdm\*.log</File>
