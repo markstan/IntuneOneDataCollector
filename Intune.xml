@@ -791,7 +791,10 @@ echo "======= netsh int ipv4 show neighbors ======"
 netsh int ipv4 show neighbors
 
 	</Command>
-	<Command Type="PS" Team="Networking" OutputFileName="Connectivity_tests">$uniqueURLs = (dsregcmd /status) | ForEach-Object { if ($_ -match ".*https://(\w+.+?)\/") { $matches[1]} } | Get-Unique
+	<Command Type="PS" Team="Networking" OutputFileName="Connectivity_tests">
+$uniqueURLs = (dsregcmd /status) | ForEach-Object { if ($_ -match ".*https://(\w+.+?)\/") { $matches[1]} } | Get-Unique
+$uniqueURLs += "r.manage.microsoft.com"
+$uniqueURLs += "r.manage.microsoft.us"
 $ErrorActionPreference = "Stop" 
 
 foreach($uniqueURL in $uniqueURLs) {
