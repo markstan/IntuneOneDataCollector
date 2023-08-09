@@ -3954,12 +3954,15 @@ del .\*DiagnosticLogCSP_Collector*.etl
       <Command Type="PS" Team="Windows Update" OutputFileName="ServiceManager_services">$ServiceManager = New-Object -ComObject "Microsoft.Update.ServiceManager"
 echo "`$ServiceManager = New-Object -ComObject Microsoft.Update.ServiceManager;`$ServiceManager.services| fl *"
 echo $("*" * 60)
-$ServiceManager.services| fl *</Command>
-      <Command Type="PS" Team="General" OutputFileName="CompanyPortal_and_APPX_info.txt">RunCommand "Get-AppxPackage -AllUser -Name Microsoft.Companyportal"
-RunCommand "Get-AppxPackage -AllUser -Name Microsoft.Companyportal | Get-AppxPackageManifest | fl *"
+$ServiceManager.services| fl *</Command> 
+	    
+<Command Type="PS" Team="General" OutputFileName="CompanyPortal_and_APPX_info.txt">
+RunCommand "Get-AppxPackage -AllUser -Name Microsoft.Companyportal"
+RunCommand "Get-AppxPackage -AllUsers -Name Microsoft.DesktopAppInstaller"
+RunCommand "(Get-AppxPackage -AllUsers -Name Microsoft.DesktopAppInstaller).PackageUserInformation | select -Property * -ExpandProperty usersecurityid| fl"
+RunCommand "Get-AppxPackage -AllUsers -Name Microsoft.Companyportal | Get-AppxPackageManifest | fl *"	      
 RunCommand "Get-AppxPackage -AllUsers | Select-Object Name | Sort-Object -Property Name"
 RunCommand "Get-AppxPackage -AllUsers  | Select-Object -ExpandProperty Dependencies | Sort-Object -Property Name"</Command>
-
 
 	<Command Type="PS" Team="MSI Logs" OutputFileName="NA">
 	# Look for possible MSIlogs in windows\temp
