@@ -5820,8 +5820,7 @@ $resultBlob | Format-List </Command>
       <File Team="WMI">%SystemRoot%\system32\wbem\tmf\*.*</File>  
     </Files>
 	
-<Registries>
- 
+<Registries> 
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Control_Session-Manager">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Services_TPM">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\TPM</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_HKCU_Volatile_Environment">HKEY_CURRENT_USER\Volatile Environment</Registry>	  
@@ -5832,8 +5831,9 @@ $resultBlob | Format-List </Command>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_Autopilot">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Autopilot</Registry> 
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_CV_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_CV_StorageSense">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\StorageSense</Registry>
-      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_CV_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_CV_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate</Registry> 
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Control_CloudDomainJoin">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\CloudDomainJoin</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Control_EAS">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\EAS</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Control_ProductOptions_ProductSuite">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\ProductOptions\ProductSuite</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Control_TimeZone">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\TimeZoneInformation</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Control_Windows_CSDVersion">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Windows\CSDVersion</Registry>
