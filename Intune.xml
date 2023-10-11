@@ -5886,6 +5886,7 @@ $resultBlob | Format-List </Command>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_Defender">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_Enrollments">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Enrollments</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_Installer">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_WufbDS">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WufbDS</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Policies">HKEY_LOCAL_MACHINE\Software\Policies</Registry> 
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Wow6432Node_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies</Registry>	  	  
@@ -5893,6 +5894,8 @@ $resultBlob | Format-List </Command>
       <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_PolicyManager_Current_Device_Update">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\current\device\Update</Registry> 
       <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_CloudManagedUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CloudManagedUpdate</Registry>	  
       <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_Windows_CV_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate</Registry>
+      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate</Registry>
+      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_WufbDS">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WufbDS</Registry>	
     </Registries>
   </Package>
 </DataPoints>
