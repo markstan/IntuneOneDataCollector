@@ -5823,6 +5823,7 @@ $resultBlob | Format-List </Command>
 	
 <Registries> 
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Control_Session-Manager">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Services_SharedAccess_FirewallRules">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\SharedAccess\Parameters\FirewallPolicy\Mdm</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Services_TPM">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\TPM</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_HKCU_Volatile_Environment">HKEY_CURRENT_USER\Volatile Environment</Registry>	  
       <Registry Team="..\RegistryKeys" OutputFileName="REG_HKCU_Software_Policies">HKEY_CURRENT_USER\Software\Policies</Registry>	 
@@ -5885,6 +5886,7 @@ $resultBlob | Format-List </Command>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_Defender">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_Enrollments">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Enrollments</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_Installer">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_WufbDS">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WufbDS</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Policies">HKEY_LOCAL_MACHINE\Software\Policies</Registry> 
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Wow6432Node_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies</Registry>	  	  
       <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Policies_Microsoft_Windows_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate</Registry>	  
