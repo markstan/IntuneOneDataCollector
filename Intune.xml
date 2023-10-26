@@ -3962,7 +3962,11 @@ RunCommand "Get-AppxPackage -AllUsers -Name Microsoft.DesktopAppInstaller"
 RunCommand "(Get-AppxPackage -AllUsers -Name Microsoft.DesktopAppInstaller).PackageUserInformation | select -Property * -ExpandProperty usersecurityid| fl"
 RunCommand "Get-AppxPackage -AllUsers -Name Microsoft.Companyportal | Get-AppxPackageManifest | fl *"	      
 RunCommand "Get-AppxPackage -AllUsers | Select-Object Name | Sort-Object -Property Name"
-RunCommand "Get-AppxPackage -AllUsers  | Select-Object -ExpandProperty Dependencies | Sort-Object -Property Name"</Command>
+RunCommand "Get-AppxPackage -AllUsers  | Select-Object -ExpandProperty Dependencies | Sort-Object -Property Name"
+$outputPath = "$env:temp\CollectedData\Intune\Commands\General"
+$x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
+RunCommand "Get-AppxProvisionedPackage -Online -LogPath $outputPath\AppxProvisionedPackage.log | fl *"
+</Command>
 
 	<Command Type="PS" Team="MSI Logs" OutputFileName="NA">
 	# Look for possible MSIlogs in windows\temp
