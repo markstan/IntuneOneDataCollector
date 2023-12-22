@@ -795,6 +795,7 @@ netsh int ipv4 show neighbors
 $uniqueURLs = (dsregcmd /status) | ForEach-Object { if ($_ -match ".*https://(\w+.+?)\/") { $matches[1]} } | Get-Unique
 $uniqueURLs += "r.manage.microsoft.com"
 $uniqueURLs += "r.manage.microsoft.us"
+$uniqueURLs += "enterpriseregistration.windows.net"
 $ErrorActionPreference = "Stop" 
 
 foreach($uniqueURL in $uniqueURLs) {
@@ -5758,7 +5759,7 @@ $resultBlob | Format-List </Command>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Security.evtx</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\System.evtx</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Setup.evtx</EventLog>
-	  
+      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-LAPS*</EventLog> 
     </EventLogs>
    <Files>      
       <File Team="Windows Update">%ProgramFiles%\Microsoft Update Health Tools\Logs</File>
