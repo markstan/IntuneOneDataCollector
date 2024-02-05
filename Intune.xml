@@ -411,6 +411,7 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
  
  # https://en.wikipedia.org/wiki/Windows_10_version_history
  $versions = @{
+ "22631" =   "Win11 23H2"
  "22622" =   "Win11 22H2"
  "22621" =   "Win11 22H2"
  "22000" =   "Win11 21H2"
@@ -431,6 +432,7 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
  }
 
  $marketingNames = @{
+ "22631" =   "Win11 2023 Update"
  "22622" =   "Win11 2022 Update"
  "22621" =   "Win11 2022 Update"
  "22000" =   "Win11 RTM"
@@ -452,6 +454,7 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
 
 
   $codeNames = @{
+ "22631" =   "Win11 23H2"
  "22622" =   "Win11 22H2"
  "22621" =   "Win11 22H2"
  "22000" =   "Win11 21H2"
@@ -530,11 +533,11 @@ if ($MachineIDContainer){
 $SubscriptionID = $ds -match "SubscriptionID : (.+)"
 
 # Start reporting
-$highestWinBuildNumber = "22622"
+$highestWinBuildNumber = "22631"
 
 $OS_Summary | Format-List
 
-if ($Win10Version.BuildNumber -gt $highestWinBuildNumber) { "**** WARNING:  Beta version of Windows detected:  Build $($Win10Version.version) *****"}
+if ($Win10Version.BuildNumber -gt $highestWinBuildNumber) { "**** WARNING:  Unknown version of Windows detected:  Build $($Win10Version.version) *****"}
 if ( (Get-CimInstance -ClassName Win32_OperatingSystem).OperatingSystemSKU -eq 125) {
     "**** WARNING:  Windows 10 OS is on the  long-term servicing branch (LTSB) for updates.  See https://aka.ms/IntuneLTSB for more information.  *****"
 }
@@ -5713,18 +5716,12 @@ $resultBlob += Test-SQMIsPopulated
 $resultBlob += Test-IsDualScanEnabled 
 $resultBlob | Format-List </Command>
  </Commands>	 
-    <EventLogs>	
-      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*TWinUI*</EventLog>
-      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-CodeIntegrity*</EventLog>
-      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-Kernel-Boot%4Operational.evtx</EventLog>
-      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-Microsoft-Windows-AppLocker*</EventLog>
-      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-RemoteHelp*</EventLog>
-      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-TaskScheduler*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\System32\Winevt\Logs\*odj*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-AppLocker*.evtx</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-AssignedAccess*.evtx</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-Authentication User Interface%4Operational.evtx</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-PushNotification-Platform*</EventLog>
+      <EventLog Team="..\EventLogs">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-UniversalTelemetryClient%4Operational.evtx</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\System32\winevt\Logs\Microsoft-Windows-TaskScheduler*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\Winevt\Logs\Microsoft-Windows-DeviceSetupManager*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\Winevt\Logs\Microsoft-Windows-HelloForBusiness*</EventLog>
@@ -5734,6 +5731,7 @@ $resultBlob | Format-List </Command>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*AAD*.evtx</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*PFX*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*PushNotifications*</EventLog>
+      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*TWinUI*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*WMI*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*appx*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*bitlocker*</EventLog>
@@ -5749,23 +5747,24 @@ $resultBlob | Format-List </Command>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*user*device*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*workplace*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Application.evtx</EventLog>
+      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-CodeIntegrity*</EventLog>
+      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-Kernel-Boot%4Operational.evtx</EventLog>
+      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-LAPS*</EventLog> 
+      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-Microsoft-Windows-AppLocker*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-ModernDeployment-*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-NetworkProfile*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-Provisioning-*</EventLog>
+      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-RemoteHelp*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-Store*</EventLog>	  
-      <EventLog Team="..\EventLogs">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-UniversalTelemetryClient%4Operational.evtx</EventLog>
+      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-TaskScheduler*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-WindowsUpdateClient*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\PFX*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Security.evtx</EventLog>
-      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\System.evtx</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Setup.evtx</EventLog>
-      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-LAPS*</EventLog> 
+      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\System.evtx</EventLog>
+    <EventLogs>	
     </EventLogs>
    <Files>      
-      <File Team="Windows Update">%ProgramFiles%\Microsoft Update Health Tools\Logs</File>
-      <File Team="Windows Update">%SystemRoot%\Logs\DISM</File>	  
-      <File Team="Windows Update\System">%ProgramData%\USOShared\Logs\System</File> 
-      <File Team="Windows Update\User">%ProgramData%\USOShared\Logs\User</File>   
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\GatewayData\Logs\*.*</File>
       <File Team="Antimalware">%ALLUSERSPROFILE%\Microsoft\Microsoft Antimalware\Support\*.cab</File>
       <File Team="Antimalware">%ProgramData%\Microsoft\Microsoft Antimalware\Support\*.cab</File>
@@ -5781,36 +5780,36 @@ $resultBlob | Format-List </Command>
       <File Team="Exchange Connector">%ProgramData%\Microsoft\Windows Intune Exchange Connector\*.*</File>
       <File Team="Exchange Connector">%ProgramData%\Microsoft\Windows Intune Exchange Connector\Logs\*.*</File>
       <File Team="General">%LOCALAPPDATA%\Temp\*.log</File>
-      <File Team="General">%ProgramData%\microsoft\diagnosticlogcsp\collectors\*</File>
+      <File Team="General">%LocalAppData%\Local\Microsoft\Edge\User Data\MAMLog.txt</File>
       <File Team="General">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
+      <File Team="General">%ProgramData%\microsoft\diagnosticlogcsp\collectors\*</File>
       <File Team="General">%ProgramFiles%\Microsoft Intune\ODJConnector\ODJConnectorUI\*.log</File>
       <File Team="General">%SystemRoot%\PolicyClient*.log</File>
       <File Team="General">%SystemRoot%\SoftwareDistribution\ReportingEvents*.log</File>
       <File Team="General">%systemroot%\temp\stdout.log</File>
       <File Team="General">%temp%\supportconsole*.*</File>
-      <File Team="General">%LocalAppData%\Local\Microsoft\Edge\User Data\MAMLog.txt</File>
       <File Team="Homegroup">%SystemRoot%\Logs\HomeGroup\*.*</File>
       <File Team="Intune">%LOCALAPPDATA%\Microsoft\OnlineManagement\Logs\clientui.log</File>
       <File Team="Intune">%LOCALAPPDATA%\Microsoft\Windows\clientui.log</File>
-      <File Team="Intune">%ProgramFiles%\microsoft policy platform\policyplatformclient*.log</File>
       <File Team="Intune">%ProgramFiles%\Microsoft\OnlineManagement\Logs\*.log</File>
       <File Team="Intune">%ProgramFiles%\Microsoft\OnlineManagement\PolicyAgent\InventoryCache\3DA21691-E39D-4DA6-8A4B-B43877BCB1B7\*.xml</File>
       <File Team="Intune">%ProgramFiles%\Microsoft\OnlineManagement\PolicyAgent\ReportCache\3DA21691-E39D-4DA6-8A4B-B43877BCB1B7\*.xml</File>
-      <File Team="Intune">%public%\Documents\MDMDiagnostics\*</File>
+      <File Team="Intune">%ProgramFiles%\microsoft policy platform\policyplatformclient*.log</File>
       <File Team="Intune">%SystemRoot%\scoconnector.etl</File>
       <File Team="Intune">%TEMP%\clientui.log</File>
       <File Team="Intune">%Temp%\SoftwarePublishing\*.log</File>
+      <File Team="Intune">%public%\Documents\MDMDiagnostics\*</File>
       <File Team="Log Analytics">%ProgramData%\Microsoft\Diagnosis\DownloadedSettings\*</File>	  
       <File Team="MSI Logs">%SystemRoot%\temp\*MSI*.log</File>
       <File Team="MSI Logs">%temp%\*MSI*.log</File>
       <File Team="NDES">%ProgramFiles%\Microsoft Configuration Manager\logs\ndes*</File>
-      <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorSvc\logs\logs\*</File>
       <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorSvc\NDESConnector.exe.config</File>
-      <File Team="NDES">%temp%\*CertConnectorLogs*.zip</File>
+      <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorSvc\logs\logs\*</File>
       <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESConnectorUI\NDESConnectorUI.log</File>
       <File Team="NDES">%ProgramFiles%\Microsoft Intune\NDESPolicyModule\Logs\NDESPlugin.log</File>
-      <File Team="NDES">C:\inetpub\logs\LogFiles\W3SVC1\u_ex*.log </File>
+      <File Team="NDES">%temp%\*CertConnectorLogs*.zip</File>
       <File Team="NDES">C:\NDESConnectorSetup\*.log</File>
+      <File Team="NDES">C:\inetpub\logs\LogFiles\W3SVC1\u_ex*.log </File>
       <File Team="OpsMgr">%SystemRoot%\Temp\OpsMgrTrace\*.*</File>
       <File Team="Panther">%SystemRoot%\Panther</File>
       <File Team="Panther">%SystemRoot%\inf\*.log</File>
@@ -5819,63 +5818,69 @@ $resultBlob | Format-List </Command>
       <File Team="Sidecar">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
       <File Team="Sidecar">%systemroot%\system32\config\systemprofile\AppData\Local\mdm\*.log</File>
       <File Team="Teams">%AppData%\Microsoft\Teams\*.txt</File>
-      <File Team="Teams">%LocalAppData%\Microsoft\Teams\current\SquirrelSetup.log</File>
       <File Team="Teams">%LocalAppData%\Microsoft\Teams\SquirrelSetup.log</File>
+      <File Team="Teams">%LocalAppData%\Microsoft\Teams\current\SquirrelSetup.log</File>
       <File Team="Teams">%LocalAppData%\SquirrelTemp\*</File>
       <File Team="WMI">%SystemRoot%\system32\wbem\logs\*.*</File>
       <File Team="WMI">%SystemRoot%\system32\wbem\tmf\*.*</File>  
+      <File Team="Windows Update">%ProgramFiles%\Microsoft Update Health Tools\Logs</File>
+      <File Team="Windows Update">%SystemRoot%\Logs\DISM</File>	  
+      <File Team="Windows Update\System">%ProgramData%\USOShared\Logs\System</File> 
+      <File Team="Windows Update\User">%ProgramData%\USOShared\Logs\User</File>   
     </Files>
 	
 <Registries> 
-      <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Control_Session-Manager">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager</Registry>
-      <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Services_SharedAccess_FirewallRules">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\SharedAccess\Parameters\FirewallPolicy\Mdm</Registry>
-      <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Services_TPM">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\TPM</Registry>
-      <Registry Team="..\RegistryKeys" OutputFileName="REG_HKCU_Volatile_Environment">HKEY_CURRENT_USER\Volatile Environment</Registry>	  
-      <Registry Team="..\RegistryKeys" OutputFileName="REG_HKCU_Software_Policies">HKEY_CURRENT_USER\Software\Policies</Registry>	 
-      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_CloudManagedUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CloudManagedUpdate</Registry>
-      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_EPMAgent">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\EPMAgent</Registry>
-      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_MDMWins">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MDMWins</Registry>
-      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_SQMClient">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SQMClient</Registry>
-      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_Autopilot">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Autopilot</Registry> 
-      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_CV_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies</Registry>
-      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_CV_StorageSense">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\StorageSense</Registry>
-      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_CV_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate</Registry> 
+      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_CloudManagedUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CloudManagedUpdate</Registry>	  
+      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_PolicyManager_Current_Device_Update">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\current\device\Update</Registry> 
+      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate</Registry>
+      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_Windows_CV_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate</Registry>
+      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_WufbDS">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WufbDS</Registry>	
+      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Policies_Microsoft_Windows_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate</Registry>	  
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Control_CloudDomainJoin">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\CloudDomainJoin</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Control_EAS">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\EAS</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Control_ProductOptions_ProductSuite">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\ProductOptions\ProductSuite</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Control_Session-Manager">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Control_TimeZone">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\TimeZoneInformation</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Control_Windows_CSDVersion">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Windows\CSDVersion</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Services_CertPropSvc">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\CertPropSvc</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Services_Crypt32">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\crypt32</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Services_CryptSvc">HKEY_LOCAL_MACHINE\SYSTEM\SYSTEM\CurrentControlSet\services\CryptSvc</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Services_HTTP">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\HTTP</Registry>
-      <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Services_SCardSvr">HKEY_LOCAL_MACHINE\HKLM\SYSTEM\CurrentControlSet\services\SCardSvr</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Services_SCPolicySvc">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\SCPolicySvc</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Services_SCardSvr">HKEY_LOCAL_MACHINE\HKLM\SYSTEM\CurrentControlSet\services\SCardSvr</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Services_SharedAccess_FirewallRules">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\SharedAccess\Parameters\FirewallPolicy\Mdm</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Services_SharedAccess_Parameters_FirewallPolicy">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Services_TPM">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\TPM</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_WindowsEmbedded_ProductVersion">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WindowsEmbedded\ProductVersion</Registry>	  
       <Registry Team="..\RegistryKeys" OutputFileName="REG_HKCU_Software_Microsoft_SCEP">HKEY_CURRENT_USER\Software\Microsoft\SCEP</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_HKCU_Software_Microsoft_Windows_CurrentVersion_Uninstall">HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_HKCU_Software_Policies">HKEY_CURRENT_USER\Software\Policies</Registry>	 
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_HKCU_Volatile_Environment">HKEY_CURRENT_USER\Volatile Environment</Registry>	  
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_BitLockerCsp">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\BitLockerCsp</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_CCM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CCM</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_CloudManagedUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CloudManagedUpdate</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Cryptography_MSCEP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\MSCEP</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_DeviceManageabilityCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DeviceManageabilityCSP</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_DiagnosticLogCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DiagnosticLogCSP</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_DotNetFW_v4">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\.NETFramework\v4.0.30319</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_EPMAgent">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\EPMAgent</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Enrollments">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Enrollments</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_EnterpriseDesktopAppManagement">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\EnterpriseDesktopAppManagement</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_HVSICSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\HVSICSP</Registry> 
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_IntuneManagementExtension">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\IntuneManagementExtension</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_MDMWins">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MDMWins</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_MicrosoftIntune">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MicrosoftIntune</Registry> 
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Microsoft_Operations_Manager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft Operations Manager</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Multivariant">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\multivariant</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_OfficeCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OfficeCSP</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_OnlineManagement">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OnlineManagement</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_POSReady">HKEY_LOCAL_MACHINE\Software\Microsoft\POSReady</Registry> 
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_PolicyManager">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_PolicyPlatform">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyPlatform</Registry>
-      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_POSReady">HKEY_LOCAL_MACHINE\Software\Microsoft\POSReady</Registry> 
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Provisioning">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\provisioning</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Provisioning_Diagnostics_Autopilot">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\Diagnostics\AutoPilot</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Provisioning_NodeCache_CSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Provisioning\NodeCache\CSP</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_SQMClient">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SQMClient</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_SystemCenterAdvisor">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCenterAdvisor</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_SystemCertificates">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCertificates\MY\Certificates</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_SystemCertificates_SystemCenterOnlineClient">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemCertificates\System Center Online Client</Registry>
@@ -5883,24 +5888,22 @@ $resultBlob | Format-List </Command>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_WEPOS_Version">HKEY_LOCAL_MACHINE\Software\Microsoft\WEPOS\Version</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_WindowsNT_CurrentVersion">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_WindowsSelfHost">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsSelfHost</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_AssignedAccessConfiguration">HKEY_LOCAL_MACHINE\SOFTWARE\microsoft\windows\assignedaccessconfiguration</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_Assignedaccesscsp">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\windows\assignedaccesscsp</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_Autopilot">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Autopilot</Registry> 
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_CV_Installer">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_CV_MDM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\MDM</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_CV_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_CV_StorageSense">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\StorageSense</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_CV_Uninstall">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_CV_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate</Registry> 
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_Defender">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_Enrollments">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Enrollments</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Windows_Installer">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18</Registry>
-      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_WufbDS">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WufbDS</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Policies">HKEY_LOCAL_MACHINE\Software\Policies</Registry> 
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Wow6432Node_Policies">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies</Registry>	  	  
-      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Policies_Microsoft_Windows_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate</Registry>	  
-      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_PolicyManager_Current_Device_Update">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\current\device\Update</Registry> 
-      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_CloudManagedUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CloudManagedUpdate</Registry>	  
-      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_Windows_CV_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate</Registry>
-      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate</Registry>
-      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_WufbDS">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WufbDS</Registry>	
     </Registries>
   </Package>
 </DataPoints>
