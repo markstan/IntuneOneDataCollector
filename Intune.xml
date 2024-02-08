@@ -5715,7 +5715,9 @@ $resultBlob += Test-IsHealthServicesRunning
 $resultBlob += Test-SQMIsPopulated
 $resultBlob += Test-IsDualScanEnabled 
 $resultBlob | Format-List </Command>
- </Commands>	 
+ </Commands>
+
+ <EventLogs>	 
       <EventLog Team="..\EventLogs">%SystemRoot%\System32\Winevt\Logs\*odj*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-AppLocker*.evtx</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-AssignedAccess*.evtx</EventLog>
@@ -5762,7 +5764,7 @@ $resultBlob | Format-List </Command>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Security.evtx</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Setup.evtx</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\System.evtx</EventLog>
-    <EventLogs>	
+   
     </EventLogs>
    <Files>      
       <File Team="Advisor">%ProgramFiles%\System Center Advisor\GatewayData\Logs\*.*</File>
