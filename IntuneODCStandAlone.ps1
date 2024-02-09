@@ -40,7 +40,7 @@ $CompressedResultFileName = "$($env:COMPUTERNAME)_CollectedData_$fileTime.ZIP"
 [System.Nullable[bool]] $newZipperAvailable = $null # Stores flag whether [System.IO.Compression.ZipFile] can be used.
 
 $global:LogName = "$env:systemroot\temp\stdout.log"
-$ODCversion = "2022.10.3" 
+$ODCversion = "2024.2.8" 
 
 #endregion
 
@@ -1257,7 +1257,12 @@ function Collect-Files
 						$teamName = ($file.Team, 'General')[([string]::IsNullOrEmpty($file.Team)) -or ($file.Team.Trim().Length -le 0)];							
 						$dstFileName = $env:COMPUTERNAME + "_" + ($resolvedFile.Name)
 						$destinationFilename = (@($packageDirectory, $currentActivity, $teamName, $dstFileName) -join '\')| Get-ValidPath | Get-NewFileNameIfExists
- 						Copy-Item -Path ($resolvedFile.FullName) -Destination $destinationFilename -Force #-ErrorAction SilentlyContinue | Out-Null
+ 						if ($resolvedFile.Length -ne 0) {
+                            Copy-Item -Path ($resolvedFile.FullName) -Destination $destinationFilename -Force
+                            }
+                        else {
+                            Write-Log -Message "Skipping zero-byte file $($resolvedFile.FullName)" -Level Warning -WriteStdOut
+                            }
 					}
 				}
 				catch
@@ -1676,7 +1681,7 @@ function Compress-CollectedDataAndReport
 {
     if(Test-Path($ResultRootDirectory))
     {
-        Write-DiagProgress -Activity ($Utils_OneDataCollector_Strings.ProgressActivity_CompressingData)
+        Write-DiagProgress -Activity "Compressing zip file" -status $CompressedResultFileName
         
         
         $ErrorActionPreference = "Stop"
@@ -1703,12 +1708,9 @@ function Compress-CollectedDataAndReport
 function Write-DiagProgress {
     Param (
         $activity,
-        $status
-
+        $status 
     )
-
-    Write-Output "$status"
-    $status | Out-File $env:systemroot\temp\stdout.log -Append -Force
+    Write-Log -Message "$activity ::: $status" -WriteStdOut
 
 }
 
@@ -1733,7 +1735,7 @@ if (-not (Test-IsAdmin) ) {
 $ResultRootDirectory = [System.IO.Path]::Combine(($env:TEMP), 'CollectedData')
 # clean up any folders from old runs
 if (Test-Path $ResultRootDirectory) {
-    "Removing $ResultRootDirectory"   | Out-File $env:systemroot\temp\stdout.log -Append -Force
+    Write-Log -Message "Removing $ResultRootDirectory" -Level Information
     $x = Remove-Item -Recurse -Path $ResultRootDirectory -Force
 }
 
@@ -1764,7 +1766,7 @@ if (-not (Test-Path $xmlPath) ) {
     catch {
         $message = "Unable to download Intune.XML.  Exiting"
         Write-Output $message
-        $message | Out-File $env:systemroot\temp\stdout.log -Append -Force
+        Write-Log -Message $message  
         Pop-Message -Caption "Unable to download Intune.xml" -message "Unable to download Intune.XML.  Please download from http://aka.ms/IntuneXML and run the script again" -Type 48
     }
 }
@@ -1776,7 +1778,7 @@ if ( ( get-content .\Intune.xml -TotalCount 1) -ne '<?xml version="1.0" encoding
 
 Write-DiagProgress -status "Loading $xmlPath"
 $package = get-packages -Filename $xmlPath
-Write-DiagProgress "Loading $($package.ValidPackages[0].ID)"
+Write-DiagProgress -status "Loading $($package.ValidPackages[0].ID)"
 Process-Package -Package $package.ValidPackages[0]
 Compress-CollectedDataAndReport
 if (Test-Path -Path . -Filter ".*CollectedData.*.zip") {
