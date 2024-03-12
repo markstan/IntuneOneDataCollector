@@ -476,7 +476,9 @@ function Export-Report
         {
             $Name = [System.IO.Path]::GetFileNameWithoutExtension($Name)
 
-            $ReportFilename = ([System.IO.Path]::Combine($ExportDirectory, ("{0}_{1}.XML" -f $PackageID, $Name)))
+            $ReportFilename = ([System.IO.Path]::Combine($ExportDirectory,"Files\General", ("{0}_{1}.XML" -f $PackageID, $Name)))
+
+            if ( -not (Test-Path "$ExportDirectory\Files\General") ) { mkdir "$ExportDirectory\Files\General" -Force}
 
             if($Overwrite)
             {
@@ -490,7 +492,7 @@ function Export-Report
 
             if($ExportAsCSV)
             {
-                $ReportFilename = ([System.IO.Path]::Combine($ExportDirectory, ("{0}_{1}.CSV" -f $PackageID, $Name)))
+                $ReportFilename = ([System.IO.Path]::Combine($ExportDirectory,"Files\General", ("{0}_{1}.CSV" -f $PackageID, $Name)))
                 
                 if($Overwrite)
                 {
