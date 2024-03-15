@@ -508,13 +508,6 @@ function Export-Report
         }
     }
 }
-
-function Get-OSVersion
-{
-    $osVersion = [System.Environment]::OSVersion.Version;
-    return [float]("{0}.{1}" -f $osVersion.Major, $osVersion.Minor)
-}
-
 function Get-ValidPath
 {
     [CmdletBinding()]
@@ -532,6 +525,35 @@ function Get-ValidPath
         }
         return $Path
     }
+}
+
+function Get-OSVersion
+{
+    param (
+        [alias('s')]
+        [Parameter(Mandatory = $false)]
+        [switch]$short,
+        [alias('l')]
+        [Parameter(Mandatory = $false)]
+        [switch]$long
+    )
+    $osVersion = [System.Environment]::OSVersion.Version 
+
+    if ($osVersion.Major -ne 10) { 
+        Write-Output "Unknown Windows version"
+        return $null
+        }
+    elseif ($short) {
+       if ($osVersion.Build -gt 19045) { return "11" }
+       else { return "10" }
+       }
+    elseif ($long){
+       return "$($osVersion.Major).$($osVersion.Minor).$($osVersion.Build)"
+       }
+    else {  
+        return  ("{0}.{1}" -f $osVersion.Major, $osVersion.Minor)
+        }
+    
 }
 
 function Get-ValidFileName
