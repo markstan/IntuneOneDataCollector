@@ -3826,7 +3826,7 @@ function Write-PS1File {
     [string]$namespace = "ROOT\CIMV2\mdm\dmmap"
 
     [string[]]$classnames = @("MDM_DeviceUpdateCenter_Enrollment01", "MDM_Policy_Config01_Update02", "MDM_Policy_Result01_Update02", "MDM_Update", "MDM_Update_ApprovedUpdates01_01", "MDM_Update_FailedUpdates01_01"
-    ,"MDM_Update_InstallableUpdates01_01", "MDM_Update_PendingRebootUpdates01_01", "MDM_Update_Rollback01","MDM_Win32CompatibilityAppraiser_UtcConfigurationDiagnosis02","MDM_Win32CompatibilityAppraiser_UniversalTelemetryClient01")
+    ,"MDM_Update_InstallableUpdates01_01", "MDM_Update_PendingRebootUpdates01_01", "MDM_Update_Rollback01","MDM_Win32CompatibilityAppraiser_UtcConfigurationDiagnosis02","MDM_Win32CompatibilityAppraiser_UniversalTelemetryClient01","MDM_DeviceStatus_Antivirus01", "MDM_DeviceStatus_Firewall01")
 
     $ErrorActionPreference = "Stop"
     $Error.Clear()
