@@ -319,7 +319,7 @@ function Create-ZipFromDirectory
                 catch {
 
                     $timeElapsed = 0
-                    while (tasklist | findstr /i msinfo32) {
+                    while (Get-Process -Name msinfo32 -ErrorAction SilentlyContinue) {
                         sleep 20
                         $timeElapsed += 20
                         "Waiting for msinfo32 to exit. Please wait.  This may take 2-3 minutes. Elapsed time:  $timeElapsed seconds."
@@ -508,6 +508,7 @@ function Export-Report
         }
     }
 }
+
 function Get-ValidPath
 {
     [CmdletBinding()]

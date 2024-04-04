@@ -2538,7 +2538,11 @@ else {
  }
     
 </Command>
-      <Command Type="PS" Team="General" OutputFileName="Services.txt">Get-Service | fl *</Command>
+      <Command Type="PS" Team="General" OutputFileName="Services.txt">RunCommand -cmdToRun "Get-Service | fl *"</Command>
+      <Command Type="PS" Team="General" OutputFileName="fltmc_output_for_EPM">
+	  RunCommand -cmdToRun "fltmc filters"
+	  RunCommand -cmdToRun  "fltmc volumes"
+	  </Command>
       <Command Type="PS" Team="General" OutputFileName="MDM_Policies">
 
       if (test-path HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device) {
