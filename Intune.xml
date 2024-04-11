@@ -4044,7 +4044,6 @@ else {
     Write-Output "PowerShell version $PSMajorMinorVersion is lower than 5.1.  Skipping package check"
 }</Command>
 <Command Type="PS" Team="Windows Update" OutputFileName="UpdateHealthCheck.txt">
-
 $WU_Policy_Key        =     "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate"
 $WU_Policy_AU_Key        =  "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate\AU"
 $WU_PolicyManager_Key =     "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\current\device\Update"
@@ -4058,15 +4057,15 @@ function New-RuleCheckResult
         [string] [Parameter(Mandatory=$true)] $ruleId, 
         [string]$ruleDescription,
         [string] [ValidateSet("Passed","Warning", "Failed", "Information")] $result,
-        [string]$resultMessage 
+        [string]$ResultMessage 
     )
 
 
     $RuleResult = [PSCustomObject] [Ordered] @{
-        'RuleId'= $ruleId
-        'RuleDescription'= $ruleDescription
-        'CheckResult'= $result
-        'CheckResultMessage'= $resultMessage 
+        &apos;RuleId&apos;= $ruleId
+        &apos;RuleDescription&apos;= $ruleDescription
+        &apos;CheckResult&apos;= $result
+        &apos;CheckResultMessage&apos;= $ResultMessage 
     }
     return $RuleResult
 }
@@ -4109,7 +4108,7 @@ function Test-AlwaysAutoRebootEnabled {
     $ruleId = "AlwaysAutoRebootCheck"
     $ruleDescription = "Automatic reboot should not be enable as it forces a reboot irrespective of update configuration."
     $result = $null 
-    $resultMessage = $null
+    [string]$ResultMessage = $null
   
     $automaticUpdatePath = "HKLM:\\Software\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU"
     $rebootEnabledBySchedule = checkRegValue ($automaticUpdatePath) "AlwaysAutoRebootAtScheduledTime" 1
@@ -4118,15 +4117,15 @@ function Test-AlwaysAutoRebootEnabled {
 
     if (  $rebootEnabledBySchedule -or $rebootEnabledByDuration ) {
         $result = "PassedWithWarning"
-        $resultMessage = "Windows Update reboot registry keys are set. This can cause unexpected reboots when installing updates."
+        $ResultMessage = "Windows Update reboot registry keys are set. This can cause unexpected reboots when installing updates."
     }
     else {
         $result = "Passed"
-        $resultMessage = "Windows Update reboot registry keys are not set to automatically reboot."
+        $ResultMessage = "Windows Update reboot registry keys are not set to automatically reboot."
 
     }
  
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage  
 }
  
 
@@ -4135,7 +4134,7 @@ function Test-deploymentschedulerConnectivity {
     $ruleId = "TestdeploymentschedulerConnectivity"
     $ruleDescription = "Validates that the device can connect to deploymentscheduler.microsoft.com on TCP port 443."
     $result = $null
-    $resultMessage = $null 
+    [string]$ResultMessage = $null
 
 	$url = "deploymentscheduler.microsoft.com"
 	$ErrorActionPreference = "Stop"
@@ -4155,21 +4154,21 @@ function Test-deploymentschedulerConnectivity {
 	}
 	catch {
 
-		$resultMessage  = "Error connecting to $uniqueURL`: $error"
+		$ResultMessage  = "Error connecting to $uniqueURL`: $error"
 		$result = "Failed"
 	}
 finally {
-	$resultMessage = "{0, -72} : {1,6}" -f  "Able to connect to port $port on $url", $connectionTest 
+	$ResultMessage = "{0, -72} : {1,6}" -f  "Able to connect to port $port on $url", $connectionTest 
 }
  
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage  
 }
 
 function Test-DevicelistenerprodConnectivity {
 $ruleId = "TestDevicelistenerprodConnectivity"
     $ruleDescription = "Validates that the device can connect to Devicelistenerprod.microsoft.com on TCP port 443."
     $result = $null
-    $resultMessage = $null 
+    [string]$ResultMessage = $null 
 
 	$url = "Devicelistenerprod.microsoft.com"
 	$ErrorActionPreference = "Stop"
@@ -4188,14 +4187,14 @@ $ruleId = "TestDevicelistenerprodConnectivity"
 		$result = "Passed"		
 	}
 	catch {
-		$resultMessage  = "Error connecting to $uniqueURL`: $error"
+		$ResultMessage  = "Error connecting to $uniqueURL`: $error"
 		$result = "Failed"
 	}
 	finally {
-		$resultMessage = "{0, -72} : {1,6}" -f  "Able to connect to port $port on $url", $connectionTest 
+		$ResultMessage = "{0, -72} : {1,6}" -f  "Able to connect to port $port on $url", $connectionTest 
 	}
  
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage   
 }
 
 
@@ -4208,25 +4207,26 @@ Function Test-DoWUPoliciesExist {
     $ruleId = "DoWUPoliciesExist"
     $ruleDescription = "Warns if Windows Update policies exist (from GPO or manual Registry edits)."
     $result = $null
-    $resultMessage = $null  
+    [string]$ResultMessage = $null  
     
     if (  $WU_Policy_Count -ge 1) {
         $result = "Warning"
-        $resultMessage = ("One or more entries exist in $WU_Policy_Key.  Verify that Windows Update GPOs are not present. 
+        $ResultMessage = ("One or more entries exist in $WU_Policy_Key.  Verify that Windows Update GPOs are not present. 
             `r`nIf these values were entered manually, please check that they do not conflict with Intune policy.")   -replace "Registry::", ""
     }
     else {
         $result = "Passed"
-        $resultMessage = "No settings found in $WU_Policy_Key."
+        $ResultMessage = "No settings found in $WU_Policy_Key."
     }
  
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage   
 }
 
 Function Test-IsWSUSConfigured {
      # TODO - Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate - check this as well?  Probably rare 
     $WU_Policy_WSUS_Present = $false
     $WU_PolicyManager_WSUS_Present = $false
+    [string]$ResultMessage = $null
 
     $WSUS_Policy = $(Get-itemproperty Registry::$WU_Policy_Key -ErrorAction SilentlyContinue).WUServer
     $WSUS_PolicyManager = $(Get-itemproperty Registry::$WU_PolicyManager_Key -ErrorAction SilentlyContinue).WUServer
@@ -4242,12 +4242,12 @@ Function Test-IsWSUSConfigured {
     $ruleId = "WSUS_Enabled"
     $ruleDescription = "Warns if WSUS server is configured."
     $result = $null
-    $resultMessage = $null   
+        [string]$ResultMessage = $null
  
     
     if (  $WU_Policy_WSUS_Present -or $WU_PolicyManager_WSUS_Present) { 
         $result = "Warning"
-        $resultMessage = ("WSUS server is configured. This scenario is possible to use in Intune, but this is uncommon. This often indicates that a device was migrated from ConfigMgr.
+        $ResultMessage = ("WSUS server is configured. This scenario is possible to use in Intune, but this is uncommon. This often indicates that a device was migrated from ConfigMgr.
         `r`nVerify that Windows Update WSUS GPOs are not present. If WSUS is not being used, remove both WUServer and WUReportingServer values.
         `r`nWUServer values detected in keys:`r`n
         $WU_Policy_Key =  $WU_Policy_WSUS_Present
@@ -4255,43 +4255,43 @@ Function Test-IsWSUSConfigured {
     }
     else {
         $result = "Passed"
-        $resultMessage = ("No settings found in  $WU_Policy_Key or $WU_PolicyManager_Key") -replace "Registry::", ""
+        $ResultMessage = ("No settings found in  $WU_Policy_Key or $WU_PolicyManager_Key") -replace "Registry::", ""
     }
  
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage   
 
 
 }
 
 function Test-WUAServStartupType {
     $ruleId = "TestWindowsUpdateAgent_ServiceStartupType"
-    $ruleDescription = "Verify that Windows Update service (wuaserv) startup type is 'manual'."
+    $ruleDescription = "Verify that Windows Update service (wuaserv) startup type is &apos;manual&apos;."
     $result = $null 
-    $resultMessage = $null
+    [string]$ResultMessage = $null
     
     $WUAStartup = (Get-Service -Name wuauserv).StartType 
    
     if ( $WUAStartup -eq "Manual" ) {
         $result = "Passed"
-        $resultMessage = "Windows Update service is set to default startup type of 'Manual'."
+        $ResultMessage = "Windows Update service is set to default startup type of &apos;Manual&apos;."
     }
     elseif ($WUAStartup -eq "Disabled") {
         $result = "Failed"
-        $resultMessage = "Windows Update service is disabled."
+        $ResultMessage = "Windows Update service is disabled."
     }
     else {
         $result = "Warning"
-        $resultMessage = "Windows Update service startup type has been changed from the default value of 'Manual'."
+        $ResultMessage = "Windows Update service startup type has been changed from the default value of &apos;Manual&apos;."
     }
  
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage  
 }
 
 Function Test-HealthServiceStartupType {
     $ruleId = "TestHealthAgent_ServiceStartupType"
-    $ruleDescription = "Verify that Microsoft Update Health Service (uhssvc) startup type is 'Automatic'."
+    $ruleDescription = "Verify that Microsoft Update Health Service (uhssvc) startup type is &apos;Automatic&apos;."
     $result = $null 
-    $resultMessage = $null
+    [string]$ResultMessage = $null
     
 
     if (Get-Service -Name uhssvc -ErrorAction SilentlyContinue) {
@@ -4300,34 +4300,34 @@ Function Test-HealthServiceStartupType {
 
         if ( $UHS_Startup -eq "Automatic" ) {
         $result = "Passed"
-        $resultMessage = "Microsoft Update Health Service (uhssvc) is set to default startup type of 'Automatic'."
+        $ResultMessage = "Microsoft Update Health Service (uhssvc) is set to default startup type of &apos;Automatic&apos;."
     }
         elseif ($UHS_Startup -eq "Disabled") {
             $result = "Failed"
-            $resultMessage = "Microsoft Update Health Service (uhssvc) is disabled."
+            $ResultMessage = "Microsoft Update Health Service (uhssvc) is disabled."
         }
         else {
             $result = "Warning"
-            $resultMessage = "Microsoft Update Health Service (uhssvc) startup type has been changed from the default value of 'Automatic'."
+            $ResultMessage = "Microsoft Update Health Service (uhssvc) startup type has been changed from the default value of &apos;Automatic&apos;."
         }
 
     }
     else {
         $result = "Failed"
-        $resultMessage = "Update Service Health Service (uhssvc) is not installed. This device will not be able to use Feature Update policies or Expedited Update policies.`r`n"
-        $resultMessage += "See https://support.microsoft.com/en-us/topic/kb4023057-update-for-windows-update-service-components-fccad0ca-dc10-2e46-9ed1-7e392450fb3a for more information."
+        $ResultMessage = "Update Service Health Service (uhssvc) is not installed. This device will not be able to use Feature Update policies or Expedited Update policies.`r`n"
+        $ResultMessage += "See https://support.microsoft.com/en-us/topic/kb4023057-update-for-windows-update-service-components-fccad0ca-dc10-2e46-9ed1-7e392450fb3a for more information."
     } 
    
 
  
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage  
 }
 
 function Test-IsHealthServicesRunning {
     $ruleId = "Test_Is_UHS_Running"
     $ruleDescription = "Verify that Microsoft Update Health Service (uhssvc) is running."
     $result = $null 
-    $resultMessage = $null
+    [string]$ResultMessage = $null
    
     if (Get-Service -Name uhssvc -ErrorAction SilentlyContinue) {
     
@@ -4335,21 +4335,21 @@ function Test-IsHealthServicesRunning {
    
         if ( $UHS_Status -eq "Running" ) {
             $result = "Passed"
-            $resultMessage = "Microsoft Update Health Service (uhssvc) is running."
+            $ResultMessage = "Microsoft Update Health Service (uhssvc) is running."
         }
     
         else {
             $result = "Failed"
-            $resultMessage = "Microsoft Update Health Service (uhssvc) is not running.  Current status is $UHS_Status.  Check the service configuration to verify that its startup type is set to Automatic."
+            $ResultMessage = "Microsoft Update Health Service (uhssvc) is not running.  Current status is $UHS_Status.  Check the service configuration to verify that its startup type is set to Automatic."
         }
     }
     else {
         $result = "Failed"
-        $resultMessage = "Update Service Health Service (uhssvc) is not installed. This device will not be able to use Feature Update policies or Expedited Update policies.`r`n"
-        $resultMessage += "See https://support.microsoft.com/en-us/topic/kb4023057-update-for-windows-update-service-components-fccad0ca-dc10-2e46-9ed1-7e392450fb3a for more information."
+        $ResultMessage = "Update Service Health Service (uhssvc) is not installed. This device will not be able to use Feature Update policies or Expedited Update policies.`r`n"
+        $ResultMessage += "See https://support.microsoft.com/en-us/topic/kb4023057-update-for-windows-update-service-components-fccad0ca-dc10-2e46-9ed1-7e392450fb3a for more information."
     }
  
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage  
 }
 
    
@@ -4365,6 +4365,8 @@ Function Test-IsTelemetryEnabled {
         $ruleId = "TelemetryEnabled"
         $ruleDescription = "Telemetry must be enabled for Feature Update and Expedited update policies to work."    
         $result = "Failed"
+        [string]$ResultMessage = $null
+
         # 3 different places to check.  If Policymanager is populated, actual value is referenced in PolicyManager\providers
         $TelemetryKey_Policy =  "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\DataCollection"
         $TelemetryKey_Windows = "HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\DataCollection"
@@ -4376,24 +4378,24 @@ Function Test-IsTelemetryEnabled {
       
     
         # default message if all 3 keys are empty
-        $resultMessage = "No telemetry policy found in $TelemetrySetting_Policy, $TelemetrySetting_Windows, $TelemetrySetting_PolicyManager.  Expedited updates and Feature update policies will not apply to this device."
+        $ResultMessage = "No telemetry policy found in $TelemetrySetting_Policy, $TelemetrySetting_Windows, $TelemetrySetting_PolicyManager.  Expedited updates and Feature update policies will not apply to this device."
      
     
     
         if ( $TelemetrySetting_Policy  -ge 1) {
             $result = "Passed"
-            $resultMessage = "AllowTelemetry set to $TelemetrySetting_Policy ($($TelemetryLevel[$TelemetrySetting_Policy]))in $TelemetryKey_Policy.`r`n"
+            $ResultMessage = "AllowTelemetry set to $TelemetrySetting_Policy ($($TelemetryLevel[$TelemetrySetting_Policy]))in $TelemetryKey_Policy.`r`n"
         }
         else {
-            $resultMessage = "AllowTelemetry not set in $TelemetryKey_Policy.`r`n"
+            $ResultMessage = "AllowTelemetry not set in $TelemetryKey_Policy.`r`n"
             }
     
         if ( $TelemetrySetting_Windows  -ge 1) {    
             $result = "Passed"
-            $resultMessage += "AllowTelemetry set to $TelemetrySetting_Windows ($($TelemetryLevel[$TelemetrySetting_Windows])) in $TelemetryKey_Windows.`r`n"
+            $ResultMessage += "AllowTelemetry set to $TelemetrySetting_Windows ($($TelemetryLevel[$TelemetrySetting_Windows])) in $TelemetryKey_Windows.`r`n"
         }
         else {
-            $resultMessage += "AllowTelemetry not set in $TelemetryKey_Windows.`r`n"
+            $ResultMessage += "AllowTelemetry not set in $TelemetryKey_Windows.`r`n"
         }
     
         # Construct path for actual value in the \PolicyManager\providers key based on WinningProvider value
@@ -4409,19 +4411,19 @@ Function Test-IsTelemetryEnabled {
             $TelemetryValue_PolicyManager = $TelemetryPath.AllowTelemetry
             if ( $TelemetryValue_PolicyManager -ge 1) {
                 $result = "Passed"
-                $resultMessage += "AllowTelemetry set to $TelemetryValue_PolicyManager ($($TelemetryLevel[$TelemetryValue_PolicyManager])) in $ProviderSet_Key.`r`n"
+                $ResultMessage += "AllowTelemetry set to $TelemetryValue_PolicyManager ($($TelemetryLevel[$TelemetryValue_PolicyManager])) in $ProviderSet_Key.`r`n"
             }
             else {
-                $resultMessage += "AllowTelemetry not set in $ProviderSet_Key.`r`n"
+                $ResultMessage += "AllowTelemetry not set in $ProviderSet_Key.`r`n"
             }
                 
         }
         else {
-            $resultMessage += "AllowTelemetry not set in $TelemetryKey_PolicyManager"
+            $ResultMessage += "AllowTelemetry not set in $TelemetryKey_PolicyManager"
             }
     
      
-        return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage
+        return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage
     }
 
 Function Test-IsDeviceHealthMonitoringEnabled {
@@ -4433,23 +4435,23 @@ Function Test-IsDeviceHealthMonitoringEnabled {
         $AllowDHM_Key_PolicyManager = "HKEY_LOCAL_MACHINE\software\microsoft\policymanager\current\device\DeviceHealthMonitoring"
         $AllowDHM_Value_PolicyManager = (Get-ItemProperty Registry::$AllowDHM_Key_PolicyManager -ErrorAction SilentlyContinue).AllowDeviceHealthMonitoring
               
-         $ruleId = "Device_Health_Monitoring_Enabled"
-         $ruleDescription = "Checks that device health monitoring is enabled."
-         $result = $null
-         $resultMessage = $null   
+        $ruleId = "Device_Health_Monitoring_Enabled"
+        $ruleDescription = "Checks that device health monitoring is enabled."
+        $result = $null
+        [string]$ResultMessage = $null   
       
              
         if ( $AllowDHM_Value_PolicyManager -eq 1) {
                $result = "Passed"
-               $resultMessage = "AllowDeviceHealthMonitoring is set to 1 (enabled) in $AllowDHM_Key_PolicyManager.  This is required if Expedited Updates or Feature Update policies are configured." 
+               $ResultMessage = "AllowDeviceHealthMonitoring is set to 1 (enabled) in $AllowDHM_Key_PolicyManager.  This is required if Expedited Updates or Feature Update policies are configured." 
          }
          else {
              $result = "Failed"
-             $resultMessage = "AllowDeviceHealthMonitoring is not enabled in $AllowDHM_Key_PolicyManager.  This is required if Expedited Updates or Feature Update policies are configured."
+             $ResultMessage = "AllowDeviceHealthMonitoring is not enabled in $AllowDHM_Key_PolicyManager.  This is required if Expedited Updates or Feature Update policies are configured."
          }
       
        
-         return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+         return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage   
      }
      
 Function Test-DHMScope {
@@ -4461,20 +4463,20 @@ Function Test-DHMScope {
          $ruleId = "Device_Health_Monitoring_Scope"
          $ruleDescription = "Checks that device health monitoring scope includes Windows Update."
          $result = $null
-         $resultMessage = $null   
+         [string]$ResultMessage = $null   
       
              
         if ( $AllowDHM_Value_PolicyManager -match "WindowsUpdates") {
                $result = "Passed"
-               $resultMessage = "ConfigDeviceHealthMonitoringScope in $AllowDHM_Key_PolicyManager is set to $AllowDHM_Value_PolicyManager.  This is required if Expedited Updates or Feature Update policies are configured.  See $helpURL for more information." 
+               $ResultMessage = "ConfigDeviceHealthMonitoringScope in $AllowDHM_Key_PolicyManager is set to $AllowDHM_Value_PolicyManager.  This is required if Expedited Updates or Feature Update policies are configured.  See $helpURL for more information." 
          }
          else {
              $result = "Failed"
-             $resultMessage = "`"WindowsUpdates`" is not listed in the scope of $DHM_Key_PolicyManager\ConfigDeviceHealthMonitoringScope.   This is required if Expedited Updates or Feature Update policies are configured. See $helpURL and $helpURL2 for more information."
+             $ResultMessage = "`"WindowsUpdates`" is not listed in the scope of $DHM_Key_PolicyManager\ConfigDeviceHealthMonitoringScope.   This is required if Expedited Updates or Feature Update policies are configured. See $helpURL and $helpURL2 for more information."
          }
        
       
-         return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+         return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage   
      
      }
      
@@ -4483,27 +4485,25 @@ Function Test-DHMUploadDestination{
      
         $DHM_Key_PolicyManager = "HKEY_LOCAL_MACHINE\software\microsoft\policymanager\current\device\DeviceHealthMonitoring"
         $AllowDHM_Value_PolicyManager = (Get-ItemProperty Registry::$DHM_Key_PolicyManager -ErrorAction SilentlyContinue).ConfigDeviceHealthMonitoringUploadDestination
-      
-         
-        
-         $ruleId = "Device_Health_Monitoring_Upload_Location"
-         $ruleDescription = "Checks that device health monitoring upload location. This is a list of known service endpoints based on location."
-         $result = $null
-         $resultMessage = $null   
+               
+        $ruleId = "Device_Health_Monitoring_Upload_Location"
+        $ruleDescription = "Checks that device health monitoring upload location. This is a list of known service endpoints based on location."
+        $result = $null
+        [string]$ResultMessage = $null   
       
              
         if ( $AllowDHM_Value_PolicyManager -in "DHM_NORTHAMERICA", "DHM_EUROPE", "DHM_SOUTHEASTASIA", "DHM_AUSTRALIA") {
                $result = "Passed"
-               $resultMessage = "ConfigDeviceHealthMonitoringScope in $DHM_Key_PolicyManager is set to $AllowDHM_Value_PolicyManager.  This is required if Expedited Updates or Feature Update policies are configured." 
+               $ResultMessage = "ConfigDeviceHealthMonitoringScope in $DHM_Key_PolicyManager is set to $AllowDHM_Value_PolicyManager.  This is required if Expedited Updates or Feature Update policies are configured." 
          }
          else {
              $result = "Failed"
-             $resultMessage = "Unexpected or missing vlaue in $DHM_Key_PolicyManager\ConfigDeviceHealthMonitoringUploadDestination - $AllowDHM_Value_PolicyManager. This is required if Expedited Updates or Feature Update policies are configured.
+             $ResultMessage = "Unexpected or missing vlaue in $DHM_Key_PolicyManager\ConfigDeviceHealthMonitoringUploadDestination - $AllowDHM_Value_PolicyManager. This is required if Expedited Updates or Feature Update policies are configured.
              `r`nThis is an unexpected scenario and a Windows Update specialist should be consulted to investigate."
          }
        
       
-         return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+         return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage   
      }
      
 
@@ -4511,22 +4511,22 @@ Function Test-FeatureUpdateHoldExits {
     $ruleId = "SafeGuard_Hold_Exists"
     $ruleDescription = "Checks to see if feature update safeguard holds are present."
     $result = $null
-    $resultMessage = $null   
+    [string]$ResultMessage = $null   
 
     $GWX_Key = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Appraiser\GWX"
     $SdbEntries = (Get-ItemProperty Registry::$GWX_Key -ErrorAction SilentlyContinue).SdbEntries
 
     if ( ($SdbEntries -eq "") -or ($null -eq $SdbEntries) ) {
         $result = "Passed"
-        $resultMessage = "No known Feature Update holds found in $GWX_Key.  This does not mean that no safeguard holds exist, but it is an indication that no known issues have been identified."
+        $ResultMessage = "No known Feature Update holds found in $GWX_Key.  This does not mean that no safeguard holds exist, but it is an indication that no known issues have been identified."
     }
     else {
         $result = "Failed"
-        $resultMessage = "SDB entry `"$SdbEntries`" found in $GWX_Key.  This indicates that a known issue is preventing this device from applying a Feature Update.
+        $ResultMessage = "SDB entry `"$SdbEntries`" found in $GWX_Key.  This indicates that a known issue is preventing this device from applying a Feature Update.
         `r`nA Windows Update specialist should be consulted to investigate."
     }
 
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage  
 }
 
 $WU_Policy_Key        =     "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate"
@@ -4559,9 +4559,10 @@ Function Test-IsDualScanEnabled {
     # If DisableDualScan is set to 1, the device will not check Windows Update and only work with WSUS.  This is almost always in error after migrating from a WSUS environment.
  
     $ruleId = "Is_DualScan_Enabled"
-    $ruleDescription = "If DisableDualScan is set to '1', the device will not search Windows Update."    
+    $ruleDescription = "If DisableDualScan is set to &apos;1&apos;, the device will not search Windows Update."    
     $result = "Failed" 
     $SetDualScanIsConfigured = $false
+    [string]$ResultMessage = $null
 	[bool]$PolicyDrivenSourcesSet = $false
 	[string[]]$PolicyDrivenSourceValues = @()
 
@@ -4596,31 +4597,31 @@ Function Test-IsDualScanEnabled {
     # Report on status of dualscan and policy driven source values
 	if ( $SetDualScanIsConfigured -and $PolicyDrivenSourcesSet -eq $true) {
          $result = "Warning"
-         $resultMessage = "DisableDualScan is set to 1 and at least one SetPolicyDrivenUpdateSource* policy exclusion is configured. This will allow the device to search Windows Update for the policy driven source. Verify that all desired update types are included.
+         $ResultMessage = "DisableDualScan is set to 1 and at least one SetPolicyDrivenUpdateSource* policy exclusion is configured. This will allow the device to search Windows Update for the policy driven source. Verify that all desired update types are included.
 		 $Results
 		 Policy driven sources = `r`n`t`t`t`t $PolicyDrivenSourceValues" -replace "(.+? = \d?)", "`$1`r`n`t`t`t`t"
 		 
 		}
     elseif ($SetDualScanIsConfigured -and $PolicyDrivenSourcesSet -ne $true) {
          $result = "Failed"
-         $resultMessage = "DisableDualScan is set to 1 and no SetPolicyDrivenUpdateSource* policy exclusion is configured. This will cause the device to not search Windows Update.  WSUS will be used if available. 
+         $ResultMessage = "DisableDualScan is set to 1 and no SetPolicyDrivenUpdateSource* policy exclusion is configured. This will cause the device to not search Windows Update.  WSUS will be used if available. 
          $Results
          Policy driven sources = `r`n`t`t`t`t $PolicyDrivenSourceValues" -replace "(.+? = \d?)", "`$1`r`n`t`t`t`t"
 		}
     else {
          $result = "Passed"
-         $resultMessage = "No DisableDualScan Registry entries found.  Device will use Windows Update."
+         $ResultMessage = "No DisableDualScan Registry entries found.  Device will use Windows Update."
 		}
 
     if ($SetDualScanIsConfigured -and $PolicyDrivenSourceValues.count-ne 4) {
-        $resultMessage += "`r`n`t`t***Warning: only $($PolicyDrivenSourceValues.Count) policy driven entries found. It is recommended to configure all 4 SetPolicyDrivenUpdateSource* sources. Please see https://learn.microsoft.com/en-us/windows/deployment/update/wufb-wsus."
+        $ResultMessage += "`r`n`t`t***Warning: only $($PolicyDrivenSourceValues.Count) policy driven entries found. It is recommended to configure all 4 SetPolicyDrivenUpdateSource* sources. Please see https://learn.microsoft.com/en-us/windows/deployment/update/wufb-wsus."
     }
     	"::::`r`n$PolicyDrivenSourceTable"
     $ResultMessage += "`r`n`r`nSetPolicyDrivenUpdateSourceFor update sources:`r`n============================"
     $ResultMessage += ($PolicyDrivenSourceTable | Format-Table -AutoSize -HideTableHeaders | Out-String) -replace "SetPolicyDrivenUpdateSourceFor", ""
     $ResultMessage += "`r`n"
 
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage  
  } 
 
 
@@ -4640,10 +4641,10 @@ Function Test-IsDualScanEnabled {
        
     $result = "Failed"
     $UseUpdateClassPolicySourceEnabledIsConfigured = $false
-    # global flag. $true if any SetPolicyDrivenUpdateSource* policy is set to '1'
+    # global flag. $true if any SetPolicyDrivenUpdateSource* policy is set to &apos;1&apos;
 	[bool]$PolicyDrivenSourcesSet = $false
 	[string[]]$PolicyDrivenSourceValues = @()
-    [string[]]$ResultMessage = @() 
+    [string]$ResultMessage = $null 
     [string]$tabsFormat = "`t`t`t`t`t`t"
     [string]$lineEndFormat = "`r`n`t`t"
     [string]$indent = "`t`t`t`t"
@@ -4725,7 +4726,7 @@ Function Test-IsDualScanEnabled {
             }
             else {
                 $result = "Failed"
-                $resultMessage = "UseUpdateClassPolicySource is set to 1 with one or more PolicyDrivenSourceLocation values set, but value for WSUS server (WUServer) is not configured.`r`n
+                $ResultMessage = "UseUpdateClassPolicySource is set to 1 with one or more PolicyDrivenSourceLocation values set, but value for WSUS server (WUServer) is not configured.`r`n
                 This will cause the device to use only Windows Update and  UseUpdateClassPolicySource and the associated SetPolicyDrivenSourceLocation* settings will not be used.`r`n" + $ResultMessage
 
 
@@ -4733,18 +4734,18 @@ Function Test-IsDualScanEnabled {
         }
         elseif($UseUpdateClassPolicySourceEnabledValue -eq 0) {
             $result = "Warning"
-            $resultMessage = "UseUpdateClassPolicySourceEnabled is set to 0, but one or more PolicyDrivenSourceLocation values are set.`r`n
+            $ResultMessage = "UseUpdateClassPolicySourceEnabled is set to 0, but one or more PolicyDrivenSourceLocation values are set.`r`n
             Validate that this is the desired configuration. All updates will come from WSUS.`r`n" + $ResultMessage
             }
 
         if (($PolicyDrivenSourcesSet) -and ($PolicyDrivenSourceCount -ne 4) ) {
-            $resultMessage += "$lineEndFormat***Warning: only $($PolicyDrivenSourceCount) policy driven entries found. It is recommended to configure all 4 SetPolicyDrivenUpdateSource* sources. Please see https://learn.microsoft.com/en-us/windows/deployment/update/wufb-wsus." 
+            $ResultMessage += "$lineEndFormat***Warning: only $($PolicyDrivenSourceCount) policy driven entries found. It is recommended to configure all 4 SetPolicyDrivenUpdateSource* sources. Please see https://learn.microsoft.com/en-us/windows/deployment/update/wufb-wsus." 
         } 
 
     }
  
  
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage
 
  }
 
@@ -4760,8 +4761,9 @@ function Test-InternetLocationsValue {
     # Note: This policy applies only when this PC is configured to connect to an intranet update service using the "Specify intranet Microsoft update service location" policy.
  
     $ruleId = "DoNotConnectToWindowsUpdateInternetLocations"
-    $ruleDescription = "If DoNotConnectToWindowsUpdateInternetLocations is set to '1', the device will not search Windows Update."    
+    $ruleDescription = "If DoNotConnectToWindowsUpdateInternetLocations is set to &apos;1&apos;, the device will not search Windows Update."    
     $result = "Failed"
+    [string]$ResultMessage = $null
   
  
     $DoNotConnectToWindowsUpdateInternetLocations_Policy =         (Get-ItemProperty Registry::$WU_Policy_Key -ErrorAction SilentlyContinue).DoNotConnectToWindowsUpdateInternetLocations
@@ -4771,17 +4773,17 @@ function Test-InternetLocationsValue {
     
     if ( ($DoNotConnectToWindowsUpdateInternetLocations_Policy -eq 1) -or ($DoNotConnectToWindowsUpdateInternetLocations_PolicyManager -eq 1) -or ($DoNotConnectToWindowsUpdateInternetLocations_Windows -eq 1) ) {
          $result = "Failed"
-         $resultMessage = "DoNotConnectToWindowsUpdateInternetLocations is set to 1. This will cause the device to not search Windows Update. 
+         $ResultMessage = "DoNotConnectToWindowsUpdateInternetLocations is set to 1. This will cause the device to not search Windows Update. 
          $WU_Policy_Key =  $DoNotConnectToWindowsUpdateInternetLocations_Policy
          $WU_PolicyManager_Key = $DoNotConnectToWindowsUpdateInternetLocations_PolicyManager
          $WU_Windows_Key = $DoNotConnectToWindowsUpdateInternetLocations_Windows"
     }
     else {
          $result = "Passed"
-         $resultMessage = "No DoNotConnectToWindowsUpdateInternetLocations Registry entries found.  Device will use Windows Update."
+         $ResultMessage = "No DoNotConnectToWindowsUpdateInternetLocations Registry entries found.  Device will use Windows Update."
     }
  
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage   
 }
 
 function Get-WinningProvider {
@@ -4791,7 +4793,7 @@ function Get-WinningProvider {
     $ruleId = "WinningProvider"
     $ruleDescription = "Checks to see if MDMWinsOverGP is set.  The presence of this value set to 1 means that Intune will overwrite Group Policy results in the case of a conflict."
     $result = $null
-    $resultMessage = $null   
+    [string]$ResultMessage = $null   
 
     $WinningProvider_Key = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\current\device\ControlPolicyConflict"
 
@@ -4803,14 +4805,14 @@ function Get-WinningProvider {
 
     if ( ($WinningProvider_Value -in "", "0") -or ($null -eq $WinningProvider_Value) ) {
         $result = "Information"
-        $resultMessage = "MDMWinsOverGP is not present or disabled. Group Policy settings will take precedence over Intune settings in the case of a conflict."
+        $ResultMessage = "MDMWinsOverGP is not present or disabled. Group Policy settings will take precedence over Intune settings in the case of a conflict."
     }
     else {
         $result = "Information"
-        $resultMessage = "MDMWinsOverGP is set to $WinningProvider_Value. In the case of a conflict, Intune will take precedence over conflicting Group Policy settings."
+        $ResultMessage = "MDMWinsOverGP is set to $WinningProvider_Value. In the case of a conflict, Intune will take precedence over conflicting Group Policy settings."
     }
 
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage   
 
 }
 
@@ -4820,7 +4822,7 @@ function Test-SQMIsPopulated {
     $ruleId = "SQM_MachineID_set"
     $ruleDescription = "Checks to see if the device has a MachineID value in the SQMClient registry key.  The presence of this value indicates that the device has registered with telemetry."
     $result = $null
-    $resultMessage = $null   
+    [string]$ResultMessage = $null   
     $FirstSyncTime = $null
 
     $SQMClientKey = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SQMClient"
@@ -4834,15 +4836,15 @@ function Test-SQMIsPopulated {
 
     if ( ($MachineId -ne "") -and ($null -ne $MachineId) ) {
         $result = "Passed"
-        $resultMessage = "MachineID value $MachineId found in $SQMClientKey.  The presence of this value indicates that the device has registered successfully with telemetry.
+        $ResultMessage = "MachineID value $MachineId found in $SQMClientKey.  The presence of this value indicates that the device has registered successfully with telemetry.
                      `r`nFirst sync occurred on $FirstSyncTime"
     }
     else {
         $result = "Warning"
-        $resultMessage = "No MachineID value found in $SQMClientKey.  This indicates that the client is not sending telemetry data."
+        $ResultMessage = "No MachineID value found in $SQMClientKey.  This indicates that the client is not sending telemetry data."
     }
 
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage   
 
 
 }
@@ -4853,8 +4855,9 @@ function Test-UseWUServer {
   
   
     $ruleId = "Is_UseWUServer_Set"
-    $ruleDescription = "If UseWUServer is set to '1', the device will not search Windows Update.  Reporting to WUfB will be blocked."    
+    $ruleDescription = "If UseWUServer is set to &apos;1&apos;, the device will not search Windows Update.  Reporting to WUfB will be blocked."    
     $result = "Failed"
+    [string]$ResultMessage = $null   
   
  
     if (Test-Path Registry::$WU_Policy_AU_Key){
@@ -4870,17 +4873,17 @@ function Test-UseWUServer {
  
     if ( ($UseWUServer_Policy -eq 1) -or ($UseWUServer_PolicyManager -eq 1) -or ($UseWUServer_Windows -eq 1) ) {
          $result = "Failed"
-         $resultMessage = "UseWUServer is set to 1. This will cause the device to not search Windows Update.  WSUS will be used if available.  Reporting will not work.
+         $ResultMessage = "UseWUServer is set to 1. This will cause the device to not search Windows Update.  WSUS will be used if available.  Reporting will not work.
          $WU_Policy_Key =  $UseWUServer_Policy
          $WU_PolicyManager_Key = $UseWUServer_PolicyManager
          $WU_Windows_Key = $UseWUServer_Windows"
     }
     else {
          $result = "Passed"
-         $resultMessage = "No UseWUServer Registry entries found.  Device will use Windows Update."
+         $ResultMessage = "No UseWUServer Registry entries found.  Device will use Windows Update."
     }
  
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage   
   }
 
 
@@ -4889,8 +4892,9 @@ function Test-DisableWindowsUpdateAccess {
     # HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate
     # DisableWindowsUpdateAccess 1 = disable 
     $ruleId = "Is_DisableWindowsUpdateAccess_Set"
-    $ruleDescription = "If DisableWindowsUpdateAccess is set to '1', the device will not search Windows Update."    
+    $ruleDescription = "If DisableWindowsUpdateAccess is set to &apos;1&apos;, the device will not search Windows Update."    
     $result = "Failed"
+    [string]$ResultMessage = $null   
   
  
     $DisableWindowsUpdateAccess_Policy =         (Get-ItemProperty Registry::$WU_Policy_Key -ErrorAction SilentlyContinue).DisableWindowsUpdateAccess
@@ -4901,17 +4905,17 @@ function Test-DisableWindowsUpdateAccess {
  
     if ( ($DisableWindowsUpdateAccess_Policy -eq 1) -or ($DisableWindowsUpdateAccess_PolicyManager -eq 1) -or ($DisableWindowsUpdateAccess_Windows -eq 1) ) {
          $result = "Failed"
-         $resultMessage = "DisableWindowsUpdateAccess is set to 1. This will cause the device to not search Windows Update.
+         $ResultMessage = "DisableWindowsUpdateAccess is set to 1. This will cause the device to not search Windows Update.
          $WU_Policy_Key =  $DisableWindowsUpdateAccess_Policy
          $WU_PolicyManager_Key = $DisableWindowsUpdateAccess_PolicyManager
          $WU_Windows_Key = $DisableWindowsUpdateAccess_Windows"
     }
     else {
          $result = "Passed"
-         $resultMessage = "No DisableWindowsUpdateAccess Registry entries found.  Device will use Windows Update."
+         $ResultMessage = "No DisableWindowsUpdateAccess Registry entries found.  Device will use Windows Update."
     }
  
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage   
 }
 
  
@@ -4924,19 +4928,21 @@ function Test-IsQualityUpdateInstalled {
     $ruleId = "Is_QualityUpdateInstalled"
     $ruleDescription = "Some policies may fail to load with error 404 in the EnterpriseDeviceManagement event log if updates have not been applied."    
     $result = "Passed"
+    [string]$ResultMessage = $null  
+     
 
-    $buildInfo = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
+    $buildInfo = Get-ItemProperty &apos;HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion&apos;
 
     if ( ($null -eq $buildInfo.UBR ) -or ($buildInfo.UBR -eq "")){
         $result = "Warning"
-        $resultMessage = "It appears that this device has not had a quality update applied yet.  This may cause some policies to fail to load.  It is recommended to update this device.`r`n"
-        $resultMessage += "Current build: " + $buildInfo.ProductName + " build" + $buildInfo.CurrentMajorVersionNumber + "." + $buildInfo.CurrentMinorVersionNumber + "." + $buildInfo.CurrentBuildNumber   
+        $ResultMessage = "It appears that this device has not had a quality update applied yet.  This may cause some policies to fail to load.  It is recommended to update this device.`r`n"
+        $ResultMessage += "Current build: " + $buildInfo.ProductName + " build" + $buildInfo.CurrentMajorVersionNumber + "." + $buildInfo.CurrentMinorVersionNumber + "." + $buildInfo.CurrentBuildNumber   
     }
     else {
-        $resultMessage = "Device has at least one quality update applied."
-        $resultMessage += "Current build: " + $buildInfo.ProductName + " build" + $buildInfo.CurrentMajorVersionNumber + "." + $buildInfo.CurrentMinorVersionNumber + "." + $buildInfo.CurrentBuildNumber + "." + $buildInfo.UBR
+        $ResultMessage = "Device has at least one quality update applied."
+        $ResultMessage += "Current build: " + $buildInfo.ProductName + " build" + $buildInfo.CurrentMajorVersionNumber + "." + $buildInfo.CurrentMinorVersionNumber + "." + $buildInfo.CurrentBuildNumber + "." + $buildInfo.UBR
     }
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage   
 }
 
 
@@ -4948,6 +4954,7 @@ function Test-UpdatePendingReboot {
     $ruleId = "Reboot_Pending"
     $ruleDescription = "If a reboot is pending, some tests may be inaccurate."    
     $result = "Passed"
+    [string]$ResultMessage = $null  
 
     Try {
         $RebootPending = $false
@@ -4977,13 +4984,13 @@ function Test-UpdatePendingReboot {
     }
     if ($RebootPending -eq $true) {
         $result = "Warning"
-        $resultMessage = "Device is pending a reboot. Some tests may be unreliable. It is recommended to reboot before gathering data or performing other testing."
+        $ResultMessage = "Device is pending a reboot. Some tests may be unreliable. It is recommended to reboot before gathering data or performing other testing."
     }
     else {
-        $resultMessage = "No pending reboot detected."
+        $ResultMessage = "No pending reboot detected."
     }
 
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage   
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage   
  
 } 
 
@@ -4992,8 +4999,9 @@ function Test-UpdatePendingReboot {
       # NoAutoUpdate 
  
       $ruleId = "Is_NoAutoUpdate_Set"
-      $ruleDescription = "If NoAutoUpdate is set to '1', the device will not search Windows Update.  Reporting to WUfB will be blocked."    
+      $ruleDescription = "If NoAutoUpdate is set to &apos;1&apos;, the device will not search Windows Update.  Reporting to WUfB will be blocked."    
       $result = "Failed"
+      [string]$ResultMessage = $null  
     
    
       if (Test-Path Registry::$WU_Policy_AU_Key) {
@@ -5011,17 +5019,17 @@ function Test-UpdatePendingReboot {
    
       if ( ($NoAutoUpdate_Policy -eq 1) -or ($NoAutoUpdate_PolicyManager -eq 1) -or ($NoAutoUpdate_Windows -eq 1) ) {
            $result = "Failed"
-           $resultMessage = "NoAutoUpdate is set to 1. Updates will only be installed if a user manually initiates a check for updates.
+           $ResultMessage = "NoAutoUpdate is set to 1. Updates will only be installed if a user manually initiates a check for updates.
            $WU_Policy_Key =  $NoAutoUpdate_Policy
            $WU_PolicyManager_Key = $NoAutoUpdate_PolicyManager
            $WU_Windows_Key = $NoAutoUpdate_Windows"
       }
       else {
            $result = "Passed"
-           $resultMessage = "No NoAutoUpdate Registry entries found.  Device will check for updates automatically."
+           $ResultMessage = "No NoAutoUpdate Registry entries found.  Device will check for updates automatically."
       }
    
-      return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+      return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage  
   }
   
   function Test-AllowWUfBCloudProcessing  {
@@ -5030,8 +5038,9 @@ function Test-UpdatePendingReboot {
       # HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DataCollection\AllowWUfBCloudProcessing
       
       $ruleId = "AllowWUfBCloudProcessing"
-      $ruleDescription = "If AllowWUfBCloudProcessing is set to a value other than '8', the device will not search Windows Update.  Reporting to WUfB will be blocked."    
+      $ruleDescription = "If AllowWUfBCloudProcessing is set to a value other than &apos;8&apos;, the device will not search Windows Update.  Reporting to WUfB will be blocked."    
       $result = "Failed"
+      [string]$ResultMessage = $null  
     
    
       $AllowWUfBCloudProcessing_Policy =         (Get-ItemProperty Registry::$WU_Policy_Key -ErrorAction SilentlyContinue).AllowWUfBCloudProcessing
@@ -5046,20 +5055,20 @@ function Test-UpdatePendingReboot {
             -or ($AllowWUfBCloudProcessing_Windows       -and ($AllowWUfBCloudProcessing_Windows       -ne 8)) `
            ) {
            $result = "Failed"
-           $resultMessage = "AllowWUfBCloudProcessing is set to a value other than '8' (enabled).  DSS policies cannot be used.`r`n"
-           $resultMessage += "AllowWUfBCloudProcessing_Policy        = $AllowWUfBCloudProcessing_Policy `r`n"
-           $resultMessage += "AllowWUfBCloudProcessing_PolicyManager = $AllowWUfBCloudProcessing_PolicyManager `r`n"
-           $resultMessage += "AllowWUfBCloudProcessing_Windows       = $AllowWUfBCloudProcessing_Windows `r`n"
+           $ResultMessage = "AllowWUfBCloudProcessing is set to a value other than &apos;8&apos; (enabled).  DSS policies cannot be used.`r`n"
+           $ResultMessage += "AllowWUfBCloudProcessing_Policy        = $AllowWUfBCloudProcessing_Policy `r`n"
+           $ResultMessage += "AllowWUfBCloudProcessing_PolicyManager = $AllowWUfBCloudProcessing_PolicyManager `r`n"
+           $ResultMessage += "AllowWUfBCloudProcessing_Windows       = $AllowWUfBCloudProcessing_Windows `r`n"
       }
       else {
            $result = "Passed"
-           $resultMessage = "No AllowWUfBCloudProcessing Registry entries found.  Device will check for updates automatically.`r`n"
-           $resultMessage += "AllowWUfBCloudProcessing_Policy        = $AllowWUfBCloudProcessing_Policy `r`n"
-           $resultMessage += "AllowWUfBCloudProcessing_PolicyManager = $AllowWUfBCloudProcessing_PolicyManager `r`n"
-           $resultMessage += "AllowWUfBCloudProcessing_Windows       = $AllowWUfBCloudProcessing_Windows `r`n"
+           $ResultMessage = "No AllowWUfBCloudProcessing Registry entries found.  Device will check for updates automatically.`r`n"
+           $ResultMessage += "AllowWUfBCloudProcessing_Policy        = $AllowWUfBCloudProcessing_Policy `r`n"
+           $ResultMessage += "AllowWUfBCloudProcessing_PolicyManager = $AllowWUfBCloudProcessing_PolicyManager `r`n"
+           $ResultMessage += "AllowWUfBCloudProcessing_Windows       = $AllowWUfBCloudProcessing_Windows `r`n"
       }
    
-      return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+      return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage  
   }
 
 function Test-DefaultService {
@@ -5067,6 +5076,7 @@ function Test-DefaultService {
     $ruleId = "Test_WU_Is_DefaultService"
     $ruleDescription = "If WU is not the default service, client most likely uses WSUS.  Feature Updates and Expedited Updates are not supported in this scenario."    
     $result = "Failed"
+    [string]$ResultMessage = $null  
 
     # RegistrationState 3 = default; any other value is incorrect for mu
     $ServiceManager = New-Object -ComObject Microsoft.Update.ServiceManager 
@@ -5075,15 +5085,15 @@ function Test-DefaultService {
 
     if ($MuService -eq 3) {
         $result = "Passed"
-        $resultMessage = "Microsoft Update service (7971f918-a847-4430-9279-4a52d1efe18d) is the default service.  WU client will query Microsoft Update"
+        $ResultMessage = "Microsoft Update service (7971f918-a847-4430-9279-4a52d1efe18d) is the default service.  WU client will query Microsoft Update"
     }
     else {
         
-        $resultMessage = "Microsoft Update service (7971f918-a847-4430-9279-4a52d1efe18d) is not the default Windows Update provider.  Most likely WSUS is used instead.`r`n
+        $ResultMessage = "Microsoft Update service (7971f918-a847-4430-9279-4a52d1efe18d) is not the default Windows Update provider.  Most likely WSUS is used instead.`r`n
           Feature Update and Expedited Update policies are not supported in this scenario."
-          if ($WSUSService -eq 3) { $resultMessage += "`r`nWSUS service (3da21691-e39d-4da6-8a4b-b43877bcb1b7) is the default update provider."}
+          if ($WSUSService -eq 3) { $ResultMessage += "`r`nWSUS service (3da21691-e39d-4da6-8a4b-b43877bcb1b7) is the default update provider."}
     }
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage  
 
 
 }
@@ -5094,6 +5104,7 @@ function Test-PossibleCorruption {
     $ruleId = "Test-PossibleCorruption"
     $ruleDescription = "If reboots have been pending after device has been reset, client cache may need to be reset."    
     $result = "Passed"
+    [string]$ResultMessage = $null  
 
     $objSession = New-Object -ComObject "Microsoft.Update.Session" 
     $objSearcher = $objSession.CreateupdateSearcher() 
@@ -5103,15 +5114,15 @@ function Test-PossibleCorruption {
     # test driver
     #$colHistory = Import-Clixml ".\updatehistory.xml"
     $timeNow = Get-Date
-    $resultMessage = ""
+    [string]$ResultMessage = $null
 
     foreach ($objHistory in $colHistory) 
     {  
         $daysSinceEvent = 0
 
         # Only get MU updates
-        if (($objHistory.ServiceID -eq '7971f918-a847-4430-9279-4a52d1efe18d') -and ($objHistory.Title -notmatch '.*Defender Antivirus.*') `
-                    -and ($objHistory.Title -notmatch   'Malicious Software')) 
+        if (($objHistory.ServiceID -eq &apos;7971f918-a847-4430-9279-4a52d1efe18d&apos;) -and ($objHistory.Title -notmatch &apos;.*Defender Antivirus.*&apos;) `
+                    -and ($objHistory.Title -notmatch   &apos;Malicious Software&apos;)) 
         {  
             $Title = ($objHistory.Date).ToString("yyyy/MM/dd hh:mm UTC") + " " + $objHistory.Title +  "`r`n" 
         
@@ -5119,10 +5130,10 @@ function Test-PossibleCorruption {
         if ($objHistory.HResult -eq -2145116140) {  
             $daysSinceEvent =   [math]::Round(($timenow.Subtract($objHistory.Date)).totaldays, 0)
             if ($daysSinceEvent -gt 30) { 
-                $resultMessage += $Title
-                $resultMessage +=  "Update `"$($objHistory.Title)`" has been pending reboot for $daysSinceEvent days.`r`nThis is highly suspicious unless the device really has not been rebooted.  If the device "
-                $resultMessage += "has been power-cycled, there is a possibility that the Windows Update client cache is corrupt.`r`nConsider resetting the WU client cache - https://aka.ms/ResetWU "
-                $resultMessage += "(scripted version available at https://aka.ms/ResetWUScript.).  If updates are installing as expected, this message may be ignored.`r`n`r`n"
+                $ResultMessage += $Title
+                $ResultMessage +=  "Update `"$($objHistory.Title)`" has been pending reboot for $daysSinceEvent days.`r`nThis is highly suspicious unless the device really has not been rebooted.  If the device "
+                $ResultMessage += "has been power-cycled, there is a possibility that the Windows Update client cache is corrupt.`r`nConsider resetting the WU client cache - https://aka.ms/ResetWU "
+                $ResultMessage += "(scripted version available at https://aka.ms/ResetWUScript.).  If updates are installing as expected, this message may be ignored.`r`n`r`n"
 
                 $result = "Warning"
             }
@@ -5131,9 +5142,9 @@ function Test-PossibleCorruption {
     
     }
 
-    if ($resultMessage -eq "") { $resultMessage = "No updates pending reboots found."}
+    if ($ResultMessage -eq "") { $ResultMessage = "No updates pending reboots found."}
 
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage  
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage  
     
 }
 
@@ -5146,6 +5157,7 @@ function Test-IsOnMeteredConnection {
     $ruleDescription = "If the default network connection is metered, some updates may not be downloaded."    
     $result = "Passed"
     $isMetered = $false
+    [string]$ResultMessage = $null  
    
     # https://gist.github.com/nijave/d657fb4cdb518286942f6c2dd933b472
     [void][Windows.Networking.Connectivity.NetworkInformation, Windows, ContentType = WindowsRuntime]
@@ -5155,15 +5167,15 @@ function Test-IsOnMeteredConnection {
  
     if ( $isMetered ) {
          $result = "Warning"
-         $resultMessage = "The default network connecton ($defaultConnectionName) is metered.  This will cause Windows Update to only download priority updates. Discuss this setting if updates are not being downloaded or updates are delayed."
+         $ResultMessage = "The default network connecton ($defaultConnectionName) is metered.  This will cause Windows Update to only download priority updates. Discuss this setting if updates are not being downloaded or updates are delayed."
  
     }
     else {
          $result = "Passed"
-         $resultMessage = "Default network connection $defaultConnectionName is not metered."
+         $ResultMessage = "Default network connection $defaultConnectionName is not metered."
     }
  
-    return New-RuleCheckResult $ruleId $ruleDescription $result $resultMessage
+    return New-RuleCheckResult $ruleId $ruleDescription $result $ResultMessage
 }
  
 
@@ -5201,10 +5213,7 @@ $resultBlob += Test-IsOnMeteredConnection
 $resultBlob += Test-IsQualityUpdateInstalled 
 $resultBlob += Test-UpdatePendingReboot
 $resultBlob += Test-InternetLocationsValue
-$resultBlob | Format-List  
-      
- 
-
+$resultBlob | Format-List
 </Command>
 </Commands>
 
