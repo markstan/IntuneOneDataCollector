@@ -5282,6 +5282,7 @@ $resultBlob | Format-List
       <File Team="Configmgr">%SMS_LOG_PATH%\*.*</File>
       <File Team="Configmgr\CCMSetup_logs">%systemroot%\ccmsetup\Logs\*</File>
       <File Team="DirSync">%ProgramFiles%\Microsoft Online Directory Sync\*.log</File>
+	  <File Team="EPM">%ProgramFiles%\Microsoft EPM Agent\Logs\*</File>
       <File Team="General">%LOCALAPPDATA%\Temp\*.log</File>
       <File Team="General">%LocalAppData%\Local\Microsoft\Edge\User Data\MAMLog.txt</File>
       <File Team="General">%ProgramData%\Microsoft\IntuneManagementExtension\Logs\*</File>
