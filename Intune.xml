@@ -2539,7 +2539,7 @@ else {
     
 </Command>
       <Command Type="PS" Team="General" OutputFileName="Services.txt">RunCommand -cmdToRun "Get-Service | fl *"</Command>
-      <Command Type="PS" Team="General" OutputFileName="fltmc_output_for_EPM">
+      <Command Type="PS" Team="EPM" OutputFileName="fltmc_output_for_EPM">
 	  RunCommand -cmdToRun "fltmc filters"
 	  RunCommand -cmdToRun  "fltmc volumes"
 	  </Command>
@@ -2782,27 +2782,16 @@ gpresult /SCOPE COMPUTER /H "$outputPath\$($env:COMPUTERNAME)_GPResults_computer
 &lt;#PSScriptInfo
 
 .VERSION 5.6
-
 .GUID 06025137-9010-4807-bd22-53464539dfa3
-
 .AUTHOR Michael Niehaus
-
 .COMPANYNAME Microsoft
-
 .COPYRIGHT 
-
 .TAGS Windows AutoPilot
-
 .LICENSEURI 
-
 .PROJECTURI 
-
 .ICONURI 
-
 .EXTERNALMODULEDEPENDENCIES 
-
 .REQUIREDSCRIPTS 
-
 .EXTERNALSCRIPTDEPENDENCIES 
 
 .RELEASENOTES
@@ -5258,8 +5247,7 @@ $resultBlob | Format-List
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\Winevt\Logs\Microsoft-Windows-SENSE%4Operational.evtx</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\Winevt\Logs\Microsoft-Windows-Shell-Core%4Operational.evtx</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-Store*</EventLog>	  
-      <EventLog Team="..\EventLogs">%SystemRoot%\System32\winevt\Logs\Microsoft-Windows-TaskScheduler*</EventLog>
-      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-TaskScheduler*</EventLog>
+      <EventLog Team="..\EventLogs">%SystemRoot%\System32\winevt\Logs\Microsoft-Windows-TaskScheduler*</EventLog> 
       <EventLog Team="..\EventLogs">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-UniversalTelemetryClient%4Operational.evtx</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-WindowsUpdateClient*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\PFX*</EventLog>
@@ -5281,7 +5269,9 @@ $resultBlob | Format-List
       <File Team="CompanyPortalLogs">%localappdata%\Packages\Microsoft.CompanyPortal_8wekyb3d8bbwe\LocalState</File>
       <File Team="Configmgr">%SMS_LOG_PATH%\*.*</File>
       <File Team="Configmgr\CCMSetup_logs">%systemroot%\ccmsetup\Logs\*</File>
-      <File Team="DirSync">%ProgramFiles%\Microsoft Online Directory Sync\*.log</File>
+      <File Team="DirSync">%ProgramFiles%\Microsoft Online Directory Sync\*.log</File>	  
+	  <File Team="DeviceInventory">%ProgramFiles%\Microsoft Device Inventory Agent\Logs\*</File>	  
+	  <File Team="DeviceInventory">%ProgramFiles%\Microsoft Device Inventory Agent\InventoryService\*.sqlite</File>
 	  <File Team="EPM">%ProgramFiles%\Microsoft EPM Agent\Logs\*</File>
       <File Team="General">%LOCALAPPDATA%\Temp\*.log</File>
       <File Team="General">%LocalAppData%\Local\Microsoft\Edge\User Data\MAMLog.txt</File>
@@ -5338,7 +5328,7 @@ $resultBlob | Format-List
       <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate</Registry>
       <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_Windows_CV_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate</Registry>
       <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_WufbDS">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WufbDS</Registry>	
-      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Policies_Microsoft_Windows_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate</Registry>	  
+      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Policies_Microsoft_Windows_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate</Registry> 
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Control_CloudDomainJoin">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\CloudDomainJoin</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Control_EAS">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\EAS</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Control_ProductOptions_ProductSuite">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\ProductOptions\ProductSuite</Registry>
@@ -5354,7 +5344,7 @@ $resultBlob | Format-List
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Services_SharedAccess_FirewallRules">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\SharedAccess\Parameters\FirewallPolicy\Mdm</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Services_SharedAccess_Parameters_FirewallPolicy">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_Services_TPM">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\TPM</Registry>
-      <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_WindowsEmbedded_ProductVersion">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WindowsEmbedded\ProductVersion</Registry>	  
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_CCS_WindowsEmbedded_ProductVersion">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WindowsEmbedded\ProductVersion</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_HKCU_Software_Microsoft_SCEP">HKEY_CURRENT_USER\Software\Microsoft\SCEP</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_HKCU_Software_Microsoft_Windows_CurrentVersion_Uninstall">HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_HKCU_Software_Policies">HKEY_CURRENT_USER\Software\Policies</Registry>	 
@@ -5362,7 +5352,9 @@ $resultBlob | Format-List
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_BitLockerCsp">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\BitLockerCsp</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_CCM">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CCM</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_CloudManagedUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CloudManagedUpdate</Registry>
-      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Cryptography_MSCEP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\MSCEP</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_Cryptography_MSCEP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\MSCEP</Registry>	  
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_DeclaredConfiguration_HostOS">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DeclaredConfiguration\HostOS</Registry>
+	  <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_DeviceInventory">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DeviceInventory</Registry>	  
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_DeviceManageabilityCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DeviceManageabilityCSP</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_DiagnosticLogCSP">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DiagnosticLogCSP</Registry>
       <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_DotNetFW_v4">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\.NETFramework\v4.0.30319</Registry>
