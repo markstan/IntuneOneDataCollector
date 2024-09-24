@@ -5282,6 +5282,7 @@ $resultBlob | Format-List
       <File Team="General">%SystemRoot%\SoftwareDistribution\ReportingEvents*.log</File>
       <File Team="General">%systemroot%\temp\stdout.log</File>
       <File Team="General">%temp%\supportconsole*.*</File>
+	  <File Team="General">%SystemRoot%\temp\winget\*.*</File>
       <File Team="Homegroup">%SystemRoot%\Logs\HomeGroup\*.*</File>
       <File Team="Intune">%LOCALAPPDATA%\Microsoft\OnlineManagement\Logs\clientui.log</File>
       <File Team="Intune">%LOCALAPPDATA%\Microsoft\Windows\clientui.log</File>
