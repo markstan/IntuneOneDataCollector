@@ -411,6 +411,7 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
  
  # https://en.wikipedia.org/wiki/Windows_10_version_history
  $versions = @{
+ "26100" =   "Win11 24H2"
  "22631" =   "Win11 23H2"
  "22622" =   "Win11 22H2"
  "22621" =   "Win11 22H2"
@@ -432,6 +433,7 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
  }
 
  $marketingNames = @{
+ "26100" =   "Win11 2024 Update"
  "22631" =   "Win11 2023 Update"
  "22622" =   "Win11 2022 Update"
  "22621" =   "Win11 2022 Update"
@@ -454,6 +456,7 @@ if ($WMIOS -ne $null) { #if WMIOS is null - means connection failed. Abort scrip
 
 
   $codeNames = @{
+ "26100" =   "Win11 24H2"
  "22631" =   "Win11 23H2"
  "22622" =   "Win11 22H2"
  "22621" =   "Win11 22H2"
@@ -531,7 +534,7 @@ if ($MachineIDContainer){
 $SubscriptionID = $ds -match "SubscriptionID : (.+)"
 
 # Start reporting
-$highestWinBuildNumber = "22631"
+$highestWinBuildNumber = "26100"
 
 $OS_Summary | Format-List
 

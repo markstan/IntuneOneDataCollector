@@ -40,7 +40,7 @@ $CompressedResultFileName = "$($env:COMPUTERNAME)_CollectedData_$fileTime.ZIP"
 [System.Nullable[bool]] $newZipperAvailable = $null # Stores flag whether [System.IO.Compression.ZipFile] can be used.
 
 $global:LogName = "$env:systemroot\temp\stdout.log"
-$ODCversion = "2024.2.8" 
+$ODCversion = "2024.10.2" 
 
 #endregion
 
@@ -1780,12 +1780,10 @@ if (-not (Test-Path $xmlPath) ) {
        if ( $null = [System.Net.WebProxy]::GetDefaultProxy().Address   ) {
                 Invoke-WebRequest -UseBasicParsing -Uri $downLoadLocation -OutFile .\Intune.XML
                 }
-            else {
-    
+            else {    
                 $myproxy = ([System.Net.WebProxy]::GetDefaultProxy().Address.AbsoluteURI)    
                 Invoke-WebRequest -UseBasicParsing -Uri $downLoadLocation -OutFile .\Intune.XML -Proxy $myproxy
-            }
-            
+            }            
     }
 
     catch {
