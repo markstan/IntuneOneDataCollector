@@ -720,7 +720,7 @@ RunCommand -cmdToRun "net statistics workstation"</Command>
       <Command Type="PS" Team="General" OutputFileName="sym_Process.txt">Get-Process | select Name, FileVersion, Path, ProductVersion | ft -auto -wrap</Command>
       <Command Type="PS" Team="General" OutputFileName="sym_drivers.txt">Get-WmiObject Win32_PnPSignedDriver| select DeviceName, DriverVersion | ft -auto -wrap</Command>
        <Command Type="PS" Team="General" OutputFileName="sym_RunningDrivers.txt">Get-WmiObject Win32_PnPSignedDriver | select DeviceName, DriverVersion | ft -auto</Command>
-      <Command Type="CMD" Team="General" OutputFileName="ScheduledTasks">schtasks.exe /Query</Command>
+      <Command Type="CMD" Team="General" OutputFileName="ScheduledTasks">schtasks.exe /fo list /v</Command>
       <Command Type="PS" Team="General" OutputFileName="NA">$outputPath = "$env:temp\CollectedData\Intune\Commands\Windows Update"
 $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 Get-WindowsUpdateLog -Logpath $outputPath\$($env:COMPUTERNAME)_WindowsUpdate.log</Command>
@@ -5219,10 +5219,8 @@ $resultBlob | Format-List
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*devicemanagement*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*firewall*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*intune*</EventLog>
-      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*momlog*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*ncrypt*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\System32\Winevt\Logs\*odj*</EventLog>
-      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*odj*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*operations*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*PFX*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*powershell*</EventLog>
@@ -5253,7 +5251,6 @@ $resultBlob | Format-List
       <EventLog Team="..\EventLogs">%SystemRoot%\System32\winevt\Logs\Microsoft-Windows-TaskScheduler*</EventLog> 
       <EventLog Team="..\EventLogs">%SystemRoot%\System32\Winevt\Logs\Microsoft-Windows-UniversalTelemetryClient%4Operational.evtx</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Microsoft-Windows-WindowsUpdateClient*</EventLog>
-      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\PFX*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Security.evtx</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\Setup.evtx</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\System.evtx</EventLog>
