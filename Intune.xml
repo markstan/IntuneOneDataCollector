@@ -7,6 +7,21 @@ $x = if (-not (Test-Path $outputPath)) { mkdir $outputPath -Force}
 msinfo32.exe /NFO    "$outputPath\msinfo32.nfo" 
 msinfo32.exe /report "$outputPath\msinfo32.txt"
 </Command>
+
+ <Command Type="PS" Team="Autopilot" OutputFileName="NA">
+$outputPath = "$env:temp\CollectedData\Intune\Commands\Autopilot"
+# Event 100 is returned if no AP XML file was found
+$NumLogs = ( Get-WinEvent -LogName "Microsoft-Windows-ModernDeployment-Diagnostics-Provider/Autopilot" | Where-Object { $_.Id -ne 100} ).count
+
+# we are on an AP-enrolled device
+if ($NumLogs -gt 0) {
+    mdmdiagnosticstool.exe -area "DeviceEnrollment;DeviceProvisioning;Autopilot" -zip "$outputPath\MDMDiagReport-AutopilotDeviceProvisioningDeviceEnrollment.zip"
+}
+else {
+    Write-Output "Skipping AP log collection"
+    }
+</Command>
+
       <Command Type="PS" Team="General" OutputFileName="dsreg_status">dsregcmd /status</Command>
       <Command Type="PS" Team="General" OutputFileName="whoami">RunCommand "whoami"
 RunCommand "whoami /upn"  
