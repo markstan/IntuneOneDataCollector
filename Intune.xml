@@ -2573,6 +2573,16 @@ else {
 		"Warning - no policies found under HKLM:\Software\Microsoft\PolicyManager\current\device"
 		}
 		</Command>
+      <Command Type="PS" Team="General" OutputFileName="Policies_CSP_Registry">
+      # Capture CSP-applied configuration stored under HKLM\SOFTWARE\Microsoft\Policies
+      # CSPs such as PassportForWork (Windows Hello for Business) and LAPS write their resolved settings here.
+      if (test-path HKLM:\SOFTWARE\Microsoft\Policies) {
+		reg query HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Policies /s 
+		}
+		else {
+		"Warning - no policies found under HKLM:\Software\Microsoft\Policies"
+		}
+		</Command>
       <Command Type="PS" Team="NDES" OutputFileName="localmachine_cert_info">if ( (dir Cert:\LocalMachine\My).Count -gt 0) {
 
     dir Cert:\LocalMachine\My | Select-Object * -ExpandProperty Extensions -ExcludeProperty RawData, PrivateKey 
