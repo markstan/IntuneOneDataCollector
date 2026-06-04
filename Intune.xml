@@ -3997,6 +3997,12 @@ del .\*DiagnosticLogCSP_Collector*.etl
 </Command>
       <Command Type="PS" Team="Windows Update" OutputFileName="FeatureUpdateHolds">reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Appraiser\GWX"</Command>
       <Command Type="PS" Team="General" OutputFileName="Get-DeliveryOptimizationLog">Get-DeliveryOptimizationLog</Command>
+      <Command Type="PS" Team="General" OutputFileName="DeliveryOptimization_Status.txt">RunCommand "Get-DeliveryOptimizationStatus"
+RunCommand "Get-DeliveryOptimizationPerfSnap"
+RunCommand "Get-DeliveryOptimizationPerfSnapThisMonth"
+RunCommand "Get-DOConfig -Verbose"
+RunCommand "Get-DOPercentageMaxBackgroundBandwidth"
+RunCommand "Get-DOPercentageMaxForegroundBandwidth"</Command>
       <Command Type="PS" Team="Windows Update" OutputFileName="ServiceManager_services">$ServiceManager = New-Object -ComObject "Microsoft.Update.ServiceManager"
 echo "`$ServiceManager = New-Object -ComObject Microsoft.Update.ServiceManager;`$ServiceManager.services| fl *"
 echo $("*" * 60)
@@ -5263,6 +5269,7 @@ $resultBlob | Format-List
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*appx*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*bitlocker*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*defender*</EventLog>
+      <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*DeliveryOptimization*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*devicemanagement*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*firewall*</EventLog>
       <EventLog Team="..\EventLogs">%SystemRoot%\system32\winevt\logs\*intune*</EventLog>
@@ -5375,7 +5382,11 @@ $resultBlob | Format-List
 	
 <Registries> 
       <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_CloudManagedUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CloudManagedUpdate</Registry>	  
-      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_PolicyManager_Current_Device_Update">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\current\device\Update</Registry> 
+      <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_PolicyManager_Current_Device_Update">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\current\device\Update</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_PolicyManager_Current">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\current</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_PolicyManager_Providers">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\providers</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_PolicyManager_AdmxInstalled">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\AdmxInstalled</Registry>
+      <Registry Team="..\RegistryKeys" OutputFileName="REG_SW_Microsoft_PolicyManager_AdmxDefault">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\AdmxDefault</Registry> 
       <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate</Registry>
       <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_Windows_CV_WindowsUpdate">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate</Registry>
       <Registry Team="..\Commands\Windows Update" OutputFileName="REG_SW_Microsoft_WufbDS">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WufbDS</Registry>	

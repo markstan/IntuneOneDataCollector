@@ -1,4 +1,4 @@
-<#
+﻿<#
     Stand-alone implementation of One Data Collector
 
 #>
@@ -40,7 +40,8 @@ $CompressedResultFileName = "$($env:COMPUTERNAME)_CollectedData_$fileTime.ZIP"
 [System.Nullable[bool]] $newZipperAvailable = $null # Stores flag whether [System.IO.Compression.ZipFile] can be used.
 
 $global:LogName = "$env:systemroot\temp\stdout.log"
-$ODCversion = "2026.3.23" 
+$ODCversion = "2026.4.24"
+$Global:ScriptStartTime = Get-Date
 
 #endregion
 
@@ -1702,10 +1703,115 @@ function Process-Package
     }
 }
 
+function Write-RunSummary {
+    <#
+    .SYNOPSIS
+    Generates a _SUMMARY.txt at the root of the collected data folder so engineers
+    triaging the ZIP can immediately see run metadata and key health indicators.
+    #>
+    if (-not (Test-Path $ResultRootDirectory)) { return }
+
+    $summaryPath = Join-Path $ResultRootDirectory '_SUMMARY.txt'
+    $endTime = Get-Date
+    $duration = $endTime - $Global:ScriptStartTime
+
+    $sb = New-Object System.Text.StringBuilder
+    [void]$sb.AppendLine(('=' * 80))
+    [void]$sb.AppendLine("  Intune One Data Collector (ODC) - Run Summary")
+    [void]$sb.AppendLine(('=' * 80))
+    [void]$sb.AppendLine("ODC Version       : $ODCversion")
+    [void]$sb.AppendLine("Computer Name     : $env:COMPUTERNAME")
+    [void]$sb.AppendLine("User              : $env:USERDOMAIN\$env:USERNAME")
+    [void]$sb.AppendLine("Run Start (Local) : $($Global:ScriptStartTime.ToString('yyyy-MM-dd HH:mm:ss zzz'))")
+    [void]$sb.AppendLine("Run End   (Local) : $($endTime.ToString('yyyy-MM-dd HH:mm:ss zzz'))")
+    [void]$sb.AppendLine("Duration          : {0:c}" -f $duration)
+
+    try {
+        $os = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
+        [void]$sb.AppendLine("OS                : $($os.Caption) (Build $($os.BuildNumber))")
+    } catch { [void]$sb.AppendLine("OS                : (unable to query)") }
+
+    # Folder size + file count
+    try {
+        $items = Get-ChildItem -Path $ResultRootDirectory -Recurse -File -ErrorAction SilentlyContinue
+        $totalBytes = ($items | Measure-Object -Property Length -Sum).Sum
+        [void]$sb.AppendLine("Files Collected   : $($items.Count)")
+        [void]$sb.AppendLine("Total Size        : {0:N2} MB" -f ($totalBytes / 1MB))
+    } catch {}
+
+    [void]$sb.AppendLine('')
+    [void]$sb.AppendLine(('-' * 80))
+    [void]$sb.AppendLine("  Key Health Indicators")
+    [void]$sb.AppendLine(('-' * 80))
+
+    # Azure AD / MDM enrollment state
+    try {
+        $ds = dsregcmd /status 2>$null
+        $aadJoined  = if ($ds -match 'AzureAdJoined\s*:\s*YES') { 'YES' } else { 'NO' }
+        $domJoined  = if ($ds -match 'DomainJoined\s*:\s*YES')  { 'YES' } else { 'NO' }
+        $workplace  = if ($ds -match 'WorkplaceJoined\s*:\s*YES') { 'YES' } else { 'NO' }
+        [void]$sb.AppendLine("AzureAdJoined     : $aadJoined")
+        [void]$sb.AppendLine("DomainJoined      : $domJoined")
+        [void]$sb.AppendLine("WorkplaceJoined   : $workplace")
+    } catch { [void]$sb.AppendLine("dsregcmd          : (failed to run)") }
+
+    # IME service state
+    try {
+        $ime = Get-Service -Name IntuneManagementExtension -ErrorAction Stop
+        $marker = if ($ime.Status -ne 'Running') { ' [!]' } else { '' }
+        [void]$sb.AppendLine("IME Service       : $($ime.Status) (StartType: $($ime.StartType))$marker")
+    } catch { [void]$sb.AppendLine("IME Service       : NOT INSTALLED [!]") }
+
+    # MDM enrollment cert
+    try {
+        $cert = Get-ChildItem Cert:\LocalMachine\My -ErrorAction SilentlyContinue |
+                Where-Object { $_.Issuer -match 'CN=Microsoft Intune MDM Device CA' } |
+                Sort-Object NotAfter -Descending | Select-Object -First 1
+        if ($cert) {
+            $daysLeft = ($cert.NotAfter - (Get-Date)).Days
+            $marker = if ($daysLeft -lt 30) { ' [!]' } else { '' }
+            [void]$sb.AppendLine("MDM Cert Expires  : $($cert.NotAfter.ToString('yyyy-MM-dd')) ($daysLeft days)$marker")
+        } else {
+            [void]$sb.AppendLine("MDM Cert          : NOT FOUND")
+        }
+    } catch {}
+
+    # Disk space on system drive
+    try {
+        $drive = Get-PSDrive -Name ($env:SystemDrive.TrimEnd(':')) -ErrorAction Stop
+        $freeGB = [math]::Round($drive.Free / 1GB, 1)
+        $marker = if ($freeGB -lt 5) { ' [!]' } else { '' }
+        [void]$sb.AppendLine("Free Space ($($env:SystemDrive)) : $freeGB GB$marker")
+    } catch {}
+
+    # Errors observed in the ODC log itself
+    try {
+        if (Test-Path $global:LogName) {
+            $errCount = (Get-Content $global:LogName -ErrorAction SilentlyContinue |
+                         Select-String -Pattern '\bError\b|\bException\b|\bFailed\b' -CaseSensitive:$false |
+                         Where-Object { $_ -notmatch 'SilentlyContinue|ErrorAction|ErrorVariable|ErrorActionPreference|FullyQualifiedErrorId|No errors' }).Count
+            $marker = if ($errCount -gt 0) { ' [!]' } else { '' }
+            [void]$sb.AppendLine("ODC Log Errors    : $errCount$marker")
+        }
+    } catch {}
+
+    [void]$sb.AppendLine('')
+    [void]$sb.AppendLine('Items flagged with [!] may warrant investigation.')
+    [void]$sb.AppendLine(('=' * 80))
+
+    try {
+        Set-Content -Path $summaryPath -Value $sb.ToString() -Encoding UTF8 -Force
+        Write-Log -Message "Run summary written to $summaryPath" -Level Information
+    } catch {
+        Write-Log -Message "Failed to write run summary: $_" -Level Warning
+    }
+}
+
 function Compress-CollectedDataAndReport
 {
     if(Test-Path($ResultRootDirectory))
     {
+        Write-RunSummary
         Write-DiagProgress -Activity "Compressing zip file" -status $CompressedResultFileName
         
         
