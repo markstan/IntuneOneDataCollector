@@ -5,9 +5,15 @@ Intune One Data Collector (ODC) is a support script to enable the collection of 
  
 To run this tool, open an elevated PowerShell window (right-click, "Run as administrator..."), create a temporary folder, then run these three commands:
 
-         wget https://aka.ms/intunePS1  -outfile IntuneODCStandAlone.ps1
-         wget https://aka.ms/intuneXML  -outfile Intune.xml
-         PowerShell -ExecutionPolicy Bypass -File .\IntuneODCStandAlone.ps1
+# validate path and create a temporary folder 
+if (!(test-path c:\ODC)){md C:\ODC}
+cd c:\msftODC\
+# main commands
+wget https://aka.ms/intunexml -outfile Intune.xml
+wget https://aka.ms/intuneps1 -outfile IntuneODCStandAlone.ps1
+powerShell -ExecutionPolicy Bypass -File .\IntuneODCStandAlone.ps1
+ 
+It usually takes 3-5 minutes to run, but can take up to 30 minutes. The user is welcome to use the device while it's running, just don't close out the PowerShell window.
 
 (**Hint**: You can copy and paste the commands from this page and paste them directly in to the PowerShell window. If you need to type the commands, please be aware that there are two different URIs for the two files.)
 
